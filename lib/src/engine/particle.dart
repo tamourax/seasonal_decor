@@ -8,6 +8,8 @@ enum ParticleShape {
   lantern,
   balloon,
   sheep,
+  gift,
+  ornament,
   line,
   heart,
   bat,
