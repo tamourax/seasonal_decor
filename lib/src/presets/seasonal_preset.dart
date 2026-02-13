@@ -27,10 +27,23 @@ class SeasonalPreset {
   /// Returns the fully resolved configuration for the given [intensity].
   DecorConfig resolve(DecorIntensity intensity) {
     final profile = intensity.profile;
-    return baseConfig.copyWith(
+    final resolved = baseConfig.copyWith(
       particleCount: profile.particleCount,
       speedMultiplier: baseConfig.speedMultiplier * profile.speedMultiplier,
       spawnRate: profile.spawnRate * baseConfig.spawnRateScale,
+    );
+    if (!baseConfig.enableFireworks) {
+      return resolved;
+    }
+    final burstScale = profile.speedMultiplier;
+    return resolved.copyWith(
+      rocketSpawnRate: baseConfig.rocketSpawnRate * profile.speedMultiplier,
+      sparksPerBurstMin: (baseConfig.sparksPerBurstMin * burstScale)
+          .round()
+          .clamp(6, 120) as int,
+      sparksPerBurstMax: (baseConfig.sparksPerBurstMax * burstScale)
+          .round()
+          .clamp(8, 160) as int,
     );
   }
 

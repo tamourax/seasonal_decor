@@ -66,6 +66,12 @@ class ParticleStyle {
 enum BackdropType {
   /// A large crescent shape for Ramadan.
   crescent,
+
+  /// A decorative evergreen tree.
+  tree,
+
+  /// A string of garland lights.
+  garland,
 }
 
 /// Background artwork drawn behind particles.
@@ -106,6 +112,34 @@ class DecorBackdrop {
           anchor: anchor,
           sizeFactor: sizeFactor,
         );
+
+  /// Convenience constructor for a tree backdrop.
+  const DecorBackdrop.tree({
+    required Color color,
+    required double opacity,
+    required Offset anchor,
+    required double sizeFactor,
+  }) : this(
+          type: BackdropType.tree,
+          color: color,
+          opacity: opacity,
+          anchor: anchor,
+          sizeFactor: sizeFactor,
+        );
+
+  /// Convenience constructor for a garland backdrop.
+  const DecorBackdrop.garland({
+    required Color color,
+    required double opacity,
+    required Offset anchor,
+    required double sizeFactor,
+  }) : this(
+          type: BackdropType.garland,
+          color: color,
+          opacity: opacity,
+          anchor: anchor,
+          sizeFactor: sizeFactor,
+        );
 }
 
 /// Configuration for a seasonal decorative overlay.
@@ -137,6 +171,56 @@ class DecorConfig {
   /// Optional decorative backdrop.
   final DecorBackdrop? backdrop;
 
+  /// Optional list of decorative backdrops.
+  final List<DecorBackdrop> backdrops;
+
+  /// Enables Eid-style fireworks behavior.
+  final bool enableFireworks;
+
+  /// Maximum number of rockets that can be active at once.
+  final int rocketsMax;
+
+  /// Rockets spawned per second.
+  final double rocketSpawnRate;
+
+  /// Minimum sparks per burst.
+  final int sparksPerBurstMin;
+
+  /// Maximum sparks per burst.
+  final int sparksPerBurstMax;
+
+  /// Burst height factor from the top of the screen (0..1).
+  final double burstHeightFactor;
+
+  /// Downward gravity applied to sparks.
+  final double gravityY;
+
+  /// Rocket speed range (logical px/sec).
+  final double rocketMinSpeed;
+  final double rocketMaxSpeed;
+
+  /// Rocket life range (seconds).
+  final double rocketLifeMin;
+  final double rocketLifeMax;
+
+  /// Rocket visual size.
+  final double rocketSize;
+
+  /// Horizontal drift for rockets.
+  final double rocketDrift;
+
+  /// Spark speed range (logical px/sec).
+  final double sparkMinSpeed;
+  final double sparkMaxSpeed;
+
+  /// Spark life range (seconds).
+  final double sparkLifeMin;
+  final double sparkLifeMax;
+
+  /// Spark size range (line length).
+  final double sparkMinSize;
+  final double sparkMaxSize;
+
   const DecorConfig({
     required this.particleCount,
     required this.speedMultiplier,
@@ -147,6 +231,26 @@ class DecorConfig {
     required this.wrapMode,
     required this.styles,
     this.backdrop,
+    this.backdrops = const [],
+    this.enableFireworks = false,
+    this.rocketsMax = 6,
+    this.rocketSpawnRate = 0.8,
+    this.sparksPerBurstMin = 20,
+    this.sparksPerBurstMax = 40,
+    this.burstHeightFactor = 0.25,
+    this.gravityY = 70,
+    this.rocketMinSpeed = 210,
+    this.rocketMaxSpeed = 260,
+    this.rocketLifeMin = 1.0,
+    this.rocketLifeMax = 1.6,
+    this.rocketSize = 3.0,
+    this.rocketDrift = 24,
+    this.sparkMinSpeed = 70,
+    this.sparkMaxSpeed = 190,
+    this.sparkLifeMin = 0.7,
+    this.sparkLifeMax = 1.3,
+    this.sparkMinSize = 6.0,
+    this.sparkMaxSize = 12.0,
   });
 
   /// Returns a copy with updated values.
@@ -160,6 +264,26 @@ class DecorConfig {
     DecorWrapMode? wrapMode,
     List<ParticleStyle>? styles,
     DecorBackdrop? backdrop,
+    List<DecorBackdrop>? backdrops,
+    bool? enableFireworks,
+    int? rocketsMax,
+    double? rocketSpawnRate,
+    int? sparksPerBurstMin,
+    int? sparksPerBurstMax,
+    double? burstHeightFactor,
+    double? gravityY,
+    double? rocketMinSpeed,
+    double? rocketMaxSpeed,
+    double? rocketLifeMin,
+    double? rocketLifeMax,
+    double? rocketSize,
+    double? rocketDrift,
+    double? sparkMinSpeed,
+    double? sparkMaxSpeed,
+    double? sparkLifeMin,
+    double? sparkLifeMax,
+    double? sparkMinSize,
+    double? sparkMaxSize,
   }) {
     return DecorConfig(
       particleCount: particleCount ?? this.particleCount,
@@ -171,6 +295,26 @@ class DecorConfig {
       wrapMode: wrapMode ?? this.wrapMode,
       styles: styles ?? this.styles,
       backdrop: backdrop ?? this.backdrop,
+      backdrops: backdrops ?? this.backdrops,
+      enableFireworks: enableFireworks ?? this.enableFireworks,
+      rocketsMax: rocketsMax ?? this.rocketsMax,
+      rocketSpawnRate: rocketSpawnRate ?? this.rocketSpawnRate,
+      sparksPerBurstMin: sparksPerBurstMin ?? this.sparksPerBurstMin,
+      sparksPerBurstMax: sparksPerBurstMax ?? this.sparksPerBurstMax,
+      burstHeightFactor: burstHeightFactor ?? this.burstHeightFactor,
+      gravityY: gravityY ?? this.gravityY,
+      rocketMinSpeed: rocketMinSpeed ?? this.rocketMinSpeed,
+      rocketMaxSpeed: rocketMaxSpeed ?? this.rocketMaxSpeed,
+      rocketLifeMin: rocketLifeMin ?? this.rocketLifeMin,
+      rocketLifeMax: rocketLifeMax ?? this.rocketLifeMax,
+      rocketSize: rocketSize ?? this.rocketSize,
+      rocketDrift: rocketDrift ?? this.rocketDrift,
+      sparkMinSpeed: sparkMinSpeed ?? this.sparkMinSpeed,
+      sparkMaxSpeed: sparkMaxSpeed ?? this.sparkMaxSpeed,
+      sparkLifeMin: sparkLifeMin ?? this.sparkLifeMin,
+      sparkLifeMax: sparkLifeMax ?? this.sparkLifeMax,
+      sparkMinSize: sparkMinSize ?? this.sparkMinSize,
+      sparkMaxSize: sparkMaxSize ?? this.sparkMaxSize,
     );
   }
 }

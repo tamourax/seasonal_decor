@@ -79,4 +79,86 @@ void main() {
     expect(particle.active, isTrue);
     expect(particle.position.dy, lessThanOrEqualTo(0));
   });
+
+  test('fireworks burst activates sparks', () {
+    const config = DecorConfig(
+      particleCount: 10,
+      speedMultiplier: 1.0,
+      spawnRate: 1,
+      spawnRateScale: 1.0,
+      drift: 0,
+      flow: ParticleFlow.falling,
+      wrapMode: DecorWrapMode.respawn,
+      enableFireworks: true,
+      rocketsMax: 1,
+      rocketSpawnRate: 0,
+      sparksPerBurstMin: 5,
+      sparksPerBurstMax: 5,
+      burstHeightFactor: 0.2,
+      styles: [
+        ParticleStyle(
+          shape: ParticleShape.circle,
+          color: Color(0xFFFFFFFF),
+          minSize: 2.0,
+          maxSize: 2.0,
+          minSpeed: 0,
+          maxSpeed: 0,
+          minRotationSpeed: 0,
+          maxRotationSpeed: 0,
+        ),
+      ],
+    );
+
+    final system = ParticleSystem(
+      config: config,
+      size: const Size(100, 100),
+      random: math.Random(3),
+    );
+
+    for (final particle in system.particles) {
+      particle.active = false;
+    }
+
+    final rocket = system.particles.first;
+    rocket.reset(
+      position: const Offset(50, 10),
+      velocity: const Offset(0, -10),
+      size: 3,
+      rotation: 0,
+      rotationSpeed: 0,
+      color: const Color(0xFFFFFFFF),
+      opacity: 1,
+      shape: ParticleShape.circle,
+      kind: ParticleKind.rocket,
+      life: 1,
+      maxLife: 1,
+    );
+
+    system.update(0.1);
+
+    final sparkCount = system.particles
+        .where((particle) =>
+            particle.active && particle.kind == ParticleKind.spark)
+        .length;
+    expect(sparkCount, greaterThan(0));
+  });
+
+  test('spark life progress reflects remaining life', () {
+    final particle = Particle(
+      active: true,
+      position: Offset.zero,
+      velocity: Offset.zero,
+      size: 1,
+      rotation: 0,
+      rotationSpeed: 0,
+      color: const Color(0xFFFFFFFF),
+      opacity: 1,
+      shape: ParticleShape.line,
+      kind: ParticleKind.spark,
+      life: 0.5,
+      maxLife: 1.0,
+    );
+
+    expect(particle.lifeProgress, closeTo(0.5, 0.001));
+  });
 }

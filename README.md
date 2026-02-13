@@ -45,8 +45,8 @@ SeasonalDecor(
 ## Presets
 
 - Ramadan (`classic`, `night`)
-- Eid (`classic`)
-- Christmas (`classic`)
+- Eid (`classic`) — fireworks rockets and bursts
+- Christmas (`classic`) — heavier snow with tree and garland
 
 ## Performance Notes
 
