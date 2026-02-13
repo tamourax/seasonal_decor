@@ -87,6 +87,7 @@ class _HomePageState extends State<HomePage> {
   DecorIntensity _intensity = DecorIntensity.high;
   bool _enabled = true;
   bool _pauseWhenInactive = true;
+  bool _ignorePointer = true;
   bool _respectReduceMotion = false;
   bool _simulateReduceMotion = false;
   double _opacity = 1.0;
@@ -94,6 +95,7 @@ class _HomePageState extends State<HomePage> {
   bool _showBackdrop = true;
   bool _showBackdropWhenDisabled = true;
   double _playDurationSeconds = 0.0;
+  bool _settleOnDisable = true;
   bool _autoRepeatEnabled = false;
   double _repeatMinutes = 1.0;
   bool _usePresetOverrides = false;
@@ -278,12 +280,14 @@ class _HomePageState extends State<HomePage> {
                 enabled: _enabled,
                 opacity: _opacity,
                 pauseWhenInactive: _pauseWhenInactive,
+                ignorePointer: _ignorePointer,
                 respectReduceMotion: _respectReduceMotion,
                 showBackdrop: _showBackdrop,
                 showBackdropWhenDisabled: _showBackdropWhenDisabled,
                 playDuration: Duration(
                   milliseconds: (_playDurationSeconds * 1000).round(),
                 ),
+                settleOnDisable: _settleOnDisable,
                 repeatEvery: _autoRepeatEnabled
                     ? Duration(
                         milliseconds: (_repeatMinutes * 60000).round(),
@@ -297,12 +301,14 @@ class _HomePageState extends State<HomePage> {
               intensity: _intensity,
               enabled: _enabled,
               pauseWhenInactive: _pauseWhenInactive,
+              ignorePointer: _ignorePointer,
               respectReduceMotion: _respectReduceMotion,
               simulateReduceMotion: _simulateReduceMotion,
               opacity: _opacity,
               showBackdrop: _showBackdrop,
               showBackdropWhenDisabled: _showBackdropWhenDisabled,
               playDurationSeconds: _playDurationSeconds,
+              settleOnDisable: _settleOnDisable,
               autoRepeatEnabled: _autoRepeatEnabled,
               repeatMinutes: _repeatMinutes,
               useTeamColors: _useTeamColors,
@@ -316,6 +322,8 @@ class _HomePageState extends State<HomePage> {
               onEnabledChanged: (value) => setState(() => _enabled = value),
               onPauseWhenInactiveChanged: (value) =>
                   setState(() => _pauseWhenInactive = value),
+              onIgnorePointerChanged: (value) =>
+                  setState(() => _ignorePointer = value),
               onRespectReduceMotionChanged: (value) =>
                   setState(() => _respectReduceMotion = value),
               onSimulateReduceMotionChanged: (value) =>
@@ -327,6 +335,8 @@ class _HomePageState extends State<HomePage> {
                   setState(() => _showBackdropWhenDisabled = value),
               onPlayDurationChanged: (value) =>
                   setState(() => _playDurationSeconds = value),
+              onSettleOnDisableChanged: (value) =>
+                  setState(() => _settleOnDisable = value),
               onAutoRepeatChanged: (value) =>
                   setState(() => _autoRepeatEnabled = value),
               onRepeatMinutesChanged: (value) =>
@@ -420,12 +430,14 @@ class _ControlSheet extends StatelessWidget {
   final DecorIntensity intensity;
   final bool enabled;
   final bool pauseWhenInactive;
+  final bool ignorePointer;
   final bool respectReduceMotion;
   final bool simulateReduceMotion;
   final double opacity;
   final bool showBackdrop;
   final bool showBackdropWhenDisabled;
   final double playDurationSeconds;
+  final bool settleOnDisable;
   final bool autoRepeatEnabled;
   final double repeatMinutes;
   final bool useTeamColors;
@@ -438,12 +450,14 @@ class _ControlSheet extends StatelessWidget {
   final ValueChanged<DecorIntensity> onIntensityChanged;
   final ValueChanged<bool> onEnabledChanged;
   final ValueChanged<bool> onPauseWhenInactiveChanged;
+  final ValueChanged<bool> onIgnorePointerChanged;
   final ValueChanged<bool> onRespectReduceMotionChanged;
   final ValueChanged<bool> onSimulateReduceMotionChanged;
   final ValueChanged<double> onOpacityChanged;
   final ValueChanged<bool> onShowBackdropChanged;
   final ValueChanged<bool> onShowBackdropWhenDisabledChanged;
   final ValueChanged<double> onPlayDurationChanged;
+  final ValueChanged<bool> onSettleOnDisableChanged;
   final ValueChanged<bool> onAutoRepeatChanged;
   final ValueChanged<double> onRepeatMinutesChanged;
   final ValueChanged<bool> onUseTeamColorsChanged;
@@ -458,12 +472,14 @@ class _ControlSheet extends StatelessWidget {
     required this.intensity,
     required this.enabled,
     required this.pauseWhenInactive,
+    required this.ignorePointer,
     required this.respectReduceMotion,
     required this.simulateReduceMotion,
     required this.opacity,
     required this.showBackdrop,
     required this.showBackdropWhenDisabled,
     required this.playDurationSeconds,
+    required this.settleOnDisable,
     required this.autoRepeatEnabled,
     required this.repeatMinutes,
     required this.useTeamColors,
@@ -476,12 +492,14 @@ class _ControlSheet extends StatelessWidget {
     required this.onIntensityChanged,
     required this.onEnabledChanged,
     required this.onPauseWhenInactiveChanged,
+    required this.onIgnorePointerChanged,
     required this.onRespectReduceMotionChanged,
     required this.onSimulateReduceMotionChanged,
     required this.onOpacityChanged,
     required this.onShowBackdropChanged,
     required this.onShowBackdropWhenDisabledChanged,
     required this.onPlayDurationChanged,
+    required this.onSettleOnDisableChanged,
     required this.onAutoRepeatChanged,
     required this.onRepeatMinutesChanged,
     required this.onUseTeamColorsChanged,
@@ -700,6 +718,13 @@ class _ControlSheet extends StatelessWidget {
                   ),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
+                    title: const Text('Settle On Disable'),
+                    subtitle: const Text('Let particles finish naturally'),
+                    value: settleOnDisable,
+                    onChanged: onSettleOnDisableChanged,
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
                     title: const Text('Auto Repeat'),
                     subtitle: const Text('Restart after a period'),
                     value: autoRepeatEnabled,
@@ -761,6 +786,13 @@ class _ControlSheet extends StatelessWidget {
                     title: const Text('Pause When Inactive'),
                     value: pauseWhenInactive,
                     onChanged: onPauseWhenInactiveChanged,
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Ignore Pointer'),
+                    subtitle: const Text('Let taps pass through the overlay'),
+                    value: ignorePointer,
+                    onChanged: onIgnorePointerChanged,
                   ),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,

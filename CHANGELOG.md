@@ -1,3 +1,14 @@
+## 1.1.2
+
+- Add preset overrides for shapes and backdrops via `withOverrides(...)`.
+- Add `SeasonalPreset.none()` for no-decoration rendering.
+- Add new particle shapes: lantern, balloon, sheep, gift, ornament.
+- Add new backdrops: bunting, mosque, candy garland.
+- Enhance Ramadan (lanterns) and Eid (Fitr/Adha variants with mosque + sheep).
+- Improve Christmas visuals: detailed tree, candy garland, ornaments, gift drops.
+- Update example app controls (preset overrides, backdrop positioning).
+- Refresh GIF previews and add None preset screenshot.
+
 ## 1.0.1
 
 - Update README previews to use GitHub raw links.

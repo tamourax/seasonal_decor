@@ -8,7 +8,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  seasonal_decor: ^1.0.1
+  seasonal_decor: ^1.1.2
 ```
 
 Then run:
@@ -44,6 +44,15 @@ SeasonalDecor(
 );
 ```
 
+No overlay (render child only):
+
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.none(),
+  child: const HomeScreen(),
+);
+```
+
 Control intensity and opacity:
 
 ```dart
@@ -74,8 +83,8 @@ Customize particle shapes and backdrops:
 final preset = SeasonalPreset.eid(variant: EidVariant.fitr).withOverrides(
   shapes: [ParticleShape.balloon],
   backdropType: BackdropType.bunting,
-  backdropAnchor: const Offset(0.5, 0.12),
-  backdropSizeFactor: 0.08,
+  backdropAnchor: const Offset(0.5, 0.12), // position (x,y)
+  backdropSizeFactor: 0.08, // size
 );
 
 SeasonalDecor(
@@ -127,6 +136,8 @@ The widget you want to decorate. The overlay is painted on top of this widget.
 `preset`
 Pick a ready-made style like Ramadan, Eid, Christmas, New Year, Valentine, Halloween, or Sport Event. Presets include shapes, colors, and backdrops.
 
+You can use `SeasonalPreset.none()` to render the child without any decoration.
+
 `enabled`
 Turn the overlay on or off. When `false`, particles stop rendering. Backdrops can still show if `showBackdropWhenDisabled` is `true`.
 
@@ -167,14 +178,14 @@ All presets can be customized using `withOverrides(...)` to swap shapes or backd
 Examples:
 - Replace all particle shapes with balloons or sheep.
 - Change the backdrop type (crescent/tree/garland/bunting/mosque/trophy).
-- Change backdrop alignment using `backdropAnchor` (0..1).
+- Change backdrop alignment using `backdropAnchor` (0..1) and size using `backdropSizeFactor`.
 
 ## Presets
 
 - Ramadan (`classic`, `night`)
 - Eid al-Fitr (`fitr`) - bunting + balloons
 - Eid al-Adha (`adha`) - mosque + sheep + fireworks
-- Christmas (`classic`) - snow with tree/garland
+- Christmas (`classic`) - snow with detailed tree, candy garland, ornaments, gifts
 - New Year (`fireworks`, `gold`) - fireworks with confetti
 - Valentine (`hearts`, `minimal`) - floating hearts with sparkles
 - Halloween (`spooky`, `pumpkin`) - bats/pumpkins with moon
@@ -183,16 +194,67 @@ Examples:
 ## Preset Previews
 
 ### **Ramadan**
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.ramadan(),
+  child: const HomeScreen(),
+);
+```
 ![Ramadan](https://raw.githubusercontent.com/tamourax/seasonal_decor/main/assets/gif/ramadan.gif)
 
-### **Eid**
-![Eid](https://raw.githubusercontent.com/tamourax/seasonal_decor/main/assets/gif/eid.gif)
+### **Eid al-Fitr**
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.eid(variant: EidVariant.fitr),
+  child: const HomeScreen(),
+);
+```
+![Eid al-Fitr](https://raw.githubusercontent.com/tamourax/seasonal_decor/main/assets/gif/eid_fitr.gif)
+
+### **Eid al-Adha**
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.eid(variant: EidVariant.adha),
+  child: const HomeScreen(),
+);
+```
+![Eid al-Adha](https://raw.githubusercontent.com/tamourax/seasonal_decor/main/assets/gif/eid-adha.gif)
 
 ### **Christmas**
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.christmas(),
+  child: const HomeScreen(),
+);
+```
 ![Christmas](https://raw.githubusercontent.com/tamourax/seasonal_decor/main/assets/gif/christmas.gif)
 
+### **New Year**
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.newYear(),
+  child: const HomeScreen(),
+);
+```
+![New Year](https://raw.githubusercontent.com/tamourax/seasonal_decor/main/assets/gif/new-year.gif)
+
 ### **Valentine**
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.valentine(),
+  child: const HomeScreen(),
+);
+```
 ![Valentine](https://raw.githubusercontent.com/tamourax/seasonal_decor/main/assets/gif/valentine.gif)
+
+### **None**
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.none(),
+  child: const HomeScreen(),
+);
+```
+![None](https://raw.githubusercontent.com/tamourax/seasonal_decor/main/assets/images/none.png)
 
 ## Performance Notes
 
