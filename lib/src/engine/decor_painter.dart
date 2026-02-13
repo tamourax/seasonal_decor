@@ -23,6 +23,9 @@ class DecorPainter extends CustomPainter {
   final Paint _paint = Paint()..isAntiAlias = true;
   final Path _treePath = Path();
   final Path _garlandPath = Path();
+  final Path _fieldPath = Path();
+  final Path _pitchPath = Path();
+  final Path _crowdPath = Path();
 
   static final Path _unitStarPath = _buildUnitStarPath();
   static final Path _unitCrescentPath = _buildUnitCrescentPath();
@@ -63,6 +66,9 @@ class DecorPainter extends CustomPainter {
     system.setBounds(size);
 
     final clampedOpacity = opacity.clamp(0.0, 1.0) as double;
+    if (config.enableSpotlights) {
+      _paintSpotlights(canvas, size, clampedOpacity);
+    }
     _paintBackdrop(canvas, size, clampedOpacity);
 
     final particles = system.particles;
@@ -111,6 +117,18 @@ class DecorPainter extends CustomPainter {
         break;
       case BackdropType.trophy:
         _paintTrophy(canvas, size, opacity, backdrop);
+        break;
+      case BackdropType.stadiumField:
+        _paintStadiumField(canvas, size, opacity, backdrop);
+        break;
+      case BackdropType.pitch:
+        _paintPitch(canvas, size, opacity, backdrop);
+        break;
+      case BackdropType.stadiumCrowd:
+        _paintStadiumCrowd(canvas, size, opacity, backdrop);
+        break;
+      case BackdropType.heroBall:
+        _paintHeroBall(canvas, size, opacity, backdrop);
         break;
     }
   }
@@ -270,6 +288,24 @@ class DecorPainter extends CustomPainter {
     final combinedAlpha =
         (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0) as double;
     final color = backdrop.color.withValues(alpha: combinedAlpha);
+
+    final glowAlpha = (combinedAlpha * 0.6).clamp(0.0, 0.25) as double;
+    if (glowAlpha > 0) {
+      final glowRadius = scale * 1.35;
+      _paint
+        ..shader = RadialGradient(
+          colors: [
+            const Color(0xFFFFFFFF).withValues(alpha: glowAlpha),
+            const Color(0xFFFFFFFF).withValues(alpha: 0),
+          ],
+        ).createShader(
+          Rect.fromCircle(center: center, radius: glowRadius),
+        )
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(center, glowRadius, _paint);
+      _paint.shader = null;
+    }
+
     _paint
       ..color = color
       ..style = PaintingStyle.fill;
@@ -278,6 +314,269 @@ class DecorPainter extends CustomPainter {
     canvas.scale(scale, scale);
     canvas.drawPath(_unitTrophyPath, _paint);
     canvas.restore();
+  }
+
+  void _paintStadiumField(
+    Canvas canvas,
+    Size size,
+    double opacity,
+    DecorBackdrop backdrop,
+  ) {
+    final fieldHeight = size.height * backdrop.sizeFactor;
+    final topY = size.height - fieldHeight;
+    final baseAlpha = backdrop.color.a;
+    final combinedAlpha =
+        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0) as double;
+    final topColor =
+        Color.lerp(backdrop.color, const Color(0xFFFFFFFF), 0.18)!
+            .withValues(alpha: combinedAlpha);
+    final bottomColor =
+        Color.lerp(backdrop.color, const Color(0xFF000000), 0.2)!
+            .withValues(alpha: combinedAlpha);
+
+    _fieldPath
+      ..reset()
+      ..moveTo(-size.width * 0.1, size.height)
+      ..lineTo(-size.width * 0.1, topY + fieldHeight * 0.35)
+      ..quadraticBezierTo(
+        size.width * 0.5,
+        topY - fieldHeight * 0.2,
+        size.width * 1.1,
+        topY + fieldHeight * 0.35,
+      )
+      ..lineTo(size.width * 1.1, size.height)
+      ..close();
+
+    _paint
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [topColor, bottomColor],
+      ).createShader(Rect.fromLTWH(0, topY, size.width, fieldHeight))
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(_fieldPath, _paint);
+    _paint.shader = null;
+
+    canvas.save();
+    canvas.clipPath(_fieldPath);
+    _paint
+      ..color = const Color(0xFFFFFFFF)
+          .withValues(alpha: (combinedAlpha * 0.5).clamp(0.0, 1.0) as double)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.0, fieldHeight * 0.015);
+    final lineY = topY + fieldHeight * 0.52;
+    canvas.drawLine(Offset(0, lineY), Offset(size.width, lineY), _paint);
+    canvas.restore();
+  }
+
+  void _paintPitch(
+    Canvas canvas,
+    Size size,
+    double opacity,
+    DecorBackdrop backdrop,
+  ) {
+    final fieldHeight = size.height * backdrop.sizeFactor;
+    final topY = size.height - fieldHeight;
+    final topWidth = size.width * 0.62;
+    final bottomWidth = size.width * 1.1;
+    final centerX = size.width * backdrop.anchor.dx;
+    final baseAlpha = backdrop.color.a;
+    final combinedAlpha =
+        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0) as double;
+
+    final topColor =
+        Color.lerp(backdrop.color, const Color(0xFFFFFFFF), 0.14)!
+            .withValues(alpha: combinedAlpha);
+    final bottomColor =
+        Color.lerp(backdrop.color, const Color(0xFF000000), 0.2)!
+            .withValues(alpha: combinedAlpha);
+
+    _pitchPath
+      ..reset()
+      ..moveTo(centerX - bottomWidth * 0.5, size.height)
+      ..lineTo(centerX - topWidth * 0.5, topY)
+      ..lineTo(centerX + topWidth * 0.5, topY)
+      ..lineTo(centerX + bottomWidth * 0.5, size.height)
+      ..close();
+
+    _paint
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [topColor, bottomColor],
+      ).createShader(Rect.fromLTWH(0, topY, size.width, fieldHeight))
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(_pitchPath, _paint);
+    _paint.shader = null;
+
+    canvas.save();
+    canvas.clipPath(_pitchPath);
+    _paint
+      ..color = const Color(0xFFFFFFFF)
+          .withValues(alpha: (combinedAlpha * 0.55).clamp(0.0, 1.0) as double)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.0, fieldHeight * 0.015);
+    final lineY = topY + fieldHeight * 0.48;
+    canvas.drawLine(Offset(0, lineY), Offset(size.width, lineY), _paint);
+    canvas.drawLine(
+      Offset(centerX, topY + fieldHeight * 0.12),
+      Offset(centerX, size.height),
+      _paint,
+    );
+    final circleRadius = fieldHeight * 0.18;
+    canvas.drawCircle(Offset(centerX, lineY), circleRadius, _paint);
+    canvas.restore();
+  }
+
+  void _paintStadiumCrowd(
+    Canvas canvas,
+    Size size,
+    double opacity,
+    DecorBackdrop backdrop,
+  ) {
+    final bandHeight = size.height * backdrop.sizeFactor;
+    final topY = size.height * backdrop.anchor.dy;
+    final baseAlpha = backdrop.color.a;
+    final combinedAlpha =
+        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0) as double;
+    final crowdColor = backdrop.color.withValues(alpha: combinedAlpha);
+
+    _crowdPath
+      ..reset()
+      ..moveTo(0, topY)
+      ..lineTo(size.width, topY)
+      ..lineTo(size.width, topY + bandHeight * 0.55)
+      ..quadraticBezierTo(
+        size.width * 0.5,
+        topY + bandHeight * 0.95,
+        0,
+        topY + bandHeight * 0.55,
+      )
+      ..close();
+
+    _paint
+      ..color = crowdColor
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(_crowdPath, _paint);
+
+    final bumpColor = Color.lerp(backdrop.color, const Color(0xFFFFFFFF), 0.08)!
+        .withValues(alpha: (combinedAlpha * 0.75).clamp(0.0, 1.0) as double);
+    final bumps = 18;
+    final step = size.width / (bumps + 1);
+    for (var i = 1; i <= bumps; i += 1) {
+      final x = step * i;
+      _paint
+        ..color = bumpColor
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(
+        Offset(x, topY + bandHeight * 0.2),
+        bandHeight * 0.08,
+        _paint,
+      );
+    }
+
+    final lightAlpha = (combinedAlpha * 0.4).clamp(0.0, 0.18) as double;
+    if (lightAlpha > 0) {
+      final lightColor =
+          const Color(0xFFFFFFFF).withValues(alpha: lightAlpha);
+      for (var i = 0; i < 6; i += 1) {
+        final x = size.width * (0.1 + i * 0.16);
+        _paint
+          ..color = lightColor
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(Offset(x, topY + bandHeight * 0.05),
+            bandHeight * 0.06, _paint);
+      }
+    }
+  }
+
+  void _paintHeroBall(
+    Canvas canvas,
+    Size size,
+    double opacity,
+    DecorBackdrop backdrop,
+  ) {
+    final shortest = math.min(size.width, size.height);
+    final radius = shortest * backdrop.sizeFactor;
+    final center = Offset(
+      size.width * backdrop.anchor.dx,
+      size.height * backdrop.anchor.dy,
+    );
+    final baseAlpha = backdrop.color.a;
+    final combinedAlpha =
+        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0) as double;
+    final ballColor = backdrop.color.withValues(alpha: combinedAlpha);
+
+    _paint
+      ..color = const Color(0xFF000000)
+          .withValues(alpha: (combinedAlpha * 0.2).clamp(0.0, 1.0) as double)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(
+      Offset(center.dx, center.dy + radius * 0.55),
+      radius * 1.05,
+      _paint,
+    );
+
+    _paint
+      ..color = ballColor
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, radius, _paint);
+
+    _paint
+      ..color = const Color(0xFFFFFFFF)
+          .withValues(alpha: (combinedAlpha * 0.18).clamp(0.0, 1.0) as double)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(
+      Offset(center.dx - radius * 0.35, center.dy - radius * 0.35),
+      radius * 0.35,
+      _paint,
+    );
+
+    _paint
+      ..color = const Color(0xFF2F3A44)
+          .withValues(alpha: (combinedAlpha * 0.75).clamp(0.0, 1.0) as double)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(2.0, radius * 0.06);
+    final seamRect = Rect.fromCircle(center: center, radius: radius * 0.65);
+    canvas.drawArc(seamRect, -math.pi / 3, math.pi / 2, false, _paint);
+    canvas.drawArc(seamRect, math.pi / 2, math.pi / 2, false, _paint);
+    canvas.drawCircle(center, radius * 0.18, _paint);
+  }
+
+  void _paintSpotlights(Canvas canvas, Size size, double opacity) {
+    final alpha = (0.15 * opacity).clamp(0.0, 0.18) as double;
+    if (alpha <= 0) {
+      return;
+    }
+    final radius = size.width * 0.9;
+    final color = const Color(0xFFFFFFFF).withValues(alpha: alpha);
+
+    _paint
+      ..shader = RadialGradient(
+        colors: [color, const Color(0xFFFFFFFF).withValues(alpha: 0)],
+      ).createShader(Rect.fromCircle(
+        center: Offset(size.width * 0.05, -size.height * 0.1),
+        radius: radius,
+      ))
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(
+      Offset(size.width * 0.05, -size.height * 0.1),
+      radius,
+      _paint,
+    );
+
+    _paint.shader = RadialGradient(
+      colors: [color, const Color(0xFFFFFFFF).withValues(alpha: 0)],
+    ).createShader(Rect.fromCircle(
+      center: Offset(size.width * 0.95, -size.height * 0.1),
+      radius: radius,
+    ));
+    canvas.drawCircle(
+      Offset(size.width * 0.95, -size.height * 0.1),
+      radius,
+      _paint,
+    );
+    _paint.shader = null;
   }
 
   void _paintParticle(Canvas canvas, Particle particle, double opacity) {
@@ -398,15 +697,33 @@ class DecorPainter extends CustomPainter {
         canvas.restore();
         break;
       case ParticleShape.ball:
-        final strokeWidth = math.max(1.0, particle.size * 0.2);
+        final strokeWidth = math.max(1.0, particle.size * 0.18);
         canvas.save();
         canvas.translate(particle.position.dx, particle.position.dy);
         canvas.rotate(particle.rotation);
+        _paint
+          ..color = const Color(0xFF000000)
+              .withValues(alpha: (combinedAlpha * 0.18).clamp(0.0, 1.0))
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(
+          Offset(0, particle.size * 0.45),
+          particle.size * 0.7,
+          _paint,
+        );
         _paint
           ..color = color
           ..style = PaintingStyle.stroke
           ..strokeWidth = strokeWidth;
         canvas.drawCircle(Offset.zero, particle.size, _paint);
+        _paint
+          ..color =
+              color.withValues(alpha: (combinedAlpha * 0.55).clamp(0.0, 1.0))
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(0.8, strokeWidth * 0.6);
+        final panelRect =
+            Rect.fromCircle(center: Offset.zero, radius: particle.size * 0.6);
+        canvas.drawArc(panelRect, -math.pi / 3, math.pi / 2, false, _paint);
+        canvas.drawArc(panelRect, math.pi / 2, math.pi / 2, false, _paint);
         _paint
           ..color =
               color.withValues(alpha: (combinedAlpha * 0.7).clamp(0.0, 1.0))

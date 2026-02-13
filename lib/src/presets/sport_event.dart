@@ -17,110 +17,89 @@ DecorConfig buildSportEventConfig(
   SportEventVariant variant, {
   List<Color>? teamColors,
 }) {
-  final palette = _resolvePalette(variant, teamColors);
   final hasTeamColors =
-      variant == SportEventVariant.teamColors && palette.isNotEmpty;
-  final confettiColors = palette.length > 2 ? palette.take(2).toList() : palette;
+      variant == SportEventVariant.teamColors && (teamColors?.isNotEmpty ?? false);
+  final confettiColors = hasTeamColors
+      ? teamColors!.take(2).toList()
+      : const [Color(0xFFFFFFFF), Color(0xFFFFD166)];
   final ballPalette = hasTeamColors
-      ? palette
+      ? teamColors!
       : const [
           Color(0xFFFFFFFF),
-          Color(0xFF111827),
+          Color(0xFF2F3A44),
         ];
-  final sparkleColor = hasTeamColors ? palette.first : const Color(0xFFFFD166);
+  final sparkleColor =
+      hasTeamColors ? teamColors!.first : const Color(0xFFFFD166);
 
   final styles = <ParticleStyle>[
     for (final color in confettiColors)
       ParticleStyle(
         shape: ParticleShape.confettiRect,
         color: color,
-        minSize: 2.6,
-        maxSize: 5.2,
-        minSpeed: 18,
-        maxSpeed: 40,
-        minRotationSpeed: -2.2,
-        maxRotationSpeed: 2.2,
-        opacity: 0.75,
+        minSize: 2.0,
+        maxSize: 3.6,
+        minSpeed: 10,
+        maxSpeed: 22,
+        minRotationSpeed: -1.6,
+        maxRotationSpeed: 1.6,
+        opacity: 0.6,
       ),
     ParticleStyle(
       shape: ParticleShape.sparkle,
       color: sparkleColor,
       minSize: 2.0,
-      maxSize: 3.6,
-      minSpeed: 8,
-      maxSpeed: 16,
-      minRotationSpeed: -1.4,
-      maxRotationSpeed: 1.4,
-      opacity: 0.7,
+      maxSize: 3.4,
+      minSpeed: 6,
+      maxSpeed: 12,
+      minRotationSpeed: -1.0,
+      maxRotationSpeed: 1.0,
+      opacity: 0.6,
     ),
     for (final color in ballPalette)
       ParticleStyle(
         shape: ParticleShape.ball,
         color: color,
-        minSize: 3.4,
-        maxSize: 6.0,
-        minSpeed: 10,
-        maxSpeed: 22,
-        minRotationSpeed: -0.6,
-        maxRotationSpeed: 0.6,
-        opacity: 0.9,
+        minSize: 3.8,
+        maxSize: 6.6,
+        minSpeed: 6,
+        maxSpeed: 14,
+        minRotationSpeed: -0.3,
+        maxRotationSpeed: 0.3,
+        opacity: 0.95,
       ),
   ];
 
   return DecorConfig(
     particleCount: 120,
-    speedMultiplier: 1.0,
+    speedMultiplier: 0.9,
     spawnRate: 1,
-    spawnRateScale: 0.7,
-    drift: 14,
+    spawnRateScale: 0.2,
+    drift: 10,
     flow: ParticleFlow.falling,
     wrapMode: DecorWrapMode.respawn,
-    enableFireworks: true,
-    rocketsMax: 3,
-    rocketSpawnRate: 0.55,
-    sparksPerBurstMin: 18,
-    sparksPerBurstMax: 30,
-    burstHeightFactor: 0.22,
-    gravityY: 85,
-    rocketMinSpeed: 210,
-    rocketMaxSpeed: 280,
-    rocketLifeMin: 0.9,
-    rocketLifeMax: 1.4,
-    rocketSize: 3.0,
-    rocketDrift: 22,
-    sparkMinSpeed: 70,
-    sparkMaxSpeed: 180,
-    sparkLifeMin: 0.7,
-    sparkLifeMax: 1.2,
-    sparkMinSize: 6.0,
-    sparkMaxSize: 12.0,
+    enableFireworks: false,
+    enableSpotlights: true,
+    activeCountCap: 6,
     styles: styles,
     backdrops: const [
-      DecorBackdrop.trophy(
-        color: Color(0xFFFFD166),
-        opacity: 0.22,
-        anchor: Offset(0.5, 0.18),
+      DecorBackdrop.pitch(
+        color: Color(0xFF0B5D3B),
+        opacity: 0.95,
+        anchor: Offset(0.5, 1.0),
+        sizeFactor: 0.28,
+      ),
+      DecorBackdrop.stadiumCrowd(
+        color: Color(0xFF111827),
+        opacity: 0.85,
+        anchor: Offset(0.5, 0.58),
         sizeFactor: 0.18,
+      ),
+      DecorBackdrop.heroBall(
+        color: Color(0xFFF9FAFB),
+        opacity: 1.0,
+        anchor: Offset(0.5, 0.55),
+        sizeFactor: 0.2,
       ),
     ],
   );
-}
-
-List<Color> _resolvePalette(
-  SportEventVariant variant,
-  List<Color>? teamColors,
-) {
-  if (variant == SportEventVariant.teamColors) {
-    final resolved = teamColors ?? const [];
-    if (resolved.isNotEmpty) {
-      return List<Color>.from(resolved);
-    }
-  }
-  return const [
-    Color(0xFF00B86B),
-    Color(0xFFFFFFFF),
-    Color(0xFFFFD166),
-    Color(0xFF4D96FF),
-    Color(0xFFF94144),
-  ];
 }
