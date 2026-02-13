@@ -5,6 +5,7 @@ enum ParticleShape {
   circle,
   star,
   crescent,
+  lantern,
   line,
   heart,
   bat,
