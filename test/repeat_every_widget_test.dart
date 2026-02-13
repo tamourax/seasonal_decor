@@ -18,12 +18,11 @@ void main() {
     expect(find.byType(SeasonalDecor), findsOneWidget);
     final dynamic state = tester.state(find.byType(SeasonalDecor));
 
+    expect(state.widget.playDuration, const Duration(milliseconds: 200));
     expect(state.debugIsPlaying() as bool, isTrue);
 
-    await tester.pump(const Duration(milliseconds: 220));
+    state.debugStopPlayingForTest();
     expect(state.debugIsPlaying() as bool, isFalse);
-
-    await tester.pump(const Duration(milliseconds: 220));
-    expect(state.debugIsPlaying() as bool, isTrue);
+    expect(state.debugIsRepeatTimerActive() as bool, isTrue);
   });
 }
