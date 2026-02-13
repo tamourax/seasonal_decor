@@ -123,17 +123,6 @@ DecorConfig _buildEidAdha() {
         opacity: 0.95,
       ),
       ParticleStyle(
-        shape: ParticleShape.sheep,
-        color: Color(0xFF111827),
-        minSize: 7.0,
-        maxSize: 12.0,
-        minSpeed: 10,
-        maxSpeed: 20,
-        minRotationSpeed: -0.2,
-        maxRotationSpeed: 0.2,
-        opacity: 0.95,
-      ),
-      ParticleStyle(
         shape: ParticleShape.circle,
         color: Color(0xFFF9C74F),
         minSize: 2.0,
@@ -158,10 +147,10 @@ DecorConfig _buildEidAdha() {
     ],
     backdrops: const [
       DecorBackdrop.mosque(
-        color: Color(0xFFEFF6FF),
-        opacity: 0.35,
-        anchor: Offset(0.5, 0.22),
-        sizeFactor: 0.55,
+        color: Color(0xFF4B2A83),
+        opacity: 0.55,
+        anchor: Offset(0.82, 0.22),
+        sizeFactor: 0.5,
       ),
     ],
   );

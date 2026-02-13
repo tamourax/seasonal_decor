@@ -344,7 +344,7 @@ class DecorPainter extends CustomPainter {
   ) {
     final shortest = math.min(size.width, size.height);
     final width = shortest * backdrop.sizeFactor;
-    final height = width * 0.55;
+    final height = width * 0.65;
     final center = Offset(
       size.width * backdrop.anchor.dx,
       size.height * backdrop.anchor.dy,
@@ -353,75 +353,170 @@ class DecorPainter extends CustomPainter {
     final baseAlpha = backdrop.color.a;
     final combinedAlpha =
         (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
-    final color = backdrop.color.withValues(alpha: combinedAlpha);
+    final primary = backdrop.color.withValues(alpha: combinedAlpha);
+    final accent = const Color(0xFFF5C542).withValues(alpha: combinedAlpha);
+    final accentSoft = const Color(0xFFFFE08A).withValues(
+      alpha: (combinedAlpha * 0.85).clamp(0.0, 1.0),
+    );
 
     _paint
-      ..color = color
+      ..color = primary
       ..style = PaintingStyle.fill;
 
     canvas.save();
     canvas.translate(center.dx, center.dy);
 
-    final baseHeight = height * 0.32;
-    final baseRect = Rect.fromCenter(
-      center: Offset(0, baseHeight * 0.25),
-      width: width,
-      height: baseHeight,
+    final baseWidth = width * 0.95;
+    final baseHeight = height * 0.42;
+    final baseTop = height * 0.06;
+    final baseRect = Rect.fromLTWH(
+      -baseWidth * 0.5,
+      baseTop,
+      baseWidth,
+      baseHeight,
     );
-    canvas.drawRect(baseRect, _paint);
+    final baseRRect = RRect.fromRectAndRadius(
+      baseRect,
+      Radius.circular(width * 0.04),
+    );
+    canvas.drawRRect(baseRRect, _paint);
 
-    final domeRadius = width * 0.18;
-    canvas.drawCircle(Offset(0, -height * 0.1), domeRadius, _paint);
+    final platformRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        -width * 0.62,
+        baseTop + baseHeight * 0.84,
+        width * 1.24,
+        height * 0.12,
+      ),
+      Radius.circular(width * 0.06),
+    );
+    canvas.drawRRect(platformRect, _paint);
 
-    final sideDomeRadius = width * 0.12;
-    canvas.drawCircle(
-      Offset(-width * 0.28, -height * 0.05),
-      sideDomeRadius,
+    _paint.color = accent;
+    final bandHeight = height * 0.045;
+    canvas.drawRect(
+      Rect.fromLTWH(
+        -baseWidth * 0.5,
+        baseTop + baseHeight * 0.14,
+        baseWidth,
+        bandHeight,
+      ),
       _paint,
     );
-    canvas.drawCircle(
-      Offset(width * 0.28, -height * 0.05),
-      sideDomeRadius,
-      _paint,
-    );
-
-    final minaretWidth = width * 0.08;
-    final minaretHeight = height * 0.7;
-    final minaretY = -height * 0.45;
-    final leftMinaret = Rect.fromLTWH(
-      -width * 0.46 - minaretWidth * 0.5,
-      minaretY,
-      minaretWidth,
-      minaretHeight,
-    );
-    final rightMinaret = Rect.fromLTWH(
-      width * 0.46 - minaretWidth * 0.5,
-      minaretY,
-      minaretWidth,
-      minaretHeight,
-    );
-    canvas.drawRect(leftMinaret, _paint);
-    canvas.drawRect(rightMinaret, _paint);
-    canvas.drawCircle(
-      Offset(-width * 0.46, minaretY),
-      minaretWidth * 0.6,
-      _paint,
-    );
-    canvas.drawCircle(
-      Offset(width * 0.46, minaretY),
-      minaretWidth * 0.6,
+    canvas.drawRect(
+      Rect.fromLTWH(
+        -baseWidth * 0.5,
+        baseTop + baseHeight * 0.5,
+        baseWidth,
+        bandHeight,
+      ),
       _paint,
     );
 
-    final spireWidth = width * 0.05;
-    final spireHeight = height * 0.18;
-    final spireRect = Rect.fromLTWH(
-      -spireWidth * 0.5,
-      -height * 0.42,
-      spireWidth,
-      spireHeight,
+    void drawDome(Offset domeCenter, double radius) {
+      final path = Path()
+        ..moveTo(domeCenter.dx - radius, domeCenter.dy)
+        ..quadraticBezierTo(
+          domeCenter.dx,
+          domeCenter.dy - radius * 1.35,
+          domeCenter.dx + radius,
+          domeCenter.dy,
+        )
+        ..lineTo(domeCenter.dx + radius, domeCenter.dy + radius * 0.25)
+        ..lineTo(domeCenter.dx - radius, domeCenter.dy + radius * 0.25)
+        ..close();
+      _paint.color = primary;
+      canvas.drawPath(path, _paint);
+      _paint.color = accentSoft;
+      canvas.drawCircle(
+        Offset(domeCenter.dx - radius * 0.25, domeCenter.dy - radius * 0.15),
+        radius * 0.32,
+        _paint,
+      );
+    }
+
+    final mainDomeCenter = Offset(0, baseTop - height * 0.05);
+    drawDome(mainDomeCenter, width * 0.23);
+    drawDome(Offset(-width * 0.32, baseTop + height * 0.02), width * 0.14);
+    drawDome(Offset(width * 0.32, baseTop + height * 0.02), width * 0.14);
+
+    void drawCrescent(Offset crescentCenter, double size) {
+      _paint.color = accent;
+      canvas.save();
+      canvas.translate(crescentCenter.dx, crescentCenter.dy);
+      canvas.scale(size, size);
+      canvas.drawPath(_unitCrescentPath, _paint);
+      canvas.restore();
+    }
+
+    drawCrescent(
+      mainDomeCenter + Offset(0, -width * 0.28),
+      width * 0.07,
     );
-    canvas.drawRect(spireRect, _paint);
+    drawCrescent(
+      Offset(-width * 0.32, baseTop - height * 0.06),
+      width * 0.045,
+    );
+    drawCrescent(
+      Offset(width * 0.32, baseTop - height * 0.06),
+      width * 0.045,
+    );
+
+    final doorWidth = baseWidth * 0.26;
+    final doorHeight = baseHeight * 0.58;
+    final doorTop = baseTop + baseHeight * 0.25;
+    final doorRect = Rect.fromLTWH(
+      -doorWidth * 0.5,
+      doorTop,
+      doorWidth,
+      doorHeight,
+    );
+    final doorRadius = doorWidth * 0.5;
+    final doorPath = Path()
+      ..moveTo(doorRect.left, doorRect.bottom)
+      ..lineTo(doorRect.left, doorRect.top + doorRadius)
+      ..arcTo(
+        Rect.fromCircle(
+          center: Offset(0, doorRect.top + doorRadius),
+          radius: doorRadius,
+        ),
+        math.pi,
+        math.pi,
+        false,
+      )
+      ..lineTo(doorRect.right, doorRect.bottom)
+      ..close();
+    _paint.color = accent;
+    canvas.drawPath(doorPath, _paint);
+
+    final windowWidth = baseWidth * 0.12;
+    final windowHeight = baseHeight * 0.5;
+    final windowTop = baseTop + baseHeight * 0.32;
+    for (final dx in [-baseWidth * 0.28, baseWidth * 0.28]) {
+      final rect = Rect.fromLTWH(
+        dx - windowWidth * 0.5,
+        windowTop,
+        windowWidth,
+        windowHeight,
+      );
+      final radius = windowWidth * 0.5;
+      final path = Path()
+        ..moveTo(rect.left, rect.bottom)
+        ..lineTo(rect.left, rect.top + radius)
+        ..arcTo(
+          Rect.fromCircle(
+            center: Offset(dx, rect.top + radius),
+            radius: radius,
+          ),
+          math.pi,
+          math.pi,
+          false,
+        )
+        ..lineTo(rect.right, rect.bottom)
+        ..close();
+      canvas.drawPath(path, _paint);
+    }
+
     canvas.restore();
   }
 
@@ -569,25 +664,36 @@ class DecorPainter extends CustomPainter {
         _paint
           ..color = color
           ..style = PaintingStyle.fill;
-        canvas.drawCircle(const Offset(0, 0.05), 0.6, _paint);
-        canvas.drawCircle(const Offset(-0.35, -0.1), 0.32, _paint);
-        canvas.drawCircle(const Offset(0.35, -0.1), 0.32, _paint);
-        canvas.drawCircle(const Offset(0.0, -0.25), 0.35, _paint);
+        canvas.drawCircle(const Offset(0.0, 0.08), 0.62, _paint);
+        canvas.drawCircle(const Offset(-0.42, -0.1), 0.34, _paint);
+        canvas.drawCircle(const Offset(0.42, -0.1), 0.34, _paint);
+        canvas.drawCircle(const Offset(0.0, -0.28), 0.38, _paint);
+        canvas.drawCircle(const Offset(-0.18, 0.35), 0.28, _paint);
+        canvas.drawCircle(const Offset(0.18, 0.35), 0.28, _paint);
 
         final faceColor =
-            Color.lerp(color, const Color(0xFF2F2F2F), 0.55)!
+            Color.lerp(color, const Color(0xFF2B2B2B), 0.6)!
                 .withValues(alpha: combinedAlpha);
         _paint.color = faceColor;
-        canvas.drawCircle(const Offset(0.55, 0.05), 0.24, _paint);
-        canvas.drawCircle(const Offset(0.7, -0.05), 0.08, _paint);
-        canvas.drawCircle(const Offset(0.7, 0.18), 0.08, _paint);
+        canvas.drawCircle(const Offset(0.72, 0.05), 0.26, _paint);
+        canvas.drawCircle(const Offset(0.86, -0.05), 0.07, _paint);
+        canvas.drawCircle(const Offset(0.86, 0.18), 0.07, _paint);
+
+        _paint
+          ..color = faceColor.withValues(
+            alpha: (combinedAlpha * 0.8).clamp(0.0, 1.0),
+          )
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(const Offset(0.8, 0.05), 0.04, _paint);
 
         _paint
           ..color = faceColor.withValues(
             alpha: (combinedAlpha * 0.7).clamp(0.0, 1.0),
           )
           ..style = PaintingStyle.fill;
-        canvas.drawCircle(const Offset(0.64, 0.04), 0.04, _paint);
+        canvas.drawRect(const Rect.fromLTRB(-0.35, 0.68, -0.25, 0.95), _paint);
+        canvas.drawRect(const Rect.fromLTRB(-0.05, 0.68, 0.05, 0.95), _paint);
+        canvas.drawRect(const Rect.fromLTRB(0.25, 0.68, 0.35, 0.95), _paint);
 
         canvas.restore();
         break;
