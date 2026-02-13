@@ -6,6 +6,11 @@ enum ParticleShape {
   star,
   crescent,
   line,
+  heart,
+  bat,
+  pumpkin,
+  confettiRect,
+  sparkle,
 }
 
 /// Distinguishes particle behavior in the system.

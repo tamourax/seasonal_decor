@@ -26,6 +26,11 @@ class DecorPainter extends CustomPainter {
 
   static final Path _unitStarPath = _buildUnitStarPath();
   static final Path _unitCrescentPath = _buildUnitCrescentPath();
+  static final Path _unitHeartPath = _buildUnitHeartPath();
+  static final Path _unitBatPath = _buildUnitBatPath();
+  static final Path _unitPumpkinPath = _buildUnitPumpkinPath();
+  static final Path _unitTrophyPath = _buildUnitTrophyPath();
+  static const Rect _unitRect = Rect.fromLTRB(-0.5, -0.5, 0.5, 0.5);
   static const List<Color> _garlandBulbColors = [
     Color(0xFFF9C74F),
     Color(0xFFF9844A),
@@ -104,6 +109,9 @@ class DecorPainter extends CustomPainter {
       case BackdropType.garland:
         _paintGarland(canvas, size, opacity, backdrop);
         break;
+      case BackdropType.trophy:
+        _paintTrophy(canvas, size, opacity, backdrop);
+        break;
     }
   }
 
@@ -119,7 +127,7 @@ class DecorPainter extends CustomPainter {
       size.width * backdrop.anchor.dx,
       size.height * backdrop.anchor.dy,
     );
-    final baseAlpha = backdrop.color.alpha / 255.0;
+    final baseAlpha = backdrop.color.a;
     final combinedAlpha =
         (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0) as double;
     final color = backdrop.color.withValues(alpha: combinedAlpha);
@@ -147,7 +155,7 @@ class DecorPainter extends CustomPainter {
       size.height * backdrop.anchor.dy,
     );
 
-    final baseAlpha = backdrop.color.alpha / 255.0;
+    final baseAlpha = backdrop.color.a;
     final combinedAlpha =
         (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0) as double;
     final treeColor = backdrop.color.withValues(alpha: combinedAlpha);
@@ -212,7 +220,7 @@ class DecorPainter extends CustomPainter {
     final y = size.height * backdrop.anchor.dy;
     final amplitude = size.height * backdrop.sizeFactor;
 
-    final baseAlpha = backdrop.color.alpha / 255.0;
+    final baseAlpha = backdrop.color.a;
     final combinedAlpha =
         (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0) as double;
 
@@ -246,8 +254,34 @@ class DecorPainter extends CustomPainter {
     }
   }
 
+  void _paintTrophy(
+    Canvas canvas,
+    Size size,
+    double opacity,
+    DecorBackdrop backdrop,
+  ) {
+    final shortest = math.min(size.width, size.height);
+    final scale = shortest * backdrop.sizeFactor;
+    final center = Offset(
+      size.width * backdrop.anchor.dx,
+      size.height * backdrop.anchor.dy,
+    );
+    final baseAlpha = backdrop.color.a;
+    final combinedAlpha =
+        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0) as double;
+    final color = backdrop.color.withValues(alpha: combinedAlpha);
+    _paint
+      ..color = color
+      ..style = PaintingStyle.fill;
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.scale(scale, scale);
+    canvas.drawPath(_unitTrophyPath, _paint);
+    canvas.restore();
+  }
+
   void _paintParticle(Canvas canvas, Particle particle, double opacity) {
-    final baseAlpha = particle.color.alpha / 255.0;
+    final baseAlpha = particle.color.a;
     final lifeFade = particle.kind == ParticleKind.spark
         ? particle.lifeProgress
         : 1.0;
@@ -264,6 +298,22 @@ class DecorPainter extends CustomPainter {
         canvas.drawCircle(particle.position, particle.size, _paint);
         break;
       case ParticleShape.star:
+        _paint
+          ..color = color
+          ..style = PaintingStyle.fill;
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        canvas.scale(particle.size, particle.size);
+        canvas.drawPath(_unitStarPath, _paint);
+        canvas.restore();
+        break;
+      case ParticleShape.sparkle:
+        _paint
+          ..color =
+              color.withValues(alpha: (combinedAlpha * 0.35).clamp(0.0, 1.0))
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(particle.position, particle.size * 0.7, _paint);
         _paint
           ..color = color
           ..style = PaintingStyle.fill;
@@ -303,6 +353,50 @@ class DecorPainter extends CustomPainter {
         );
         canvas.restore();
         break;
+      case ParticleShape.heart:
+        _paint
+          ..color = color
+          ..style = PaintingStyle.fill;
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        canvas.scale(particle.size, particle.size);
+        canvas.drawPath(_unitHeartPath, _paint);
+        canvas.restore();
+        break;
+      case ParticleShape.bat:
+        _paint
+          ..color = color
+          ..style = PaintingStyle.fill;
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        canvas.scale(particle.size, particle.size);
+        canvas.drawPath(_unitBatPath, _paint);
+        canvas.restore();
+        break;
+      case ParticleShape.pumpkin:
+        _paint
+          ..color = color
+          ..style = PaintingStyle.fill;
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        canvas.scale(particle.size, particle.size);
+        canvas.drawPath(_unitPumpkinPath, _paint);
+        canvas.restore();
+        break;
+      case ParticleShape.confettiRect:
+        _paint
+          ..color = color
+          ..style = PaintingStyle.fill;
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        canvas.scale(particle.size, particle.size * 0.4);
+        canvas.drawRect(_unitRect, _paint);
+        canvas.restore();
+        break;
     }
   }
 
@@ -337,6 +431,60 @@ class DecorPainter extends CustomPainter {
         ),
       );
     return Path.combine(PathOperation.difference, outer, inner);
+  }
+
+  static Path _buildUnitHeartPath() {
+    final path = Path()
+      ..moveTo(0.0, 0.9)
+      ..cubicTo(0.9, 0.35, 0.9, -0.25, 0.0, -0.2)
+      ..cubicTo(-0.9, -0.25, -0.9, 0.35, 0.0, 0.9)
+      ..close();
+    return path;
+  }
+
+  static Path _buildUnitBatPath() {
+    final path = Path()
+      ..moveTo(-1.0, 0.2)
+      ..lineTo(-0.7, -0.1)
+      ..lineTo(-0.4, 0.15)
+      ..lineTo(-0.2, -0.05)
+      ..lineTo(0.0, -0.25)
+      ..lineTo(0.2, -0.05)
+      ..lineTo(0.4, 0.15)
+      ..lineTo(0.7, -0.1)
+      ..lineTo(1.0, 0.2)
+      ..lineTo(0.6, 0.55)
+      ..lineTo(0.25, 0.35)
+      ..lineTo(0.0, 0.65)
+      ..lineTo(-0.25, 0.35)
+      ..lineTo(-0.6, 0.55)
+      ..close();
+    return path;
+  }
+
+  static Path _buildUnitPumpkinPath() {
+    final path = Path()
+      ..addOval(const Rect.fromLTRB(-1.0, -0.8, 1.0, 0.9))
+      ..addRect(const Rect.fromLTRB(-0.2, -1.05, 0.2, -0.65));
+    return path;
+  }
+
+  static Path _buildUnitTrophyPath() {
+    final path = Path()
+      ..moveTo(-0.8, -0.6)
+      ..lineTo(0.8, -0.6)
+      ..lineTo(0.6, 0.0)
+      ..lineTo(0.25, 0.0)
+      ..lineTo(0.2, 0.35)
+      ..lineTo(0.5, 0.35)
+      ..lineTo(0.5, 0.7)
+      ..lineTo(-0.5, 0.7)
+      ..lineTo(-0.5, 0.35)
+      ..lineTo(-0.2, 0.35)
+      ..lineTo(-0.25, 0.0)
+      ..lineTo(-0.6, 0.0)
+      ..close();
+    return path;
   }
 
   Offset _quadraticBezierPoint(
