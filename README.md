@@ -2,21 +2,25 @@
 
 Drop-in seasonal decorative overlays for Flutter apps. Ships with a lightweight **CustomPainter + Ticker** particle engine and ready-to-use presets for **Ramadan, Eid, Christmas, New Year, Valentine, Halloween, and Sport Event**.
 
-Repository: https://github.com/tamourax/seasonal_decor
-
 ## Installation
 
 Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  seasonal_decor: ^0.1.0
+  seasonal_decor: ^1.0.0
 ```
 
 Then run:
 
 ```bash
 flutter pub get
+```
+
+Or simply:
+
+```bash
+flutter pub add seasonal_decor
 ```
 
 ## Quick Start
@@ -79,23 +83,24 @@ SeasonalDecor(
 
 ## Options
 
-| Option                | Type             | Default  | Description                            |
-| --------------------- | ---------------- | -------- | -------------------------------------- |
-| `child`               | `Widget`         | required | Widget below the overlay.              |
-| `preset`              | `SeasonalPreset` | required | Decorative preset to render.           |
-| `enabled`             | `bool`           | `true`   | Shows or hides the overlay.            |
-| `intensity`           | `DecorIntensity` | `medium` | Particle count, speed, spawn rate.     |
-| `opacity`             | `double`         | `1.0`    | Global overlay opacity (0.0 to 1.0).   |
-| `respectReduceMotion` | `bool`           | `true`   | Honors `MediaQuery.disableAnimations`. |
-| `pauseWhenInactive`   | `bool`           | `true`   | Pauses animation when app is inactive. |
-| `ignorePointer`       | `bool`           | `true`   | Lets taps pass through the overlay.    |
-| `playDuration`        | `Duration`       | `5s`     | How long the animation runs per cycle. |
-| `settleOnDisable`     | `bool`           | `true`   | Let particles settle when stopping.    |
-| `repeatEvery`         | `Duration?`      | `null`   | Auto-replay after the given duration.  |
-| `showBackdrop`        | `bool`           | `true`   | Render decorative backdrops.           |
-| `showBackdropWhenDisabled` | `bool`      | `true`   | Keep backdrops visible when disabled.  |
+| Option                     | Type             | Default  | Description                            |
+| -------------------------- | ---------------- | -------- | -------------------------------------- |
+| `child`                    | `Widget`         | required | Widget below the overlay.              |
+| `preset`                   | `SeasonalPreset` | required | Decorative preset to render.           |
+| `enabled`                  | `bool`           | `true`   | Shows or hides the overlay.            |
+| `intensity`                | `DecorIntensity` | `medium` | Particle count, speed, spawn rate.     |
+| `opacity`                  | `double`         | `1.0`    | Global overlay opacity (0.0 to 1.0).   |
+| `respectReduceMotion`      | `bool`           | `true`   | Honors `MediaQuery.disableAnimations`. |
+| `pauseWhenInactive`        | `bool`           | `true`   | Pauses animation when app is inactive. |
+| `ignorePointer`            | `bool`           | `true`   | Lets taps pass through the overlay.    |
+| `playDuration`             | `Duration`       | `5s`     | How long the animation runs per cycle. |
+| `settleOnDisable`          | `bool`           | `true`   | Let particles settle when stopping.    |
+| `repeatEvery`              | `Duration?`      | `null`   | Auto-replay after the given duration.  |
+| `showBackdrop`             | `bool`           | `true`   | Render decorative backdrops.           |
+| `showBackdropWhenDisabled` | `bool`           | `true`   | Keep backdrops visible when disabled.  |
 
 Notes:
+
 - Use `playDuration: Duration.zero` for continuous animation.
 
 ### Option Details
@@ -151,17 +156,17 @@ If `enabled` is `false`, this keeps the backdrop visible while particles remain 
 
 ## Preset Previews
 
-Ramadan
-![Ramadan](assets/gif/ramadan.gif)
+<h3><strong>Ramadan</strong></h3>
+<img src="assets/gif/ramadan.gif" alt="Ramadan" />
 
-Eid
-![Eid](assets/gif/eid.gif)
+<h3><strong>Eid</strong></h3>
+<img src="assets/gif/eid.gif" alt="Eid" />
 
-Christmas
-![Christmas](assets/gif/christmas.gif)
+<h3><strong>Christmas</strong></h3>
+<img src="assets/gif/christmas.gif" alt="Christmas" />
 
-Valentine
-![Valentine](assets/gif/valentine.gif)
+<h3><strong>Valentine</strong></h3>
+<img src="assets/gif/valentine.gif" alt="Valentine" />
 
 ## Performance Notes
 
@@ -190,4 +195,3 @@ See `example/lib/main.dart` for a full demo with presets and controls.
 ## License
 
 MIT License. See [LICENSE](LICENSE).
-
