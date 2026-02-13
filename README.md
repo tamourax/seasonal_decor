@@ -8,7 +8,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  seasonal_decor: ^1.1.3
+  seasonal_decor: ^1.1.4
 ```
 
 Then run:
@@ -58,8 +58,20 @@ Control intensity and opacity:
 ```dart
 SeasonalDecor(
   preset: SeasonalPreset.eid(),
-  intensity: DecorIntensity.high,
+  intensity: DecorIntensity.max,
   opacity: 0.9,
+  child: const HomeScreen(),
+);
+```
+
+Control speed and theme-aware colors:
+
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.newYear(),
+  intensity: DecorIntensity.extraHigh,
+  particleSpeedMultiplier: 1.4,
+  adaptColorsToTheme: true,
   child: const HomeScreen(),
 );
 ```
@@ -82,6 +94,7 @@ Customize particle shapes and backdrops:
 ```dart
 final preset = SeasonalPreset.eid(variant: EidVariant.fitr).withOverrides(
   shapes: [ParticleShape.balloon],
+  shapeSpeedMultipliers: {ParticleShape.balloon: 1.3},
   backdropType: BackdropType.bunting,
   backdropAnchor: const Offset(0.5, 0.12), // position (x,y)
   backdropSizeFactor: 0.08, // size
@@ -89,6 +102,22 @@ final preset = SeasonalPreset.eid(variant: EidVariant.fitr).withOverrides(
 
 SeasonalDecor(
   preset: preset,
+  child: const HomeScreen(),
+);
+```
+
+Widget-level preset overrides (directly in `SeasonalDecor`):
+
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.ramadan(),
+  presetShapes: const [ParticleShape.lantern, ParticleShape.crescent],
+  presetShapeSpeedMultipliers: const {
+    ParticleShape.lantern: 1.25,
+  },
+  presetBackdropType: BackdropType.crescent,
+  presetBackdropAnchor: const Offset(0.8, 0.2),
+  presetBackdropSizeFactor: 0.3,
   child: const HomeScreen(),
 );
 ```
@@ -123,6 +152,19 @@ SeasonalDecor(
 | `repeatEvery`              | `Duration?`      | `null`   | Auto-replay after the given duration.  |
 | `showBackdrop`             | `bool`           | `true`   | Render decorative backdrops.           |
 | `showBackdropWhenDisabled` | `bool`           | `true`   | Keep backdrops visible when disabled.  |
+| `particleSpeedMultiplier`  | `double`         | `1.0`    | Multiplies particle/rocket/spark speed. |
+| `adaptColorsToTheme`       | `bool`           | `true`   | Auto-adjusts colors for light/dark UI. |
+| `presetShapes`             | `List<ParticleShape>?` | `null` | Overrides preset shapes from widget. |
+| `presetStyles`             | `List<ParticleStyle>?` | `null` | Overrides full preset styles from widget. |
+| `presetShapeSpeedMultipliers` | `Map<ParticleShape, double>?` | `null` | Per-shape speed overrides from widget. |
+| `presetBackdrop`           | `DecorBackdrop?` | `null` | Overrides single preset backdrop. |
+| `presetBackdrops`          | `List<DecorBackdrop>?` | `null` | Overrides preset backdrop list. |
+| `presetBackdropType`       | `BackdropType?`  | `null` | Overrides backdrop type. |
+| `presetBackdropAnchor`     | `Offset?`        | `null` | Overrides backdrop anchor. |
+| `presetBackdropSizeFactor` | `double?`        | `null` | Overrides backdrop size. |
+| `presetBackdropColor`      | `Color?`         | `null` | Overrides backdrop color. |
+| `presetBackdropOpacity`    | `double?`        | `null` | Overrides backdrop opacity. |
+| `presetEnableFireworks`    | `bool?`          | `null` | Overrides preset fireworks toggle. |
 
 Notes:
 
@@ -143,6 +185,7 @@ Turn the overlay on or off. When `false`, particles stop rendering. Backdrops ca
 
 `intensity`
 Controls how many particles spawn and how fast they move. Use `low` for subtle effects, `high` for celebrations.
+Available levels: `low`, `medium`, `high`, `extraHigh`, `max`.
 
 `opacity`
 Overall overlay opacity. Use lower values to keep UI readable.
@@ -171,9 +214,21 @@ Show or hide decorative backdrops like crescents, trees, garlands, or stadium el
 `showBackdropWhenDisabled`
 If `enabled` is `false`, this keeps the backdrop visible while particles remain hidden.
 
+`particleSpeedMultiplier`
+Adds direct speed control for particle falling/movement. Use values above `1.0` to speed up animation and below `1.0` to slow it down.
+
+`adaptColorsToTheme`
+When enabled, particle and backdrop colors are tuned for the current light/dark platform brightness to keep contrast and visibility consistent.
+
 ### Preset Overrides
 
 All presets can be customized using `withOverrides(...)` to swap shapes or backdrops.
+
+You can also apply the same override controls directly from `SeasonalDecor(...)` using:
+`presetShapes`, `presetStyles`, `presetShapeSpeedMultipliers`, `presetBackdrop`,
+`presetBackdrops`, `presetBackdropType`, `presetBackdropAnchor`,
+`presetBackdropSizeFactor`, `presetBackdropColor`, `presetBackdropOpacity`,
+and `presetEnableFireworks`.
 
 Examples:
 - Replace all particle shapes with balloons or sheep.
@@ -283,7 +338,7 @@ See `example/lib/main.dart` for a simple demo.
 For the full demo with presets and controls:
 
 ```bash
-flutter run -t lib/advanced_main.dart
+flutter run -t example/lib/advanced_main.dart
 ```
 
 ## License

@@ -1,10 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show listEquals, mapEquals;
 import 'package:flutter/widgets.dart';
 
+import '../config/decor_config.dart';
 import '../config/intensity.dart';
 import '../engine/decor_controller.dart';
 import '../engine/decor_painter.dart';
+import '../engine/particle.dart';
 import '../presets/seasonal_preset.dart';
 import '../utils/lifecycle_pause.dart';
 import '../utils/reduce_motion.dart';
@@ -50,6 +53,49 @@ class SeasonalDecor extends StatefulWidget {
   /// Whether to keep drawing backdrops when [enabled] is false.
   final bool showBackdropWhenDisabled;
 
+  /// Additional speed multiplier for particle motion.
+  ///
+  /// `1.0` keeps preset speeds. Higher values make the animation faster.
+  final double particleSpeedMultiplier;
+
+  /// Whether to adapt particle/backdrop colors to platform brightness.
+  ///
+  /// In light theme, colors are boosted for better visibility.
+  final bool adaptColorsToTheme;
+
+  /// Optional particle shape overrides applied to [preset].
+  final List<ParticleShape>? presetShapes;
+
+  /// Optional full style overrides applied to [preset].
+  final List<ParticleStyle>? presetStyles;
+
+  /// Optional per-shape speed multipliers applied to [preset].
+  final Map<ParticleShape, double>? presetShapeSpeedMultipliers;
+
+  /// Optional single backdrop override applied to [preset].
+  final DecorBackdrop? presetBackdrop;
+
+  /// Optional backdrop list override applied to [preset].
+  final List<DecorBackdrop>? presetBackdrops;
+
+  /// Optional backdrop type override applied to [preset].
+  final BackdropType? presetBackdropType;
+
+  /// Optional backdrop anchor override applied to [preset].
+  final Offset? presetBackdropAnchor;
+
+  /// Optional backdrop size override applied to [preset].
+  final double? presetBackdropSizeFactor;
+
+  /// Optional backdrop color override applied to [preset].
+  final Color? presetBackdropColor;
+
+  /// Optional backdrop opacity override applied to [preset].
+  final double? presetBackdropOpacity;
+
+  /// Optional fireworks toggle override applied to [preset].
+  final bool? presetEnableFireworks;
+
   const SeasonalDecor({
     super.key,
     required this.child,
@@ -65,6 +111,19 @@ class SeasonalDecor extends StatefulWidget {
     this.repeatEvery,
     this.showBackdrop = true,
     this.showBackdropWhenDisabled = true,
+    this.particleSpeedMultiplier = 1.0,
+    this.adaptColorsToTheme = true,
+    this.presetShapes,
+    this.presetStyles,
+    this.presetShapeSpeedMultipliers,
+    this.presetBackdrop,
+    this.presetBackdrops,
+    this.presetBackdropType,
+    this.presetBackdropAnchor,
+    this.presetBackdropSizeFactor,
+    this.presetBackdropColor,
+    this.presetBackdropOpacity,
+    this.presetEnableFireworks,
   });
 
   @override
@@ -79,6 +138,8 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   bool _appPaused = false;
   bool _reduceMotion = false;
   bool _playing = true;
+  Brightness _themeBrightness =
+      WidgetsBinding.instance.platformDispatcher.platformBrightness;
   Timer? _stopTimer;
   Timer? _repeatTimer;
 
@@ -87,7 +148,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     super.initState();
     _controller = DecorController(
       vsync: this,
-      config: widget.preset.resolve(widget.intensity),
+      config: _resolveConfig(),
     );
     _controller.addListener(_handleControllerTick);
     _lifecyclePause = LifecyclePause(
@@ -105,6 +166,14 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final brightness = MediaQuery.platformBrightnessOf(context);
+    if (brightness != _themeBrightness) {
+      _themeBrightness = brightness;
+      if (widget.adaptColorsToTheme) {
+        _controller.updateConfig(_resolveConfig());
+        _applySystemControls();
+      }
+    }
     _updateReduceMotion();
     _syncAnimation();
   }
@@ -113,8 +182,11 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   void didUpdateWidget(covariant SeasonalDecor oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.preset != widget.preset ||
-        oldWidget.intensity != widget.intensity) {
-      _controller.updateConfig(widget.preset.resolve(widget.intensity));
+        oldWidget.intensity != widget.intensity ||
+        oldWidget.particleSpeedMultiplier != widget.particleSpeedMultiplier ||
+        oldWidget.adaptColorsToTheme != widget.adaptColorsToTheme ||
+        _presetOverridesChanged(oldWidget)) {
+      _controller.updateConfig(_resolveConfig());
       _applySystemControls();
     }
     if (widget.preset.isNone) {
@@ -176,9 +248,152 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   }
 
   void _updateReduceMotion() {
-    final shouldReduce = widget.respectReduceMotion &&
-        ReduceMotion.isEnabled(context);
+    final shouldReduce =
+        widget.respectReduceMotion && ReduceMotion.isEnabled(context);
     _reduceMotion = shouldReduce;
+  }
+
+  DecorConfig _resolveConfig() {
+    final resolvedPreset = _resolvePreset();
+    final baseConfig = resolvedPreset.resolve(widget.intensity);
+    final speedAdjusted = _applySpeedMultiplier(baseConfig);
+    if (!widget.adaptColorsToTheme) {
+      return speedAdjusted;
+    }
+    return _adaptColorsForTheme(speedAdjusted);
+  }
+
+  SeasonalPreset _resolvePreset() {
+    final hasOverrides = widget.presetShapes != null ||
+        widget.presetStyles != null ||
+        (widget.presetShapeSpeedMultipliers?.isNotEmpty ?? false) ||
+        widget.presetBackdrop != null ||
+        widget.presetBackdrops != null ||
+        widget.presetBackdropType != null ||
+        widget.presetBackdropAnchor != null ||
+        widget.presetBackdropSizeFactor != null ||
+        widget.presetBackdropColor != null ||
+        widget.presetBackdropOpacity != null ||
+        widget.presetEnableFireworks != null;
+
+    if (!hasOverrides) {
+      return widget.preset;
+    }
+
+    return widget.preset.withOverrides(
+      shapes: widget.presetShapes,
+      styles: widget.presetStyles,
+      shapeSpeedMultipliers: widget.presetShapeSpeedMultipliers,
+      backdrop: widget.presetBackdrop,
+      backdrops: widget.presetBackdrops,
+      backdropType: widget.presetBackdropType,
+      backdropAnchor: widget.presetBackdropAnchor,
+      backdropSizeFactor: widget.presetBackdropSizeFactor,
+      backdropColor: widget.presetBackdropColor,
+      backdropOpacity: widget.presetBackdropOpacity,
+      enableFireworks: widget.presetEnableFireworks,
+    );
+  }
+
+  bool _presetOverridesChanged(SeasonalDecor oldWidget) {
+    return !listEquals(oldWidget.presetShapes, widget.presetShapes) ||
+        !listEquals(oldWidget.presetStyles, widget.presetStyles) ||
+        !mapEquals(
+          oldWidget.presetShapeSpeedMultipliers,
+          widget.presetShapeSpeedMultipliers,
+        ) ||
+        oldWidget.presetBackdrop != widget.presetBackdrop ||
+        !listEquals(oldWidget.presetBackdrops, widget.presetBackdrops) ||
+        oldWidget.presetBackdropType != widget.presetBackdropType ||
+        oldWidget.presetBackdropAnchor != widget.presetBackdropAnchor ||
+        oldWidget.presetBackdropSizeFactor != widget.presetBackdropSizeFactor ||
+        oldWidget.presetBackdropColor != widget.presetBackdropColor ||
+        oldWidget.presetBackdropOpacity != widget.presetBackdropOpacity ||
+        oldWidget.presetEnableFireworks != widget.presetEnableFireworks;
+  }
+
+  DecorConfig _applySpeedMultiplier(DecorConfig config) {
+    final speedMultiplier =
+        widget.particleSpeedMultiplier.clamp(0.0, 6.0).toDouble();
+    if ((speedMultiplier - 1.0).abs() < 0.0001) {
+      return config;
+    }
+
+    final styles = [
+      for (final style in config.styles)
+        style.copyWith(
+          minSpeed: style.minSpeed * speedMultiplier,
+          maxSpeed: style.maxSpeed * speedMultiplier,
+        ),
+    ];
+
+    if (!config.enableFireworks) {
+      return config.copyWith(styles: styles);
+    }
+
+    return config.copyWith(
+      styles: styles,
+      rocketMinSpeed: config.rocketMinSpeed * speedMultiplier,
+      rocketMaxSpeed: config.rocketMaxSpeed * speedMultiplier,
+      sparkMinSpeed: config.sparkMinSpeed * speedMultiplier,
+      sparkMaxSpeed: config.sparkMaxSpeed * speedMultiplier,
+    );
+  }
+
+  DecorConfig _adaptColorsForTheme(DecorConfig config) {
+    final styles = [
+      for (final style in config.styles)
+        style.copyWith(color: _adaptColorForTheme(style.color)),
+    ];
+
+    final backdrop = config.backdrop;
+    final adaptedBackdrop =
+        backdrop == null ? null : _adaptBackdropForTheme(backdrop);
+    final adaptedBackdrops = [
+      for (final item in config.backdrops) _adaptBackdropForTheme(item),
+    ];
+
+    return config.copyWith(
+      styles: styles,
+      backdrop: adaptedBackdrop,
+      backdrops: adaptedBackdrops,
+    );
+  }
+
+  Color _adaptColorForTheme(Color color) {
+    final hsl = HSLColor.fromColor(color);
+    final saturationBoost = _themeBrightness == Brightness.light ? 0.18 : 0.06;
+    var lightness = hsl.lightness;
+
+    if (_themeBrightness == Brightness.light) {
+      if (lightness > 0.78) {
+        lightness = (lightness - 0.2).clamp(0.0, 1.0).toDouble();
+      } else if (lightness < 0.18) {
+        lightness = (lightness + 0.15).clamp(0.0, 1.0).toDouble();
+      }
+    } else {
+      lightness = (lightness + 0.04).clamp(0.0, 1.0).toDouble();
+    }
+
+    final adapted = hsl
+        .withSaturation(
+          (hsl.saturation + saturationBoost).clamp(0.0, 1.0).toDouble(),
+        )
+        .withLightness(lightness)
+        .toColor();
+    return adapted.withValues(alpha: color.a);
+  }
+
+  DecorBackdrop _adaptBackdropForTheme(DecorBackdrop backdrop) {
+    var opacity = backdrop.opacity;
+    if (_themeBrightness == Brightness.light) {
+      // Backdrops are subtle by default; boost slightly in light mode.
+      opacity = (opacity * 1.45).clamp(0.0, 1.0).toDouble();
+    }
+    return backdrop.copyWith(
+      color: _adaptColorForTheme(backdrop.color),
+      opacity: opacity,
+    );
   }
 
   void _startPlayCycle() {

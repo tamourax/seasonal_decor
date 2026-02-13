@@ -3,6 +3,29 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:seasonal_decor/seasonal_decor.dart';
 
 void main() {
+  testWidgets('widget-level preset overrides are accepted', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SeasonalDecor(
+          preset: SeasonalPreset.ramadan(),
+          presetShapes: const [
+            ParticleShape.lantern,
+            ParticleShape.crescent,
+          ],
+          presetShapeSpeedMultipliers: const {
+            ParticleShape.lantern: 1.2,
+          },
+          presetBackdropType: BackdropType.crescent,
+          presetBackdropAnchor: const Offset(0.78, 0.22),
+          presetBackdropSizeFactor: 0.28,
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    expect(find.byType(SeasonalDecor), findsOneWidget);
+  });
+
   testWidgets('repeatEvery restarts after playDuration', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
