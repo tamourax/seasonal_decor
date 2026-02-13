@@ -1,39 +1,77 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+﻿# seasonal_decor
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
+Drop-in seasonal decorative overlays for Flutter apps. Ships with a lightweight CustomPainter + Ticker particle engine and ready-to-use presets for Ramadan, Eid, and Christmas.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages).
--->
+Repository: https://github.com/tamourax/seasonal_decor
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+## Installation
 
-## Features
+Add this to your `pubspec.yaml`:
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
-
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
-
-## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
-
-```dart
-const like = 'sample';
+```yaml
+dependencies:
+  seasonal_decor: ^0.1.0
 ```
 
-## Additional information
+Then run:
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+```bash
+flutter pub get
+```
+
+## Quick Start
+
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.ramadan(),
+  intensity: DecorIntensity.medium,
+  child: const HomeScreen(),
+);
+```
+
+## Options
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `child` | `Widget` | required | Widget below the overlay. |
+| `preset` | `SeasonalPreset` | required | Decorative preset to render. |
+| `enabled` | `bool` | `true` | Shows or hides the overlay. |
+| `intensity` | `DecorIntensity` | `medium` | Particle count, speed, spawn rate. |
+| `opacity` | `double` | `1.0` | Global overlay opacity (0.0 to 1.0). |
+| `respectReduceMotion` | `bool` | `true` | Honors `MediaQuery.disableAnimations`. |
+| `pauseWhenInactive` | `bool` | `true` | Pauses animation when app is inactive. |
+| `ignorePointer` | `bool` | `true` | Lets taps pass through the overlay. |
+
+## Presets
+
+- Ramadan (`classic`, `night`)
+- Eid (`classic`)
+- Christmas (`classic`)
+
+## Performance Notes
+
+- Fixed-size particle pool with reuse.
+- Adaptive density scaling based on screen area.
+- RepaintBoundary isolates the overlay.
+- Optional pause on inactive lifecycle states.
+
+## Accessibility
+
+- If `respectReduceMotion` is true and `MediaQuery.disableAnimations` is set, the overlay renders a static decoration instead of animating.
+
+## Supported Platforms
+
+- Android
+- iOS
+- Web
+- Windows
+- macOS
+- Linux
+
+## Example
+
+See `example/lib/main.dart` for a full demo with presets and controls.
+
+## License
+
+MIT License. See [LICENSE](LICENSE).
