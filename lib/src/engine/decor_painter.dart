@@ -29,11 +29,14 @@ class DecorPainter extends CustomPainter {
   final Paint _paint = Paint()..isAntiAlias = true;
   final Path _treePath = Path();
   final Path _garlandPath = Path();
+  final Path _buntingPath = Path();
+  final Path _trianglePath = Path();
 
   static final Path _unitStarPath = _buildUnitStarPath();
   static final Path _unitCrescentPath = _buildUnitCrescentPath();
   static final Path _unitLanternBodyPath = _buildUnitLanternBodyPath();
   static final Path _unitLanternWindowPath = _buildUnitLanternWindowPath();
+  static final Path _unitBalloonPath = _buildUnitBalloonPath();
   static final Path _unitHeartPath = _buildUnitHeartPath();
   static final Path _unitBatPath = _buildUnitBatPath();
   static final Path _unitPumpkinPath = _buildUnitPumpkinPath();
@@ -46,6 +49,13 @@ class DecorPainter extends CustomPainter {
     Color(0xFF90BE6D),
     Color(0xFF43AA8B),
     Color(0xFF577590),
+  ];
+  static const List<Color> _buntingColors = [
+    Color(0xFFE11D48),
+    Color(0xFF2563EB),
+    Color(0xFFF59E0B),
+    Color(0xFF10B981),
+    Color(0xFF8B5CF6),
   ];
   static const List<Color> _treeOrnamentColors = [
     Color(0xFFF94144),
@@ -122,6 +132,12 @@ class DecorPainter extends CustomPainter {
         break;
       case BackdropType.garland:
         _paintGarland(canvas, size, opacity, backdrop);
+        break;
+      case BackdropType.bunting:
+        _paintBunting(canvas, size, opacity, backdrop);
+        break;
+      case BackdropType.mosque:
+        _paintMosque(canvas, size, opacity, backdrop);
         break;
       case BackdropType.trophy:
         _paintTrophy(canvas, size, opacity, backdrop);
@@ -268,6 +284,147 @@ class DecorPainter extends CustomPainter {
     }
   }
 
+  void _paintBunting(
+    Canvas canvas,
+    Size size,
+    double opacity,
+    DecorBackdrop backdrop,
+  ) {
+    final width = size.width;
+    final y = size.height * backdrop.anchor.dy;
+    final amplitude = size.height * backdrop.sizeFactor;
+
+    final baseAlpha = backdrop.color.a;
+    final combinedAlpha =
+        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
+
+    _buntingPath
+      ..reset()
+      ..moveTo(0, y)
+      ..quadraticBezierTo(width * 0.5, y + amplitude, width, y);
+
+    _paint
+      ..color = backdrop.color.withValues(alpha: combinedAlpha)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.2, amplitude * 0.08)
+      ..strokeCap = StrokeCap.round;
+    canvas.drawPath(_buntingPath, _paint);
+
+    final flagCount = 9;
+    final flagHeight = math.max(10.0, amplitude * 1.1);
+    final flagWidth = flagHeight * 0.9;
+    for (var i = 0; i < flagCount; i += 1) {
+      final t = (i + 0.5) / flagCount;
+      final point = _quadraticBezierPoint(
+        Offset(0, y),
+        Offset(width * 0.5, y + amplitude),
+        Offset(width, y),
+        t,
+      );
+      _trianglePath
+        ..reset()
+        ..moveTo(point.dx - flagWidth * 0.5, point.dy)
+        ..lineTo(point.dx + flagWidth * 0.5, point.dy)
+        ..lineTo(point.dx, point.dy + flagHeight)
+        ..close();
+      final color = _buntingColors[i % _buntingColors.length]
+          .withValues(alpha: (combinedAlpha * 0.95).clamp(0.0, 1.0).toDouble());
+      _paint
+        ..color = color
+        ..style = PaintingStyle.fill;
+      canvas.drawPath(_trianglePath, _paint);
+    }
+  }
+
+  void _paintMosque(
+    Canvas canvas,
+    Size size,
+    double opacity,
+    DecorBackdrop backdrop,
+  ) {
+    final shortest = math.min(size.width, size.height);
+    final width = shortest * backdrop.sizeFactor;
+    final height = width * 0.55;
+    final center = Offset(
+      size.width * backdrop.anchor.dx,
+      size.height * backdrop.anchor.dy,
+    );
+
+    final baseAlpha = backdrop.color.a;
+    final combinedAlpha =
+        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
+    final color = backdrop.color.withValues(alpha: combinedAlpha);
+
+    _paint
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+
+    final baseHeight = height * 0.32;
+    final baseRect = Rect.fromCenter(
+      center: Offset(0, baseHeight * 0.25),
+      width: width,
+      height: baseHeight,
+    );
+    canvas.drawRect(baseRect, _paint);
+
+    final domeRadius = width * 0.18;
+    canvas.drawCircle(Offset(0, -height * 0.1), domeRadius, _paint);
+
+    final sideDomeRadius = width * 0.12;
+    canvas.drawCircle(
+      Offset(-width * 0.28, -height * 0.05),
+      sideDomeRadius,
+      _paint,
+    );
+    canvas.drawCircle(
+      Offset(width * 0.28, -height * 0.05),
+      sideDomeRadius,
+      _paint,
+    );
+
+    final minaretWidth = width * 0.08;
+    final minaretHeight = height * 0.7;
+    final minaretY = -height * 0.45;
+    final leftMinaret = Rect.fromLTWH(
+      -width * 0.46 - minaretWidth * 0.5,
+      minaretY,
+      minaretWidth,
+      minaretHeight,
+    );
+    final rightMinaret = Rect.fromLTWH(
+      width * 0.46 - minaretWidth * 0.5,
+      minaretY,
+      minaretWidth,
+      minaretHeight,
+    );
+    canvas.drawRect(leftMinaret, _paint);
+    canvas.drawRect(rightMinaret, _paint);
+    canvas.drawCircle(
+      Offset(-width * 0.46, minaretY),
+      minaretWidth * 0.6,
+      _paint,
+    );
+    canvas.drawCircle(
+      Offset(width * 0.46, minaretY),
+      minaretWidth * 0.6,
+      _paint,
+    );
+
+    final spireWidth = width * 0.05;
+    final spireHeight = height * 0.18;
+    final spireRect = Rect.fromLTWH(
+      -spireWidth * 0.5,
+      -height * 0.42,
+      spireWidth,
+      spireHeight,
+    );
+    canvas.drawRect(spireRect, _paint);
+    canvas.restore();
+  }
+
   void _paintTrophy(
     Canvas canvas,
     Size size,
@@ -376,6 +533,62 @@ class DecorPainter extends CustomPainter {
           const Offset(0.22, 0.02),
           _paint,
         );
+        canvas.restore();
+        break;
+      case ParticleShape.balloon:
+        _paint
+          ..color = color
+          ..style = PaintingStyle.fill;
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        canvas.scale(particle.size, particle.size);
+        canvas.drawPath(_unitBalloonPath, _paint);
+        final highlight = const Color(0xFFFFFFFF).withValues(
+          alpha: (combinedAlpha * 0.45).clamp(0.0, 1.0),
+        );
+        _paint
+          ..color = highlight
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(const Offset(-0.18, -0.35), 0.12, _paint);
+        _paint
+          ..color = color.withValues(
+            alpha: (combinedAlpha * 0.5).clamp(0.0, 1.0),
+          )
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.06;
+        canvas.drawLine(const Offset(0, 0.72), const Offset(0, 1.45), _paint);
+        canvas.restore();
+        break;
+      case ParticleShape.sheep:
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        canvas.scale(particle.size, particle.size);
+
+        _paint
+          ..color = color
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(const Offset(0, 0.05), 0.6, _paint);
+        canvas.drawCircle(const Offset(-0.35, -0.1), 0.32, _paint);
+        canvas.drawCircle(const Offset(0.35, -0.1), 0.32, _paint);
+        canvas.drawCircle(const Offset(0.0, -0.25), 0.35, _paint);
+
+        final faceColor =
+            Color.lerp(color, const Color(0xFF2F2F2F), 0.55)!
+                .withValues(alpha: combinedAlpha);
+        _paint.color = faceColor;
+        canvas.drawCircle(const Offset(0.55, 0.05), 0.24, _paint);
+        canvas.drawCircle(const Offset(0.7, -0.05), 0.08, _paint);
+        canvas.drawCircle(const Offset(0.7, 0.18), 0.08, _paint);
+
+        _paint
+          ..color = faceColor.withValues(
+            alpha: (combinedAlpha * 0.7).clamp(0.0, 1.0),
+          )
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(const Offset(0.64, 0.04), 0.04, _paint);
+
         canvas.restore();
         break;
       case ParticleShape.line:
@@ -518,6 +731,16 @@ class DecorPainter extends CustomPainter {
       ..lineTo(0.38, -0.45)
       ..lineTo(0.3, 0.35)
       ..lineTo(-0.3, 0.35)
+      ..close();
+    return path;
+  }
+
+  static Path _buildUnitBalloonPath() {
+    final path = Path()
+      ..addOval(const Rect.fromLTRB(-0.55, -0.95, 0.55, 0.6))
+      ..moveTo(-0.14, 0.55)
+      ..lineTo(0.14, 0.55)
+      ..lineTo(0.0, 0.78)
       ..close();
     return path;
   }

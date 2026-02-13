@@ -73,6 +73,12 @@ enum BackdropType {
   /// A string of garland lights.
   garland,
 
+  /// A string of triangle bunting flags.
+  bunting,
+
+  /// A mosque silhouette.
+  mosque,
+
   /// A trophy silhouette.
   trophy,
 }
@@ -138,6 +144,34 @@ class DecorBackdrop {
     required double sizeFactor,
   }) : this(
           type: BackdropType.garland,
+          color: color,
+          opacity: opacity,
+          anchor: anchor,
+          sizeFactor: sizeFactor,
+        );
+
+  /// Convenience constructor for a bunting backdrop.
+  const DecorBackdrop.bunting({
+    required Color color,
+    required double opacity,
+    required Offset anchor,
+    required double sizeFactor,
+  }) : this(
+          type: BackdropType.bunting,
+          color: color,
+          opacity: opacity,
+          anchor: anchor,
+          sizeFactor: sizeFactor,
+        );
+
+  /// Convenience constructor for a mosque backdrop.
+  const DecorBackdrop.mosque({
+    required Color color,
+    required double opacity,
+    required Offset anchor,
+    required double sizeFactor,
+  }) : this(
+          type: BackdropType.mosque,
           color: color,
           opacity: opacity,
           anchor: anchor,

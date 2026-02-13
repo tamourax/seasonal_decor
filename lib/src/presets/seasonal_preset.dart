@@ -67,11 +67,17 @@ class SeasonalPreset {
 
   /// Eid preset.
   factory SeasonalPreset.eid({EidVariant? variant}) {
-    final resolvedVariant = variant ?? EidVariant.classic;
+    final resolvedVariant = variant ?? EidVariant.fitr;
+    final normalizedVariant = resolvedVariant == EidVariant.classic
+        ? EidVariant.fitr
+        : resolvedVariant;
+    final displayName = normalizedVariant == EidVariant.adha
+        ? 'Eid al-Adha'
+        : 'Eid al-Fitr';
     return SeasonalPreset._(
-      name: 'Eid',
-      variant: resolvedVariant.name,
-      baseConfig: buildEidConfig(resolvedVariant),
+      name: displayName,
+      variant: normalizedVariant.name,
+      baseConfig: buildEidConfig(normalizedVariant),
     );
   }
 
