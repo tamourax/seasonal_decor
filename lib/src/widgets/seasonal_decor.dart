@@ -1,6 +1,8 @@
-﻿import 'package:flutter/widgets.dart';
-
 import 'dart:async';
+
+import 'package:flutter/widgets.dart';
+
+
 
 import '../config/intensity.dart';
 import '../engine/decor_controller.dart';
@@ -227,6 +229,9 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     }
   }
 
+  @visibleForTesting
+  bool debugIsPlaying() => _playing;
+
   void _syncAnimation() {
     final shouldAnimate = widget.enabled &&
         !_appPaused &&
@@ -250,7 +255,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
 
   @override
   Widget build(BuildContext context) {
-    final overlayOpacity = widget.opacity.clamp(0.0, 1.0) as double;
+    final overlayOpacity = widget.opacity.clamp(0.0, 1.0).toDouble();
 
     return LayoutBuilder(
       builder: (context, constraints) {
