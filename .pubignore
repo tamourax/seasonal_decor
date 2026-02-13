@@ -1,0 +1,13 @@
+# Keep package publish payload focused
+docs/
+release_notes/
+react_seasonal_decor/
+.github/
+
+# Local/build artifacts
+.dart_tool/
+build/
+coverage/
+
+# Package should not ship lockfile
+pubspec.lock
