@@ -1,6 +1,8 @@
-﻿import 'package:flutter/widgets.dart';
-
 import 'dart:async';
+
+import 'package:flutter/widgets.dart';
+
+
 
 import '../config/intensity.dart';
 import '../engine/decor_controller.dart';
@@ -226,6 +228,9 @@ class _SeasonalDecorState extends State<SeasonalDecor>
       _controller.stop();
     }
   }
+
+  @visibleForTesting
+  bool debugIsPlaying() => _playing;
 
   void _syncAnimation() {
     final shouldAnimate = widget.enabled &&
