@@ -184,12 +184,9 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     _playing = true;
     _applySystemControls();
     _stopTimer?.cancel();
+    _repeatTimer?.cancel();
     if (widget.playDuration > Duration.zero) {
       _stopTimer = Timer(widget.playDuration, _stopPlaying);
-    }
-    _repeatTimer?.cancel();
-    if (widget.repeatEvery != null) {
-      _repeatTimer = Timer(widget.repeatEvery!, _startPlayCycle);
     }
     _syncAnimation();
   }
@@ -198,6 +195,10 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     _playing = false;
     _applySystemControls();
     _syncAnimation();
+    _repeatTimer?.cancel();
+    if (widget.enabled && widget.repeatEvery != null) {
+      _repeatTimer = Timer(widget.repeatEvery!, _startPlayCycle);
+    }
   }
 
   void _cancelTimers() {
@@ -231,6 +232,12 @@ class _SeasonalDecorState extends State<SeasonalDecor>
 
   @visibleForTesting
   bool debugIsPlaying() => _playing;
+
+  @visibleForTesting
+  bool debugIsRepeatTimerActive() => _repeatTimer?.isActive ?? false;
+
+  @visibleForTesting
+  void debugStopPlayingForTest() => _stopPlaying();
 
   void _syncAnimation() {
     final shouldAnimate = widget.enabled &&
