@@ -147,7 +147,8 @@ If `enabled` is `false`, this keeps the backdrop visible while particles remain 
 ## Presets
 
 - Ramadan (`classic`, `night`)
-- Eid (`classic`) - fireworks rockets and bursts
+- Eid al-Fitr (`fitr`) - bunting + balloons
+- Eid al-Adha (`adha`) - mosque + sheep + fireworks
 - Christmas (`classic`) - snow with tree/garland
 - New Year (`fireworks`, `gold`) - fireworks with confetti
 - Valentine (`hearts`, `minimal`) - floating hearts with sparkles

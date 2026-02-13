@@ -7,7 +7,8 @@ void main() {
 
 enum PresetOption {
   ramadan,
-  eid,
+  eidFitr,
+  eidAdha,
   christmas,
   newYear,
   valentine,
@@ -20,8 +21,10 @@ extension PresetOptionX on PresetOption {
     switch (this) {
       case PresetOption.ramadan:
         return 'Ramadan';
-      case PresetOption.eid:
-        return 'Eid';
+      case PresetOption.eidFitr:
+        return 'Eid al-Fitr';
+      case PresetOption.eidAdha:
+        return 'Eid al-Adha';
       case PresetOption.christmas:
         return 'Christmas';
       case PresetOption.newYear:
@@ -101,8 +104,10 @@ class _HomePageState extends State<HomePage> {
     switch (_presetOption) {
       case PresetOption.ramadan:
         return SeasonalPreset.ramadan();
-      case PresetOption.eid:
-        return SeasonalPreset.eid();
+      case PresetOption.eidFitr:
+        return SeasonalPreset.eid(variant: EidVariant.fitr);
+      case PresetOption.eidAdha:
+        return SeasonalPreset.eid(variant: EidVariant.adha);
       case PresetOption.christmas:
         return SeasonalPreset.christmas();
       case PresetOption.newYear:
@@ -131,10 +136,18 @@ class _HomePageState extends State<HomePage> {
             end: Alignment.bottomCenter,
           ),
         );
-      case PresetOption.eid:
+      case PresetOption.eidFitr:
         return const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFF0B1320), Color(0xFF1B2A4A)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        );
+      case PresetOption.eidAdha:
+        return const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF0B1C2B), Color(0xFF1C3B5A)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),

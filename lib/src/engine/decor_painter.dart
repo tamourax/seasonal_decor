@@ -29,11 +29,14 @@ class DecorPainter extends CustomPainter {
   final Paint _paint = Paint()..isAntiAlias = true;
   final Path _treePath = Path();
   final Path _garlandPath = Path();
+  final Path _buntingPath = Path();
+  final Path _trianglePath = Path();
 
   static final Path _unitStarPath = _buildUnitStarPath();
   static final Path _unitCrescentPath = _buildUnitCrescentPath();
   static final Path _unitLanternBodyPath = _buildUnitLanternBodyPath();
   static final Path _unitLanternWindowPath = _buildUnitLanternWindowPath();
+  static final Path _unitBalloonPath = _buildUnitBalloonPath();
   static final Path _unitHeartPath = _buildUnitHeartPath();
   static final Path _unitBatPath = _buildUnitBatPath();
   static final Path _unitPumpkinPath = _buildUnitPumpkinPath();
@@ -46,6 +49,13 @@ class DecorPainter extends CustomPainter {
     Color(0xFF90BE6D),
     Color(0xFF43AA8B),
     Color(0xFF577590),
+  ];
+  static const List<Color> _buntingColors = [
+    Color(0xFFE11D48),
+    Color(0xFF2563EB),
+    Color(0xFFF59E0B),
+    Color(0xFF10B981),
+    Color(0xFF8B5CF6),
   ];
   static const List<Color> _treeOrnamentColors = [
     Color(0xFFF94144),
@@ -122,6 +132,12 @@ class DecorPainter extends CustomPainter {
         break;
       case BackdropType.garland:
         _paintGarland(canvas, size, opacity, backdrop);
+        break;
+      case BackdropType.bunting:
+        _paintBunting(canvas, size, opacity, backdrop);
+        break;
+      case BackdropType.mosque:
+        _paintMosque(canvas, size, opacity, backdrop);
         break;
       case BackdropType.trophy:
         _paintTrophy(canvas, size, opacity, backdrop);
@@ -268,6 +284,255 @@ class DecorPainter extends CustomPainter {
     }
   }
 
+  void _paintBunting(
+    Canvas canvas,
+    Size size,
+    double opacity,
+    DecorBackdrop backdrop,
+  ) {
+    final width = size.width;
+    final y = size.height * backdrop.anchor.dy;
+    final amplitude = size.height * backdrop.sizeFactor;
+
+    final baseAlpha = backdrop.color.a;
+    final combinedAlpha =
+        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
+
+    _buntingPath
+      ..reset()
+      ..moveTo(0, y)
+      ..quadraticBezierTo(width * 0.5, y + amplitude, width, y);
+
+    _paint
+      ..color = backdrop.color.withValues(alpha: combinedAlpha)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.2, amplitude * 0.08)
+      ..strokeCap = StrokeCap.round;
+    canvas.drawPath(_buntingPath, _paint);
+
+    final flagCount = 9;
+    final flagHeight = math.max(10.0, amplitude * 1.1);
+    final flagWidth = flagHeight * 0.9;
+    for (var i = 0; i < flagCount; i += 1) {
+      final t = (i + 0.5) / flagCount;
+      final point = _quadraticBezierPoint(
+        Offset(0, y),
+        Offset(width * 0.5, y + amplitude),
+        Offset(width, y),
+        t,
+      );
+      _trianglePath
+        ..reset()
+        ..moveTo(point.dx - flagWidth * 0.5, point.dy)
+        ..lineTo(point.dx + flagWidth * 0.5, point.dy)
+        ..lineTo(point.dx, point.dy + flagHeight)
+        ..close();
+      final color = _buntingColors[i % _buntingColors.length]
+          .withValues(alpha: (combinedAlpha * 0.95).clamp(0.0, 1.0).toDouble());
+      _paint
+        ..color = color
+        ..style = PaintingStyle.fill;
+      canvas.drawPath(_trianglePath, _paint);
+    }
+  }
+
+  void _paintMosque(
+    Canvas canvas,
+    Size size,
+    double opacity,
+    DecorBackdrop backdrop,
+  ) {
+    final shortest = math.min(size.width, size.height);
+    final width = shortest * backdrop.sizeFactor;
+    final height = width * 0.62;
+    final center = Offset(
+      size.width * backdrop.anchor.dx,
+      size.height * backdrop.anchor.dy,
+    );
+
+    final baseAlpha = backdrop.color.a;
+    final combinedAlpha =
+        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
+    final primary = backdrop.color.withValues(alpha: combinedAlpha);
+    final accent = const Color(0xFFF2C94C).withValues(alpha: combinedAlpha);
+    final accentSoft = const Color(0xFFFFE6A3).withValues(
+      alpha: (combinedAlpha * 0.75).clamp(0.0, 1.0),
+    );
+
+    _paint
+      ..color = primary
+      ..style = PaintingStyle.fill;
+
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+
+    final baseWidth = width * 0.92;
+    final baseHeight = height * 0.44;
+    final baseTop = height * 0.08;
+    final baseRect = Rect.fromLTWH(
+      -baseWidth * 0.5,
+      baseTop,
+      baseWidth,
+      baseHeight,
+    );
+    final baseRRect = RRect.fromRectAndRadius(
+      baseRect,
+      Radius.circular(width * 0.04),
+    );
+    canvas.drawRRect(baseRRect, _paint);
+
+    final platformRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        -width * 0.65,
+        baseTop + baseHeight * 0.86,
+        width * 1.3,
+        height * 0.12,
+      ),
+      Radius.circular(width * 0.06),
+    );
+    canvas.drawRRect(platformRect, _paint);
+
+    _paint.color = accent;
+    final bandHeight = height * 0.04;
+    canvas.drawRect(
+      Rect.fromLTWH(
+        -baseWidth * 0.5,
+        baseTop + baseHeight * 0.14,
+        baseWidth,
+        bandHeight,
+      ),
+      _paint,
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(
+        -baseWidth * 0.5,
+        baseTop + baseHeight * 0.5,
+        baseWidth,
+        bandHeight,
+      ),
+      _paint,
+    );
+
+    void drawOnionDome(Offset domeCenter, double radius) {
+      final baseY = domeCenter.dy;
+      final path = Path()
+        ..moveTo(domeCenter.dx - radius, baseY)
+        ..quadraticBezierTo(
+          domeCenter.dx - radius * 0.65,
+          baseY - radius * 0.9,
+          domeCenter.dx,
+          baseY - radius * 1.35,
+        )
+        ..quadraticBezierTo(
+          domeCenter.dx + radius * 0.65,
+          baseY - radius * 0.9,
+          domeCenter.dx + radius,
+          baseY,
+        )
+        ..lineTo(domeCenter.dx + radius, baseY + radius * 0.24)
+        ..lineTo(domeCenter.dx - radius, baseY + radius * 0.24)
+        ..close();
+      _paint.color = primary;
+      canvas.drawPath(path, _paint);
+      _paint.color = accentSoft;
+      canvas.drawCircle(
+        Offset(domeCenter.dx - radius * 0.28, baseY - radius * 0.35),
+        radius * 0.22,
+        _paint,
+      );
+    }
+
+    final mainDomeCenter = Offset(0, baseTop - height * 0.02);
+    drawOnionDome(mainDomeCenter, width * 0.24);
+    drawOnionDome(
+      Offset(-width * 0.32, baseTop + height * 0.05),
+      width * 0.15,
+    );
+    drawOnionDome(
+      Offset(width * 0.32, baseTop + height * 0.05),
+      width * 0.15,
+    );
+
+    void drawCrescent(Offset crescentCenter, double size) {
+      _paint.color = accent;
+      canvas.save();
+      canvas.translate(crescentCenter.dx, crescentCenter.dy);
+      canvas.scale(size, size);
+      canvas.drawPath(_unitCrescentPath, _paint);
+      canvas.restore();
+    }
+
+    drawCrescent(
+      mainDomeCenter + Offset(0, -width * 0.32),
+      width * 0.075,
+    );
+    drawCrescent(
+      Offset(-width * 0.32, baseTop - height * 0.03),
+      width * 0.05,
+    );
+    drawCrescent(
+      Offset(width * 0.32, baseTop - height * 0.03),
+      width * 0.05,
+    );
+
+    final doorWidth = baseWidth * 0.26;
+    final doorHeight = baseHeight * 0.58;
+    final doorTop = baseTop + baseHeight * 0.25;
+    final doorRect = Rect.fromLTWH(
+      -doorWidth * 0.5,
+      doorTop,
+      doorWidth,
+      doorHeight,
+    );
+    final doorRadius = doorWidth * 0.5;
+    final doorPath = Path()
+      ..moveTo(doorRect.left, doorRect.bottom)
+      ..lineTo(doorRect.left, doorRect.top + doorRadius)
+      ..arcTo(
+        Rect.fromCircle(
+          center: Offset(0, doorRect.top + doorRadius),
+          radius: doorRadius,
+        ),
+        math.pi,
+        math.pi,
+        false,
+      )
+      ..lineTo(doorRect.right, doorRect.bottom)
+      ..close();
+    _paint.color = accent;
+    canvas.drawPath(doorPath, _paint);
+
+    final windowWidth = baseWidth * 0.12;
+    final windowHeight = baseHeight * 0.5;
+    final windowTop = baseTop + baseHeight * 0.32;
+    for (final dx in [-baseWidth * 0.28, baseWidth * 0.28]) {
+      final rect = Rect.fromLTWH(
+        dx - windowWidth * 0.5,
+        windowTop,
+        windowWidth,
+        windowHeight,
+      );
+      final radius = windowWidth * 0.5;
+      final path = Path()
+        ..moveTo(rect.left, rect.bottom)
+        ..lineTo(rect.left, rect.top + radius)
+        ..arcTo(
+          Rect.fromCircle(
+            center: Offset(dx, rect.top + radius),
+            radius: radius,
+          ),
+          math.pi,
+          math.pi,
+          false,
+        )
+        ..lineTo(rect.right, rect.bottom)
+        ..close();
+      canvas.drawPath(path, _paint);
+    }
+
+    canvas.restore();
+  }
+
   void _paintTrophy(
     Canvas canvas,
     Size size,
@@ -376,6 +641,73 @@ class DecorPainter extends CustomPainter {
           const Offset(0.22, 0.02),
           _paint,
         );
+        canvas.restore();
+        break;
+      case ParticleShape.balloon:
+        _paint
+          ..color = color
+          ..style = PaintingStyle.fill;
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        canvas.scale(particle.size, particle.size);
+        canvas.drawPath(_unitBalloonPath, _paint);
+        final highlight = const Color(0xFFFFFFFF).withValues(
+          alpha: (combinedAlpha * 0.45).clamp(0.0, 1.0),
+        );
+        _paint
+          ..color = highlight
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(const Offset(-0.18, -0.35), 0.12, _paint);
+        _paint
+          ..color = color.withValues(
+            alpha: (combinedAlpha * 0.5).clamp(0.0, 1.0),
+          )
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.06;
+        canvas.drawLine(const Offset(0, 0.72), const Offset(0, 1.45), _paint);
+        canvas.restore();
+        break;
+      case ParticleShape.sheep:
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        canvas.scale(particle.size, particle.size);
+
+        _paint
+          ..color = color
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(const Offset(0.0, 0.08), 0.62, _paint);
+        canvas.drawCircle(const Offset(-0.42, -0.1), 0.34, _paint);
+        canvas.drawCircle(const Offset(0.42, -0.1), 0.34, _paint);
+        canvas.drawCircle(const Offset(0.0, -0.28), 0.38, _paint);
+        canvas.drawCircle(const Offset(-0.18, 0.35), 0.28, _paint);
+        canvas.drawCircle(const Offset(0.18, 0.35), 0.28, _paint);
+
+        final faceColor =
+            Color.lerp(color, const Color(0xFF2B2B2B), 0.6)!
+                .withValues(alpha: combinedAlpha);
+        _paint.color = faceColor;
+        canvas.drawCircle(const Offset(0.72, 0.05), 0.26, _paint);
+        canvas.drawCircle(const Offset(0.86, -0.05), 0.07, _paint);
+        canvas.drawCircle(const Offset(0.86, 0.18), 0.07, _paint);
+
+        _paint
+          ..color = faceColor.withValues(
+            alpha: (combinedAlpha * 0.8).clamp(0.0, 1.0),
+          )
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(const Offset(0.8, 0.05), 0.04, _paint);
+
+        _paint
+          ..color = faceColor.withValues(
+            alpha: (combinedAlpha * 0.7).clamp(0.0, 1.0),
+          )
+          ..style = PaintingStyle.fill;
+        canvas.drawRect(const Rect.fromLTRB(-0.35, 0.68, -0.25, 0.95), _paint);
+        canvas.drawRect(const Rect.fromLTRB(-0.05, 0.68, 0.05, 0.95), _paint);
+        canvas.drawRect(const Rect.fromLTRB(0.25, 0.68, 0.35, 0.95), _paint);
+
         canvas.restore();
         break;
       case ParticleShape.line:
@@ -518,6 +850,16 @@ class DecorPainter extends CustomPainter {
       ..lineTo(0.38, -0.45)
       ..lineTo(0.3, 0.35)
       ..lineTo(-0.3, 0.35)
+      ..close();
+    return path;
+  }
+
+  static Path _buildUnitBalloonPath() {
+    final path = Path()
+      ..addOval(const Rect.fromLTRB(-0.55, -0.95, 0.55, 0.6))
+      ..moveTo(-0.14, 0.55)
+      ..lineTo(0.14, 0.55)
+      ..lineTo(0.0, 0.78)
       ..close();
     return path;
   }
