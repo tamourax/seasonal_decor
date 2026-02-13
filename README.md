@@ -41,16 +41,21 @@ SeasonalDecor(
 | `respectReduceMotion` | `bool`           | `true`   | Honors `MediaQuery.disableAnimations`. |
 | `pauseWhenInactive`   | `bool`           | `true`   | Pauses animation when app is inactive. |
 | `ignorePointer`       | `bool`           | `true`   | Lets taps pass through the overlay.    |
+| `playDuration`        | `Duration`       | `5s`     | How long the animation runs per cycle. |
+| `settleOnDisable`     | `bool`           | `true`   | Let particles settle when stopping.    |
+| `repeatEvery`         | `Duration?`      | `null`   | Auto-replay after the given duration.  |
+| `showBackdrop`        | `bool`           | `true`   | Render decorative backdrops.           |
+| `showBackdropWhenDisabled` | `bool`      | `true`   | Keep backdrops visible when disabled.  |
 
 ## Presets
 
 - Ramadan (`classic`, `night`)
-- Eid (`classic`) � fireworks rockets and bursts
-- Christmas (`classic`) � snow with tree/garland
-- New Year (`fireworks`, `gold`) � fireworks with confetti
-- Valentine (`hearts`, `minimal`) � floating hearts with sparkles
-- Halloween (`spooky`, `pumpkin`) � bats/pumpkins with moon
-- Sport Event (`worldCup`, `teamColors`) � trophy + celebration
+- Eid (`classic`) - fireworks rockets and bursts
+- Christmas (`classic`) - snow with tree/garland
+- New Year (`fireworks`, `gold`) - fireworks with confetti
+- Valentine (`hearts`, `minimal`) - floating hearts with sparkles
+- Halloween (`spooky`, `pumpkin`) - bats/pumpkins with moon
+- Sport Event (`worldCup`, `teamColors`) - trophy + celebration
 
 ## Performance Notes
 
@@ -79,3 +84,4 @@ See `example/lib/main.dart` for a full demo with presets and controls.
 ## License
 
 MIT License. See [LICENSE](LICENSE).
+

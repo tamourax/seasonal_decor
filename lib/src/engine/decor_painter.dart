@@ -20,6 +20,12 @@ class DecorPainter extends CustomPainter {
   /// Whether to render a static overlay (reduced motion).
   final bool staticMode;
 
+  /// Whether to paint particles (backdrops still render).
+  final bool paintParticles;
+
+  /// Whether to paint backdrops.
+  final bool showBackdrop;
+
   final Paint _paint = Paint()..isAntiAlias = true;
   final Path _treePath = Path();
   final Path _garlandPath = Path();
@@ -55,6 +61,8 @@ class DecorPainter extends CustomPainter {
     required this.config,
     required this.opacity,
     required this.staticMode,
+    required this.paintParticles,
+    required this.showBackdrop,
     required Listenable repaint,
   }) : super(repaint: repaint);
 
@@ -63,19 +71,23 @@ class DecorPainter extends CustomPainter {
     system.setBounds(size);
 
     final clampedOpacity = opacity.clamp(0.0, 1.0) as double;
-    _paintBackdrop(canvas, size, clampedOpacity);
+    if (showBackdrop) {
+      _paintBackdrop(canvas, size, clampedOpacity);
+    }
 
-    final particles = system.particles;
-    final step = staticMode ? 3 : 1;
-    for (var i = 0; i < particles.length; i += step) {
-      final particle = particles[i];
-      if (!particle.active) {
-        continue;
+    if (paintParticles) {
+      final particles = system.particles;
+      final step = staticMode ? 3 : 1;
+      for (var i = 0; i < particles.length; i += step) {
+        final particle = particles[i];
+        if (!particle.active) {
+          continue;
+        }
+        if (staticMode && particle.kind == ParticleKind.rocket) {
+          continue;
+        }
+        _paintParticle(canvas, particle, clampedOpacity);
       }
-      if (staticMode && particle.kind == ParticleKind.rocket) {
-        continue;
-      }
-      _paintParticle(canvas, particle, clampedOpacity);
     }
   }
 
@@ -525,6 +537,8 @@ class DecorPainter extends CustomPainter {
     return oldDelegate.system != system ||
         oldDelegate.config != config ||
         oldDelegate.opacity != opacity ||
-        oldDelegate.staticMode != staticMode;
+        oldDelegate.staticMode != staticMode ||
+        oldDelegate.paintParticles != paintParticles ||
+        oldDelegate.showBackdrop != showBackdrop;
   }
 }
