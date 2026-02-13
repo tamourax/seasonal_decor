@@ -209,4 +209,81 @@ void main() {
       expect(teamPalette.contains(particle.color), isTrue);
     }
   });
+
+  test('spawning disabled prevents respawn', () {
+    const config = DecorConfig(
+      particleCount: 4,
+      speedMultiplier: 1.0,
+      spawnRate: 60,
+      spawnRateScale: 1.0,
+      drift: 0,
+      flow: ParticleFlow.falling,
+      wrapMode: DecorWrapMode.respawn,
+      styles: [
+        ParticleStyle(
+          shape: ParticleShape.circle,
+          color: Color(0xFFFFFFFF),
+          minSize: 2.0,
+          maxSize: 2.0,
+          minSpeed: 10,
+          maxSpeed: 10,
+          minRotationSpeed: 0,
+          maxRotationSpeed: 0,
+        ),
+      ],
+    );
+
+    final system = ParticleSystem(
+      config: config,
+      size: const Size(100, 100),
+      random: math.Random(6),
+    );
+
+    system.setSpawningEnabled(false);
+    for (final particle in system.particles) {
+      particle.active = false;
+    }
+
+    system.update(0.5);
+
+    expect(system.hasActiveParticles, isFalse);
+  });
+
+  test('wrap disabled deactivates out-of-bounds particles', () {
+    const config = DecorConfig(
+      particleCount: 1,
+      speedMultiplier: 1.0,
+      spawnRate: 0,
+      spawnRateScale: 1.0,
+      drift: 0,
+      flow: ParticleFlow.falling,
+      wrapMode: DecorWrapMode.wrap,
+      styles: [
+        ParticleStyle(
+          shape: ParticleShape.circle,
+          color: Color(0xFFFFFFFF),
+          minSize: 2.0,
+          maxSize: 2.0,
+          minSpeed: 10,
+          maxSpeed: 10,
+          minRotationSpeed: 0,
+          maxRotationSpeed: 0,
+        ),
+      ],
+    );
+
+    final system = ParticleSystem(
+      config: config,
+      size: const Size(100, 100),
+      random: math.Random(7),
+    );
+
+    system.setWrapEnabled(false);
+    final particle = system.particles.first;
+    particle.position = const Offset(200, 200);
+
+    system.update(0.1);
+
+    expect(particle.active, isFalse);
+  });
 }

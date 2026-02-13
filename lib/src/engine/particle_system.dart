@@ -7,7 +7,7 @@ import 'particle.dart';
 /// Manages a pool of particles and updates them over time.
 class ParticleSystem {
   final math.Random _random;
-  DecorConfig _config;
+  final DecorConfig _config;
   Size _size;
   double _spawnAccumulator = 0;
   double _rocketSpawnAccumulator = 0;
@@ -77,7 +77,7 @@ class ParticleSystem {
 
   /// Updates adaptive density scaling.
   void setDensityScale(double scale) {
-    final clamped = scale.clamp(0.4, 1.8) as double;
+    final clamped = scale.clamp(0.4, 1.8).toDouble();
     _maxActive = math.max(1, (_config.particleCount * clamped).round());
     _maxActive = math.min(_maxActive, _config.particleCount);
     _syncActiveCount();
@@ -91,7 +91,7 @@ class ParticleSystem {
     if (dt <= 0) {
       return;
     }
-    final double delta = dt.clamp(0.0, 0.05) as double;
+    final double delta = dt.clamp(0.0, 0.05).toDouble();
     if (_config.enableFireworks) {
       _updateFireworks(delta);
       return;

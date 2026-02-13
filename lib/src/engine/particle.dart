@@ -100,7 +100,7 @@ class Particle {
       return 1.0;
     }
     final value = life / maxLife;
-    return value.clamp(0.0, 1.0) as double;
+    return value.clamp(0.0, 1.0).toDouble();
   }
 
   /// Resets the particle state for reuse.

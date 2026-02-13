@@ -1,4 +1,3 @@
-﻿library seasonal_decor;
 
 export 'src/config/intensity.dart';
 export 'src/presets/christmas.dart' show ChristmasVariant;

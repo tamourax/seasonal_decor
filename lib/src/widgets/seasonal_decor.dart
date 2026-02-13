@@ -250,7 +250,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
 
   @override
   Widget build(BuildContext context) {
-    final overlayOpacity = widget.opacity.clamp(0.0, 1.0) as double;
+    final overlayOpacity = widget.opacity.clamp(0.0, 1.0).toDouble();
 
     return LayoutBuilder(
       builder: (context, constraints) {

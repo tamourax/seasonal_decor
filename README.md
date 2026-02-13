@@ -29,6 +29,19 @@ SeasonalDecor(
 );
 ```
 
+## Advanced Example
+
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.sportEvent(),
+  playDuration: const Duration(seconds: 8),
+  repeatEvery: const Duration(minutes: 10),
+  settleOnDisable: true,
+  showBackdrop: true,
+  child: const HomeScreen(),
+);
+```
+
 ## Options
 
 | Option                | Type             | Default  | Description                            |
@@ -46,6 +59,9 @@ SeasonalDecor(
 | `repeatEvery`         | `Duration?`      | `null`   | Auto-replay after the given duration.  |
 | `showBackdrop`        | `bool`           | `true`   | Render decorative backdrops.           |
 | `showBackdropWhenDisabled` | `bool`      | `true`   | Keep backdrops visible when disabled.  |
+
+Notes:
+- Use `playDuration: Duration.zero` for continuous animation.
 
 ## Presets
 
