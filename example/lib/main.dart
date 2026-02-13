@@ -6,6 +6,7 @@ void main() {
 }
 
 enum PresetOption {
+  none,
   ramadan,
   eidFitr,
   eidAdha,
@@ -25,6 +26,8 @@ extension PresetOptionX on PresetOption {
         return 'Eid al-Fitr';
       case PresetOption.eidAdha:
         return 'Eid al-Adha';
+      case PresetOption.none:
+        return 'None';
       case PresetOption.christmas:
         return 'Christmas';
       case PresetOption.newYear:
@@ -93,6 +96,11 @@ class _HomePageState extends State<HomePage> {
   double _playDurationSeconds = 0.0;
   bool _autoRepeatEnabled = false;
   double _repeatMinutes = 1.0;
+  bool _usePresetOverrides = false;
+  double _backdropAnchorX = 0.82;
+  double _backdropAnchorY = 0.22;
+  double _backdropSizeFactor = 0.55;
+  BackdropType _backdropType = BackdropType.mosque;
 
   static const List<Color> _teamColors = [
     Color(0xFF1D4ED8),
@@ -101,33 +109,63 @@ class _HomePageState extends State<HomePage> {
   ];
 
   SeasonalPreset _buildPreset() {
+    SeasonalPreset preset;
     switch (_presetOption) {
+      case PresetOption.none:
+        return SeasonalPreset.none();
       case PresetOption.ramadan:
-        return SeasonalPreset.ramadan();
+        preset = SeasonalPreset.ramadan();
+        break;
       case PresetOption.eidFitr:
-        return SeasonalPreset.eid(variant: EidVariant.fitr);
+        preset = SeasonalPreset.eid(variant: EidVariant.fitr);
+        break;
       case PresetOption.eidAdha:
-        return SeasonalPreset.eid(variant: EidVariant.adha);
+        preset = SeasonalPreset.eid(variant: EidVariant.adha);
+        break;
       case PresetOption.christmas:
-        return SeasonalPreset.christmas();
+        preset = SeasonalPreset.christmas();
+        break;
       case PresetOption.newYear:
-        return SeasonalPreset.newYear();
+        preset = SeasonalPreset.newYear();
+        break;
       case PresetOption.valentine:
-        return SeasonalPreset.valentine();
+        preset = SeasonalPreset.valentine();
+        break;
       case PresetOption.halloween:
-        return SeasonalPreset.halloween();
+        preset = SeasonalPreset.halloween();
+        break;
       case PresetOption.sportEvent:
-        return SeasonalPreset.sportEvent(
+        preset = SeasonalPreset.sportEvent(
           variant: _useTeamColors
               ? SportEventVariant.teamColors
               : SportEventVariant.worldCup,
           teamColors: _useTeamColors ? _teamColors : null,
         );
+        break;
     }
+
+    if (!_usePresetOverrides) {
+      return preset;
+    }
+
+    return preset.withOverrides(
+      shapes: const [ParticleShape.balloon, ParticleShape.sheep],
+      backdropType: _backdropType,
+      backdropAnchor: Offset(_backdropAnchorX, _backdropAnchorY),
+      backdropSizeFactor: _backdropSizeFactor,
+    );
   }
 
   BoxDecoration _buildBackground() {
     switch (_presetOption) {
+      case PresetOption.none:
+        return const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        );
       case PresetOption.ramadan:
         return const BoxDecoration(
           gradient: LinearGradient(
@@ -203,6 +241,7 @@ class _HomePageState extends State<HomePage> {
     );
     final reduceMotionActive =
         _respectReduceMotion && resolvedMedia.disableAnimations;
+    final preset = _buildPreset();
 
     return MediaQuery(
       data: resolvedMedia,
@@ -234,7 +273,7 @@ class _HomePageState extends State<HomePage> {
             ),
             Positioned.fill(
               child: SeasonalDecor(
-                preset: _buildPreset(),
+                preset: preset,
                 intensity: _intensity,
                 enabled: _enabled,
                 opacity: _opacity,
@@ -267,9 +306,13 @@ class _HomePageState extends State<HomePage> {
               autoRepeatEnabled: _autoRepeatEnabled,
               repeatMinutes: _repeatMinutes,
               useTeamColors: _useTeamColors,
+              usePresetOverrides: _usePresetOverrides,
+              backdropAnchorX: _backdropAnchorX,
+              backdropAnchorY: _backdropAnchorY,
+              backdropSizeFactor: _backdropSizeFactor,
+              backdropType: _backdropType,
               onPresetChanged: (value) => setState(() => _presetOption = value),
-              onIntensityChanged: (value) =>
-                  setState(() => _intensity = value),
+              onIntensityChanged: (value) => setState(() => _intensity = value),
               onEnabledChanged: (value) => setState(() => _enabled = value),
               onPauseWhenInactiveChanged: (value) =>
                   setState(() => _pauseWhenInactive = value),
@@ -290,6 +333,16 @@ class _HomePageState extends State<HomePage> {
                   setState(() => _repeatMinutes = value),
               onUseTeamColorsChanged: (value) =>
                   setState(() => _useTeamColors = value),
+              onUsePresetOverridesChanged: (value) =>
+                  setState(() => _usePresetOverrides = value),
+              onBackdropAnchorXChanged: (value) =>
+                  setState(() => _backdropAnchorX = value),
+              onBackdropAnchorYChanged: (value) =>
+                  setState(() => _backdropAnchorY = value),
+              onBackdropSizeFactorChanged: (value) =>
+                  setState(() => _backdropSizeFactor = value),
+              onBackdropTypeChanged: (value) =>
+                  setState(() => _backdropType = value),
             ),
           ],
         ),
@@ -376,6 +429,11 @@ class _ControlSheet extends StatelessWidget {
   final bool autoRepeatEnabled;
   final double repeatMinutes;
   final bool useTeamColors;
+  final bool usePresetOverrides;
+  final double backdropAnchorX;
+  final double backdropAnchorY;
+  final double backdropSizeFactor;
+  final BackdropType backdropType;
   final ValueChanged<PresetOption> onPresetChanged;
   final ValueChanged<DecorIntensity> onIntensityChanged;
   final ValueChanged<bool> onEnabledChanged;
@@ -389,6 +447,11 @@ class _ControlSheet extends StatelessWidget {
   final ValueChanged<bool> onAutoRepeatChanged;
   final ValueChanged<double> onRepeatMinutesChanged;
   final ValueChanged<bool> onUseTeamColorsChanged;
+  final ValueChanged<bool> onUsePresetOverridesChanged;
+  final ValueChanged<double> onBackdropAnchorXChanged;
+  final ValueChanged<double> onBackdropAnchorYChanged;
+  final ValueChanged<double> onBackdropSizeFactorChanged;
+  final ValueChanged<BackdropType> onBackdropTypeChanged;
 
   const _ControlSheet({
     required this.presetOption,
@@ -404,6 +467,11 @@ class _ControlSheet extends StatelessWidget {
     required this.autoRepeatEnabled,
     required this.repeatMinutes,
     required this.useTeamColors,
+    required this.usePresetOverrides,
+    required this.backdropAnchorX,
+    required this.backdropAnchorY,
+    required this.backdropSizeFactor,
+    required this.backdropType,
     required this.onPresetChanged,
     required this.onIntensityChanged,
     required this.onEnabledChanged,
@@ -417,10 +485,32 @@ class _ControlSheet extends StatelessWidget {
     required this.onAutoRepeatChanged,
     required this.onRepeatMinutesChanged,
     required this.onUseTeamColorsChanged,
+    required this.onUsePresetOverridesChanged,
+    required this.onBackdropAnchorXChanged,
+    required this.onBackdropAnchorYChanged,
+    required this.onBackdropSizeFactorChanged,
+    required this.onBackdropTypeChanged,
   });
 
   @override
   Widget build(BuildContext context) {
+    String backdropLabel(BackdropType type) {
+      switch (type) {
+        case BackdropType.crescent:
+          return 'Crescent';
+        case BackdropType.tree:
+          return 'Tree';
+        case BackdropType.garland:
+          return 'Garland';
+        case BackdropType.bunting:
+          return 'Bunting';
+        case BackdropType.mosque:
+          return 'Mosque';
+        case BackdropType.trophy:
+          return 'Trophy';
+      }
+    }
+
     return DraggableScrollableSheet(
       minChildSize: 0.22,
       maxChildSize: 0.86,
@@ -523,6 +613,67 @@ class _ControlSheet extends StatelessWidget {
                   ],
                   const SizedBox(height: 18),
                   _SectionTitle(
+                    title: 'Overrides',
+                    subtitle: 'Custom shapes + backdrop',
+                  ),
+                  const SizedBox(height: 10),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Use Preset Overrides'),
+                    subtitle: const Text('Balloon + sheep + mosque'),
+                    value: usePresetOverrides,
+                    onChanged: onUsePresetOverridesChanged,
+                  ),
+                  if (usePresetOverrides) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      'Backdrop Type',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: BackdropType.values
+                          .map(
+                            (type) => ChoiceChip(
+                              label: Text(backdropLabel(type)),
+                              selected: type == backdropType,
+                              onSelected: (_) => onBackdropTypeChanged(type),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                    Text(
+                      'Backdrop X (${backdropAnchorX.toStringAsFixed(2)})',
+                    ),
+                    Slider(
+                      value: backdropAnchorX,
+                      min: 0.0,
+                      max: 1.0,
+                      onChanged: onBackdropAnchorXChanged,
+                    ),
+                    Text(
+                      'Backdrop Y (${backdropAnchorY.toStringAsFixed(2)})',
+                    ),
+                    Slider(
+                      value: backdropAnchorY,
+                      min: 0.0,
+                      max: 1.0,
+                      onChanged: onBackdropAnchorYChanged,
+                    ),
+                    Text(
+                      'Backdrop Size (${backdropSizeFactor.toStringAsFixed(2)})',
+                    ),
+                    Slider(
+                      value: backdropSizeFactor,
+                      min: 0.2,
+                      max: 0.8,
+                      onChanged: onBackdropSizeFactorChanged,
+                    ),
+                  ],
+                  const SizedBox(height: 18),
+                  _SectionTitle(
                     title: 'Playback',
                     subtitle: 'Duration and repeating behavior',
                   ),
@@ -551,7 +702,8 @@ class _ControlSheet extends StatelessWidget {
                     value: autoRepeatEnabled,
                     onChanged: onAutoRepeatChanged,
                   ),
-                  Text('Repeat every (${repeatMinutes.toStringAsFixed(1)} min)'),
+                  Text(
+                      'Repeat every (${repeatMinutes.toStringAsFixed(1)} min)'),
                   Slider(
                     value: repeatMinutes,
                     min: 0.5,

@@ -60,6 +60,31 @@ class ParticleStyle {
     required this.maxRotationSpeed,
     this.opacity = 1.0,
   });
+
+  /// Returns a copy with updated values.
+  ParticleStyle copyWith({
+    ParticleShape? shape,
+    Color? color,
+    double? minSize,
+    double? maxSize,
+    double? minSpeed,
+    double? maxSpeed,
+    double? minRotationSpeed,
+    double? maxRotationSpeed,
+    double? opacity,
+  }) {
+    return ParticleStyle(
+      shape: shape ?? this.shape,
+      color: color ?? this.color,
+      minSize: minSize ?? this.minSize,
+      maxSize: maxSize ?? this.maxSize,
+      minSpeed: minSpeed ?? this.minSpeed,
+      maxSpeed: maxSpeed ?? this.maxSpeed,
+      minRotationSpeed: minRotationSpeed ?? this.minRotationSpeed,
+      maxRotationSpeed: maxRotationSpeed ?? this.maxRotationSpeed,
+      opacity: opacity ?? this.opacity,
+    );
+  }
 }
 
 /// Decorative backdrop options.
@@ -107,6 +132,23 @@ class DecorBackdrop {
     required this.anchor,
     required this.sizeFactor,
   });
+
+  /// Returns a copy with updated values.
+  DecorBackdrop copyWith({
+    BackdropType? type,
+    Color? color,
+    double? opacity,
+    Offset? anchor,
+    double? sizeFactor,
+  }) {
+    return DecorBackdrop(
+      type: type ?? this.type,
+      color: color ?? this.color,
+      opacity: opacity ?? this.opacity,
+      anchor: anchor ?? this.anchor,
+      sizeFactor: sizeFactor ?? this.sizeFactor,
+    );
+  }
 
   /// Convenience constructor for a crescent backdrop.
   const DecorBackdrop.crescent({

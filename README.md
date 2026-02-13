@@ -68,6 +68,22 @@ SeasonalDecor(
 );
 ```
 
+Customize particle shapes and backdrops:
+
+```dart
+final preset = SeasonalPreset.eid(variant: EidVariant.fitr).withOverrides(
+  shapes: [ParticleShape.balloon],
+  backdropType: BackdropType.bunting,
+  backdropAnchor: const Offset(0.5, 0.12),
+  backdropSizeFactor: 0.08,
+);
+
+SeasonalDecor(
+  preset: preset,
+  child: const HomeScreen(),
+);
+```
+
 ## Advanced Example
 
 ```dart
@@ -143,6 +159,15 @@ Show or hide decorative backdrops like crescents, trees, garlands, or stadium el
 
 `showBackdropWhenDisabled`
 If `enabled` is `false`, this keeps the backdrop visible while particles remain hidden.
+
+### Preset Overrides
+
+All presets can be customized using `withOverrides(...)` to swap shapes or backdrops.
+
+Examples:
+- Replace all particle shapes with balloons or sheep.
+- Change the backdrop type (crescent/tree/garland/bunting/mosque/trophy).
+- Change backdrop alignment using `backdropAnchor` (0..1).
 
 ## Presets
 

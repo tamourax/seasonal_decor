@@ -1,5 +1,8 @@
 
+export 'src/config/decor_config.dart'
+    show BackdropType, DecorBackdrop, DecorConfig, ParticleStyle;
 export 'src/config/intensity.dart';
+export 'src/engine/particle.dart' show ParticleShape;
 export 'src/presets/christmas.dart' show ChristmasVariant;
 export 'src/presets/eid.dart' show EidVariant;
 export 'src/presets/halloween.dart' show HalloweenVariant;
