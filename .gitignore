@@ -42,3 +42,6 @@ example/.flutter-plugins
 example/.flutter-plugins-dependencies
 example/build/
 example/coverage/
+
+# JS package workspace
+react_seasonal_decor/

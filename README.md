@@ -1,6 +1,18 @@
 # seasonal_decor
 
-Drop-in seasonal decorative overlays for Flutter apps. Ships with a lightweight **CustomPainter + Ticker** particle engine and ready-to-use presets for **Ramadan, Eid, Christmas, New Year, Valentine, Halloween, and Sport Event**.
+[![Flutter](https://img.shields.io/badge/Flutter-3.16%2B-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+[![Pub Version](https://img.shields.io/pub/v/seasonal_decor?logo=dart&logoColor=white)](https://pub.dev/packages/seasonal_decor)
+![Production Ready](https://img.shields.io/badge/Production-Ready-16a34a)
+
+Add beautiful seasonal particle effects to your Flutter app in one line of code.
+
+![Demo](https://raw.githubusercontent.com/tamourax/seasonal_decor/main/assets/gif/ramadan.gif)
+
+Beautiful seasonal overlays for Flutter apps with presets like Ramadan, Eid, Christmas, New Year, Valentine, Halloween, and Sport Event.
+
+## Live Demo
+
+[Live Demo](https://tamourax.github.io/seasonal_decor/)
 
 ## Installation
 
@@ -29,6 +41,67 @@ flutter pub add seasonal_decor
 SeasonalDecor(
   preset: SeasonalPreset.ramadan(),
   intensity: DecorIntensity.medium,
+  child: const HomeScreen(),
+);
+```
+
+## Quick Comparison
+
+Comparison against a typical confetti-only package (exact features vary by package/version):
+
+| Capability | `seasonal_decor` | Confetti-only package |
+| --- | --- | --- |
+| One-line seasonal preset setup | Yes | No |
+| Built-in Ramadan/Eid/Christmas/New Year presets | Yes | No |
+| Decorative backdrops (crescent/tree/garland/mosque/trophy) | Yes | No |
+| Intensity levels (`low` to `max`) | Yes | Varies |
+| Runtime speed control (`particleSpeedMultiplier`) | Yes | Varies |
+| Light/Dark theme color adaptation | Yes | Varies |
+| Timed play with optional auto-repeat | Yes | Varies |
+| Keep backdrop visible while particles are disabled | Yes | No |
+| Advanced demo screen with live controls | Yes | Varies |
+
+## Quick Recipes
+
+Confetti only (disable fireworks in New Year preset):
+
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.newYear(),
+  presetEnableFireworks: false,
+  child: const HomeScreen(),
+);
+```
+
+Backdrop only (no particles):
+
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.ramadan(),
+  presetShapes: const <ParticleShape>[],
+  showBackdrop: true,
+  child: const HomeScreen(),
+);
+```
+
+Double speed:
+
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.christmas(),
+  particleSpeedMultiplier: 2.0,
+  child: const HomeScreen(),
+);
+```
+
+Static backdrop mode (keep decor while animation is disabled):
+
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.eid(variant: EidVariant.adha),
+  enabled: false,
+  showBackdrop: true,
+  showBackdropWhenDisabled: true,
   child: const HomeScreen(),
 );
 ```
@@ -311,12 +384,12 @@ SeasonalDecor(
 ```
 ![None](https://raw.githubusercontent.com/tamourax/seasonal_decor/main/assets/images/none.png)
 
-## Performance Notes
+## Performance
 
-- Fixed-size particle pool with reuse.
-- Adaptive density scaling based on screen area.
-- RepaintBoundary isolates the overlay.
-- Optional pause on inactive lifecycle states.
+- Uses `CustomPainter`.
+- Reuses particle pool.
+- Respects Reduce Motion.
+- Pauses when inactive.
 
 ## Accessibility
 
