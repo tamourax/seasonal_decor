@@ -29,6 +29,7 @@ class ParticleSystem {
           config.particleCount,
           (_) => Particle.inactive(),
         ) {
+    _applyActiveCap();
     if (_hasBounds) {
       _respawnAll();
     }
@@ -80,6 +81,7 @@ class ParticleSystem {
     final clamped = scale.clamp(0.4, 1.8).toDouble();
     _maxActive = math.max(1, (_config.particleCount * clamped).round());
     _maxActive = math.min(_maxActive, _config.particleCount);
+    _applyActiveCap();
     _syncActiveCount();
   }
 
@@ -172,6 +174,18 @@ class ParticleSystem {
     return count;
   }
 
+  void _applyActiveCap() {
+    final cap = _config.activeCountCap;
+    if (cap == null) {
+      return;
+    }
+    if (cap <= 0) {
+      _maxActive = 1;
+      return;
+    }
+    _maxActive = math.min(_maxActive, cap);
+  }
+
   void _respawnAll() {
     if (_config.enableFireworks) {
       _respawnFireworks();
@@ -255,9 +269,20 @@ class ParticleSystem {
         _random.nextDouble(),
       ),
     );
+    Offset position = _spawnPosition(size);
+    Offset velocity = _spawnVelocity(speed);
 
-    final position = _spawnPosition(size);
-    final velocity = _spawnVelocity(speed);
+    if (style.shape == ParticleShape.ball &&
+        _config.flow == ParticleFlow.falling) {
+      position = Offset(
+        _randomInRange(0, _size.width),
+        _randomInRange(_size.height * 0.6, _size.height + size),
+      );
+      velocity = Offset(
+        _randomInRange(-_config.drift, _config.drift) * 0.35,
+        -speed * 0.6,
+      );
+    }
 
     particle.reset(
       position: position,
@@ -484,7 +509,17 @@ class ParticleSystem {
   }
 
   void _spawnSpark(Particle particle, Offset origin) {
-    final style = _config.styles[_random.nextInt(_config.styles.length)];
+    ParticleStyle style = _config.styles[_random.nextInt(_config.styles.length)];
+    if (style.shape == ParticleShape.ball) {
+      for (var i = 0; i < 4; i += 1) {
+        final candidate =
+            _config.styles[_random.nextInt(_config.styles.length)];
+        if (candidate.shape != ParticleShape.ball) {
+          style = candidate;
+          break;
+        }
+      }
+    }
     final speed = _lerp(
           _config.sparkMinSpeed,
           _config.sparkMaxSpeed,

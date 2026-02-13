@@ -75,6 +75,18 @@ enum BackdropType {
 
   /// A trophy silhouette.
   trophy,
+
+  /// A stadium field base.
+  stadiumField,
+
+  /// A football pitch with perspective lines.
+  pitch,
+
+  /// Stadium crowd silhouette band.
+  stadiumCrowd,
+
+  /// Large hero football.
+  heroBall,
 }
 
 /// Background artwork drawn behind particles.
@@ -157,6 +169,62 @@ class DecorBackdrop {
           anchor: anchor,
           sizeFactor: sizeFactor,
         );
+
+  /// Convenience constructor for a stadium field backdrop.
+  const DecorBackdrop.stadiumField({
+    required Color color,
+    required double opacity,
+    required Offset anchor,
+    required double sizeFactor,
+  }) : this(
+          type: BackdropType.stadiumField,
+          color: color,
+          opacity: opacity,
+          anchor: anchor,
+          sizeFactor: sizeFactor,
+        );
+
+  /// Convenience constructor for a pitch backdrop.
+  const DecorBackdrop.pitch({
+    required Color color,
+    required double opacity,
+    required Offset anchor,
+    required double sizeFactor,
+  }) : this(
+          type: BackdropType.pitch,
+          color: color,
+          opacity: opacity,
+          anchor: anchor,
+          sizeFactor: sizeFactor,
+        );
+
+  /// Convenience constructor for a stadium crowd backdrop.
+  const DecorBackdrop.stadiumCrowd({
+    required Color color,
+    required double opacity,
+    required Offset anchor,
+    required double sizeFactor,
+  }) : this(
+          type: BackdropType.stadiumCrowd,
+          color: color,
+          opacity: opacity,
+          anchor: anchor,
+          sizeFactor: sizeFactor,
+        );
+
+  /// Convenience constructor for a hero ball backdrop.
+  const DecorBackdrop.heroBall({
+    required Color color,
+    required double opacity,
+    required Offset anchor,
+    required double sizeFactor,
+  }) : this(
+          type: BackdropType.heroBall,
+          color: color,
+          opacity: opacity,
+          anchor: anchor,
+          sizeFactor: sizeFactor,
+        );
 }
 
 /// Configuration for a seasonal decorative overlay.
@@ -193,6 +261,12 @@ class DecorConfig {
 
   /// Enables Eid-style fireworks behavior.
   final bool enableFireworks;
+
+  /// Enables stadium spotlights.
+  final bool enableSpotlights;
+
+  /// Optional cap on active particles regardless of intensity.
+  final int? activeCountCap;
 
   /// Maximum number of rockets that can be active at once.
   final int rocketsMax;
@@ -250,6 +324,8 @@ class DecorConfig {
     this.backdrop,
     this.backdrops = const [],
     this.enableFireworks = false,
+    this.enableSpotlights = false,
+    this.activeCountCap,
     this.rocketsMax = 6,
     this.rocketSpawnRate = 0.8,
     this.sparksPerBurstMin = 20,
@@ -283,6 +359,8 @@ class DecorConfig {
     DecorBackdrop? backdrop,
     List<DecorBackdrop>? backdrops,
     bool? enableFireworks,
+    bool? enableSpotlights,
+    int? activeCountCap,
     int? rocketsMax,
     double? rocketSpawnRate,
     int? sparksPerBurstMin,
@@ -314,6 +392,8 @@ class DecorConfig {
       backdrop: backdrop ?? this.backdrop,
       backdrops: backdrops ?? this.backdrops,
       enableFireworks: enableFireworks ?? this.enableFireworks,
+      enableSpotlights: enableSpotlights ?? this.enableSpotlights,
+      activeCountCap: activeCountCap ?? this.activeCountCap,
       rocketsMax: rocketsMax ?? this.rocketsMax,
       rocketSpawnRate: rocketSpawnRate ?? this.rocketSpawnRate,
       sparksPerBurstMin: sparksPerBurstMin ?? this.sparksPerBurstMin,
