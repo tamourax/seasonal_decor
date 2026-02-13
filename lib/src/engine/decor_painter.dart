@@ -29,6 +29,8 @@ class DecorPainter extends CustomPainter {
 
   static final Path _unitStarPath = _buildUnitStarPath();
   static final Path _unitCrescentPath = _buildUnitCrescentPath();
+  static final Path _unitLanternBodyPath = _buildUnitLanternBodyPath();
+  static final Path _unitLanternWindowPath = _buildUnitLanternWindowPath();
   static final Path _unitHeartPath = _buildUnitHeartPath();
   static final Path _unitBatPath = _buildUnitBatPath();
   static final Path _unitPumpkinPath = _buildUnitPumpkinPath();
@@ -634,6 +636,36 @@ class DecorPainter extends CustomPainter {
         canvas.drawPath(_unitCrescentPath, _paint);
         canvas.restore();
         break;
+      case ParticleShape.lantern:
+        _paint
+          ..color = color
+          ..style = PaintingStyle.fill;
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        canvas.scale(particle.size, particle.size);
+        canvas.drawPath(_unitLanternBodyPath, _paint);
+        final windowColor =
+            Color.lerp(color, const Color(0xFFFFF1C2), 0.6)!
+                .withValues(alpha: (combinedAlpha * 0.7).clamp(0.0, 1.0));
+        _paint
+          ..color = windowColor
+          ..style = PaintingStyle.fill;
+        canvas.drawPath(_unitLanternWindowPath, _paint);
+        _paint
+          ..color = windowColor.withValues(
+            alpha: (combinedAlpha * 0.5).clamp(0.0, 1.0),
+          )
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.08;
+        canvas.drawLine(const Offset(0, -0.32), const Offset(0, 0.32), _paint);
+        canvas.drawLine(
+          const Offset(-0.22, 0.02),
+          const Offset(0.22, 0.02),
+          _paint,
+        );
+        canvas.restore();
+        break;
       case ParticleShape.line:
         final length = particle.size;
         final thickness = math.max(1.0, length * 0.16);
@@ -765,6 +797,34 @@ class DecorPainter extends CustomPainter {
         ),
       );
     return Path.combine(PathOperation.difference, outer, inner);
+  }
+
+  static Path _buildUnitLanternBodyPath() {
+    final path = Path()
+      ..addRect(const Rect.fromLTRB(-0.2, -1.0, 0.2, -0.86))
+      ..moveTo(-0.45, -0.86)
+      ..lineTo(0.45, -0.86)
+      ..lineTo(0.3, -0.65)
+      ..lineTo(-0.3, -0.65)
+      ..close()
+      ..moveTo(-0.7, -0.65)
+      ..lineTo(0.7, -0.65)
+      ..lineTo(0.55, 0.55)
+      ..lineTo(-0.55, 0.55)
+      ..close()
+      ..addRect(const Rect.fromLTRB(-0.45, 0.55, 0.45, 0.75))
+      ..addOval( Rect.fromCircle(center: Offset(0, 0.9), radius: 0.09));
+    return path;
+  }
+
+  static Path _buildUnitLanternWindowPath() {
+    final path = Path()
+      ..moveTo(-0.38, -0.45)
+      ..lineTo(0.38, -0.45)
+      ..lineTo(0.3, 0.35)
+      ..lineTo(-0.3, 0.35)
+      ..close();
+    return path;
   }
 
   static Path _buildUnitHeartPath() {
