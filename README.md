@@ -8,7 +8,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  seasonal_decor: ^1.1.2
+  seasonal_decor: ^1.1.3
 ```
 
 Then run:
@@ -278,7 +278,13 @@ SeasonalDecor(
 
 ## Example
 
-See `example/lib/main.dart` for a full demo with presets and controls.
+See `example/lib/main.dart` for a simple demo.
+
+For the full demo with presets and controls:
+
+```bash
+flutter run -t lib/advanced_main.dart
+```
 
 ## License
 

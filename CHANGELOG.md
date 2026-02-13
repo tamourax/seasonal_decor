@@ -1,3 +1,7 @@
+## 1.1.3
+
+- Add simple example entrypoint and keep advanced demo in `advanced_main.dart`.
+
 ## 1.1.2
 
 - Add preset overrides for shapes and backdrops via `withOverrides(...)`.
