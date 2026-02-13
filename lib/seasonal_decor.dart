@@ -3,6 +3,10 @@
 export 'src/config/intensity.dart';
 export 'src/presets/christmas.dart' show ChristmasVariant;
 export 'src/presets/eid.dart' show EidVariant;
+export 'src/presets/halloween.dart' show HalloweenVariant;
+export 'src/presets/new_year.dart' show NewYearVariant;
 export 'src/presets/ramadan.dart' show RamadanVariant;
+export 'src/presets/sport_event.dart' show SportEventVariant;
 export 'src/presets/seasonal_preset.dart';
+export 'src/presets/valentine.dart' show ValentineVariant;
 export 'src/widgets/seasonal_decor.dart';

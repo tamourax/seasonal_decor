@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:seasonal_decor/src/config/decor_config.dart';
 import 'package:seasonal_decor/src/engine/particle.dart';
 import 'package:seasonal_decor/src/engine/particle_system.dart';
+import 'package:seasonal_decor/src/presets/sport_event.dart';
+import 'package:seasonal_decor/src/presets/valentine.dart';
 
 void main() {
   test('particle system updates particle positions', () {
@@ -160,5 +162,51 @@ void main() {
     );
 
     expect(particle.lifeProgress, closeTo(0.5, 0.001));
+  });
+
+  test('valentine hearts stay active within bounds', () {
+    final config = buildValentineConfig(ValentineVariant.hearts).copyWith(
+      particleCount: 16,
+    );
+    final system = ParticleSystem(
+      config: config,
+      size: const Size(120, 120),
+      random: math.Random(4),
+    );
+
+    final hearts = system.particles
+        .where((particle) =>
+            particle.active && particle.shape == ParticleShape.heart)
+        .toList();
+    expect(hearts, isNotEmpty);
+
+    system.update(0.2);
+
+    for (final particle in hearts) {
+      expect(particle.active, isTrue);
+      final margin = particle.size * 2;
+      expect(particle.position.dx, inInclusiveRange(-margin, 120 + margin));
+      expect(particle.position.dy, inInclusiveRange(-margin, 120 + margin));
+    }
+  });
+
+  test('sport event team colors are used in particles', () {
+    const teamPalette = [
+      Color(0xFF123456),
+      Color(0xFF654321),
+    ];
+    final config = buildSportEventConfig(
+      SportEventVariant.teamColors,
+      teamColors: teamPalette,
+    ).copyWith(particleCount: 10);
+    final system = ParticleSystem(
+      config: config,
+      size: const Size(120, 120),
+      random: math.Random(5),
+    );
+
+    for (final particle in system.particles.where((p) => p.active)) {
+      expect(teamPalette.contains(particle.color), isTrue);
+    }
   });
 }

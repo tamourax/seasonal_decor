@@ -184,6 +184,10 @@ class ParticleSystem {
       if (sparksSpawned < initialSparks) {
         _spawnSpark(particle, _randomSparkOrigin());
         sparksSpawned += 1;
+        continue;
+      }
+      if (_config.spawnRate > 0) {
+        _spawnParticle(particle);
       } else {
         particle.active = false;
       }
@@ -339,8 +343,16 @@ class ParticleSystem {
           particle.active = false;
           _burst(particle.position);
         }
+      } else if (particle.kind == ParticleKind.spark) {
+        if (_isOutOfBounds(particle)) {
+          particle.active = false;
+        }
       } else if (_isOutOfBounds(particle)) {
-        particle.active = false;
+        if (_config.wrapMode == DecorWrapMode.wrap) {
+          _wrapParticle(particle);
+        } else {
+          particle.active = false;
+        }
       }
     }
 
@@ -360,7 +372,24 @@ class ParticleSystem {
       return;
     }
     final spawned = _spawnRockets(toSpawn);
+    activeCount += spawned;
     _rocketSpawnAccumulator -= spawned;
+
+    if (_config.spawnRate <= 0 || _config.wrapMode != DecorWrapMode.respawn) {
+      return;
+    }
+
+    _spawnAccumulator += _config.spawnRate * dt;
+    final ambientSlots = _maxActive - activeCount;
+    if (ambientSlots <= 0) {
+      return;
+    }
+    final ambientToSpawn = math.min(ambientSlots, _spawnAccumulator.floor());
+    if (ambientToSpawn <= 0) {
+      return;
+    }
+    final spawnedAmbient = _spawnInactive(ambientToSpawn);
+    _spawnAccumulator -= spawnedAmbient;
   }
 
   int _spawnRockets(int count) {

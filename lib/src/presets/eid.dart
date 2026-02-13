@@ -17,7 +17,7 @@ DecorConfig buildEidConfig(EidVariant variant) {
         particleCount: 120,
         speedMultiplier: 1.0,
         spawnRate: 1,
-        spawnRateScale: 1.0,
+        spawnRateScale: 0.0,
         drift: 0,
         flow: ParticleFlow.falling,
         wrapMode: DecorWrapMode.respawn,

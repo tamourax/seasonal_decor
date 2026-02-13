@@ -1,6 +1,6 @@
 ﻿# seasonal_decor
 
-Drop-in seasonal decorative overlays for Flutter apps. Ships with a lightweight CustomPainter + Ticker particle engine and ready-to-use presets for Ramadan, Eid, and Christmas.
+Drop-in seasonal decorative overlays for Flutter apps. Ships with a lightweight CustomPainter + Ticker particle engine and ready-to-use presets for Ramadan, Eid, Christmas, New Year, Valentine, Halloween, and Sport Event.
 
 Repository: https://github.com/tamourax/seasonal_decor
 
@@ -47,6 +47,10 @@ SeasonalDecor(
 - Ramadan (`classic`, `night`)
 - Eid (`classic`) — fireworks rockets and bursts
 - Christmas (`classic`) — heavier snow with tree and garland
+- New Year (`fireworks`, `gold`) — fireworks with confetti
+- Valentine (`hearts`, `minimal`) — floating hearts with sparkles
+- Halloween (`spooky`, `pumpkin`) — bats/pumpkins with mist and moon
+- Sport Event (`worldCup`, `teamColors`) — confetti with optional fireworks
 
 ## Performance Notes
 
