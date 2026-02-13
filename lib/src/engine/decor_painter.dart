@@ -20,6 +20,12 @@ class DecorPainter extends CustomPainter {
   /// Whether to render a static overlay (reduced motion).
   final bool staticMode;
 
+  /// Whether to paint particles (backdrops still render).
+  final bool paintParticles;
+
+  /// Whether to paint backdrops.
+  final bool showBackdrop;
+
   final Paint _paint = Paint()..isAntiAlias = true;
   final Path _treePath = Path();
   final Path _garlandPath = Path();
@@ -60,6 +66,8 @@ class DecorPainter extends CustomPainter {
     required this.config,
     required this.opacity,
     required this.staticMode,
+    required this.paintParticles,
+    required this.showBackdrop,
     required Listenable repaint,
   }) : super(repaint: repaint);
 
@@ -149,7 +157,7 @@ class DecorPainter extends CustomPainter {
     );
     final baseAlpha = backdrop.color.a;
     final combinedAlpha =
-        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0) as double;
+        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
     final color = backdrop.color.withValues(alpha: combinedAlpha);
     _paint
       ..color = color
@@ -177,10 +185,10 @@ class DecorPainter extends CustomPainter {
 
     final baseAlpha = backdrop.color.a;
     final combinedAlpha =
-        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0) as double;
+        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
     final treeColor = backdrop.color.withValues(alpha: combinedAlpha);
     final trunkColor = const Color(0xFF6D4C41)
-        .withValues(alpha: (combinedAlpha * 0.95).clamp(0.0, 1.0) as double);
+        .withValues(alpha: (combinedAlpha * 0.95).clamp(0.0, 1.0).toDouble());
 
     _treePath
       ..reset()
@@ -215,7 +223,7 @@ class DecorPainter extends CustomPainter {
     canvas.drawRect(trunkRect, _paint);
 
     if (!staticMode) {
-      final ornamentAlpha = (combinedAlpha * 0.9).clamp(0.0, 1.0) as double;
+      final ornamentAlpha = (combinedAlpha * 0.9).clamp(0.0, 1.0).toDouble();
       for (var i = 0; i < _treeOrnamentOffsets.length; i += 1) {
         final offset = _treeOrnamentOffsets[i];
         final position = Offset(
@@ -242,7 +250,7 @@ class DecorPainter extends CustomPainter {
 
     final baseAlpha = backdrop.color.a;
     final combinedAlpha =
-        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0) as double;
+        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
 
     _garlandPath
       ..reset()
@@ -266,7 +274,7 @@ class DecorPainter extends CustomPainter {
         t,
       );
       final color = _garlandBulbColors[i % _garlandBulbColors.length]
-          .withValues(alpha: (combinedAlpha * 0.9).clamp(0.0, 1.0) as double);
+          .withValues(alpha: (combinedAlpha * 0.9).clamp(0.0, 1.0).toDouble());
       _paint
         ..color = color
         ..style = PaintingStyle.fill;
@@ -288,7 +296,7 @@ class DecorPainter extends CustomPainter {
     );
     final baseAlpha = backdrop.color.a;
     final combinedAlpha =
-        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0) as double;
+        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
     final color = backdrop.color.withValues(alpha: combinedAlpha);
 
     final glowAlpha = (combinedAlpha * 0.6).clamp(0.0, 0.25) as double;
@@ -588,7 +596,8 @@ class DecorPainter extends CustomPainter {
         : 1.0;
     final combinedAlpha =
         (baseAlpha * particle.opacity * opacity * lifeFade)
-            .clamp(0.0, 1.0) as double;
+            .clamp(0.0, 1.0)
+            .toDouble();
     final color = particle.color.withValues(alpha: combinedAlpha);
 
     switch (particle.shape) {
@@ -902,6 +911,8 @@ class DecorPainter extends CustomPainter {
     return oldDelegate.system != system ||
         oldDelegate.config != config ||
         oldDelegate.opacity != opacity ||
-        oldDelegate.staticMode != staticMode;
+        oldDelegate.staticMode != staticMode ||
+        oldDelegate.paintParticles != paintParticles ||
+        oldDelegate.showBackdrop != showBackdrop;
   }
 }

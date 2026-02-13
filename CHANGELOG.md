@@ -1,6 +1,17 @@
-﻿## 0.1.0
+## 1.0.1
 
-- Initial release with Ramadan, Eid, and Christmas presets.
-- Custom particle engine with pooling and adaptive density.
+- Update README previews to use GitHub raw links.
+
+## 1.0.0
+
+- Stable release of seasonal_decor.
+- Presets: Ramadan, Eid, Christmas, New Year, Valentine, Halloween, Sport Event.
+- Fireworks and sparkle variations with pooled particle system.
+- Timed play cycles with settle mode and optional repeat cadence.
+- Backdrop visibility controls (show/hide, keep on disable).
 - Reduce motion handling and lifecycle pause support.
-- Example app and unit tests.
+- Example app, GIF previews, and unit tests.
+
+## 0.1.0
+
+- Initial release.

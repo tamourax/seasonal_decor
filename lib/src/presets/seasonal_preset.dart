@@ -46,10 +46,12 @@ class SeasonalPreset {
       rocketSpawnRate: baseConfig.rocketSpawnRate * profile.speedMultiplier,
       sparksPerBurstMin: (baseConfig.sparksPerBurstMin * burstScale)
           .round()
-          .clamp(6, 120) as int,
+          .clamp(6, 120)
+          .toInt(),
       sparksPerBurstMax: (baseConfig.sparksPerBurstMax * burstScale)
           .round()
-          .clamp(8, 160) as int,
+          .clamp(8, 160)
+          .toInt(),
     );
   }
 

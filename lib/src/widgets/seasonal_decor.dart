@@ -1,4 +1,6 @@
-﻿import 'package:flutter/widgets.dart';
+import 'dart:async';
+
+import 'package:flutter/widgets.dart';
 
 import '../config/intensity.dart';
 import '../engine/decor_controller.dart';
@@ -33,6 +35,21 @@ class SeasonalDecor extends StatefulWidget {
   /// Whether to ignore pointer events on the overlay.
   final bool ignorePointer;
 
+  /// How long the animation plays before stopping.
+  final Duration playDuration;
+
+  /// Whether to let particles settle after stopping.
+  final bool settleOnDisable;
+
+  /// Optional repeat cadence for the animation.
+  final Duration? repeatEvery;
+
+  /// Whether to render decorative backdrops.
+  final bool showBackdrop;
+
+  /// Whether to keep drawing backdrops when [enabled] is false.
+  final bool showBackdropWhenDisabled;
+
   const SeasonalDecor({
     super.key,
     required this.child,
@@ -43,6 +60,11 @@ class SeasonalDecor extends StatefulWidget {
     this.respectReduceMotion = true,
     this.pauseWhenInactive = true,
     this.ignorePointer = true,
+    this.playDuration = const Duration(seconds: 5),
+    this.settleOnDisable = true,
+    this.repeatEvery,
+    this.showBackdrop = true,
+    this.showBackdropWhenDisabled = true,
   });
 
   @override
@@ -56,6 +78,9 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   Size _lastSize = Size.zero;
   bool _appPaused = false;
   bool _reduceMotion = false;
+  bool _playing = true;
+  Timer? _stopTimer;
+  Timer? _repeatTimer;
 
   @override
   void initState() {
@@ -64,11 +89,17 @@ class _SeasonalDecorState extends State<SeasonalDecor>
       vsync: this,
       config: widget.preset.resolve(widget.intensity),
     );
+    _controller.addListener(_handleControllerTick);
     _lifecyclePause = LifecyclePause(
       onPaused: _handlePaused,
       onResumed: _handleResumed,
       enabled: widget.pauseWhenInactive,
     );
+    if (widget.enabled) {
+      _startPlayCycle();
+    } else {
+      _playing = false;
+    }
   }
 
   @override
@@ -84,6 +115,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     if (oldWidget.preset != widget.preset ||
         oldWidget.intensity != widget.intensity) {
       _controller.updateConfig(widget.preset.resolve(widget.intensity));
+      _applySystemControls();
     }
     if (oldWidget.pauseWhenInactive != widget.pauseWhenInactive) {
       _lifecyclePause.setEnabled(widget.pauseWhenInactive);
@@ -97,6 +129,26 @@ class _SeasonalDecorState extends State<SeasonalDecor>
       _syncAnimation();
     }
     if (oldWidget.enabled != widget.enabled) {
+      if (widget.enabled) {
+        _startPlayCycle();
+      } else {
+        _cancelTimers();
+        _playing = false;
+        _applySystemControls();
+        _syncAnimation();
+      }
+      return;
+    }
+    if (oldWidget.playDuration != widget.playDuration ||
+        oldWidget.repeatEvery != widget.repeatEvery) {
+      if (widget.enabled) {
+        _startPlayCycle();
+      } else {
+        _cancelTimers();
+      }
+    }
+    if (oldWidget.settleOnDisable != widget.settleOnDisable) {
+      _applySystemControls();
       _syncAnimation();
     }
   }
@@ -123,8 +175,74 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     _reduceMotion = shouldReduce;
   }
 
+  void _startPlayCycle() {
+    if (!widget.enabled) {
+      return;
+    }
+    _playing = true;
+    _applySystemControls();
+    _stopTimer?.cancel();
+    _repeatTimer?.cancel();
+    if (widget.playDuration > Duration.zero) {
+      _stopTimer = Timer(widget.playDuration, _stopPlaying);
+    }
+    _syncAnimation();
+  }
+
+  void _stopPlaying() {
+    _playing = false;
+    _applySystemControls();
+    _syncAnimation();
+    _repeatTimer?.cancel();
+    if (widget.enabled && widget.repeatEvery != null) {
+      _repeatTimer = Timer(widget.repeatEvery!, _startPlayCycle);
+    }
+  }
+
+  void _cancelTimers() {
+    _stopTimer?.cancel();
+    _repeatTimer?.cancel();
+  }
+
+  void _applySystemControls() {
+    if (_playing) {
+      _controller.system.setSpawningEnabled(true);
+      _controller.system.setWrapEnabled(true);
+      return;
+    }
+    if (widget.settleOnDisable) {
+      _controller.system.setSpawningEnabled(false);
+      _controller.system.setWrapEnabled(false);
+    }
+  }
+
+  void _handleControllerTick() {
+    if (!widget.enabled ||
+        _playing ||
+        !widget.settleOnDisable ||
+        _reduceMotion) {
+      return;
+    }
+    if (!_controller.system.hasActiveParticles) {
+      _controller.stop();
+    }
+  }
+
+  @visibleForTesting
+  bool debugIsPlaying() => _playing;
+
+  @visibleForTesting
+  bool debugIsRepeatTimerActive() => _repeatTimer?.isActive ?? false;
+
+  @visibleForTesting
+  void debugStopPlayingForTest() => _stopPlaying();
+
   void _syncAnimation() {
-    final shouldAnimate = widget.enabled && !_appPaused && !_reduceMotion;
+    final shouldAnimate = widget.enabled &&
+        !_appPaused &&
+        !_reduceMotion &&
+        (_playing ||
+            (widget.settleOnDisable && _controller.system.hasActiveParticles));
     if (shouldAnimate) {
       _controller.start();
     } else {
@@ -142,7 +260,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
 
   @override
   Widget build(BuildContext context) {
-    final overlayOpacity = widget.opacity.clamp(0.0, 1.0) as double;
+    final overlayOpacity = widget.opacity.clamp(0.0, 1.0).toDouble();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -161,17 +279,22 @@ class _SeasonalDecorState extends State<SeasonalDecor>
               config: _controller.config,
               opacity: overlayOpacity,
               staticMode: _reduceMotion,
+              paintParticles: widget.enabled,
+              showBackdrop: widget.showBackdrop,
               repaint: _controller,
             ),
             size: Size.infinite,
           ),
         );
 
+        final shouldShowOverlay = widget.enabled ||
+            (widget.showBackdropWhenDisabled && widget.showBackdrop);
+
         return Stack(
           fit: StackFit.expand,
           children: [
             widget.child,
-            if (widget.enabled)
+            if (shouldShowOverlay)
               IgnorePointer(
                 ignoring: widget.ignorePointer,
                 child: overlay,
@@ -184,6 +307,8 @@ class _SeasonalDecorState extends State<SeasonalDecor>
 
   @override
   void dispose() {
+    _cancelTimers();
+    _controller.removeListener(_handleControllerTick);
     _lifecyclePause.dispose();
     _controller.dispose();
     super.dispose();

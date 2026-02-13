@@ -7,12 +7,14 @@ import 'particle.dart';
 /// Manages a pool of particles and updates them over time.
 class ParticleSystem {
   final math.Random _random;
-  DecorConfig _config;
+  final DecorConfig _config;
   Size _size;
   double _spawnAccumulator = 0;
   double _rocketSpawnAccumulator = 0;
   int _maxActive;
   final List<Particle> _particles;
+  bool _spawningEnabled = true;
+  bool _wrapEnabled = true;
 
   /// Creates a particle system with a fixed-size pool.
   ParticleSystem({
@@ -42,6 +44,23 @@ class ParticleSystem {
   /// Particle pool for rendering and testing.
   List<Particle> get particles => _particles;
 
+  /// Returns true when there are active particles in the pool.
+  bool get hasActiveParticles => _particles.any((particle) => particle.active);
+
+  /// Enables or disables spawning new particles.
+  void setSpawningEnabled(bool enabled) {
+    _spawningEnabled = enabled;
+    if (!enabled) {
+      _spawnAccumulator = 0;
+      _rocketSpawnAccumulator = 0;
+    }
+  }
+
+  /// Enables or disables wrapping particles when out of bounds.
+  void setWrapEnabled(bool enabled) {
+    _wrapEnabled = enabled;
+  }
+
   bool get _hasBounds => _size.width > 0 && _size.height > 0;
 
   /// Updates the bounds and repositions particles if needed.
@@ -59,7 +78,7 @@ class ParticleSystem {
 
   /// Updates adaptive density scaling.
   void setDensityScale(double scale) {
-    final clamped = scale.clamp(0.4, 1.8) as double;
+    final clamped = scale.clamp(0.4, 1.8).toDouble();
     _maxActive = math.max(1, (_config.particleCount * clamped).round());
     _maxActive = math.min(_maxActive, _config.particleCount);
     _applyActiveCap();
@@ -74,7 +93,7 @@ class ParticleSystem {
     if (dt <= 0) {
       return;
     }
-    final double delta = dt.clamp(0.0, 0.05) as double;
+    final double delta = dt.clamp(0.0, 0.05).toDouble();
     if (_config.enableFireworks) {
       _updateFireworks(delta);
       return;
@@ -86,7 +105,7 @@ class ParticleSystem {
       }
       particle.update(delta);
       if (_isOutOfBounds(particle)) {
-        if (_config.wrapMode == DecorWrapMode.wrap) {
+        if (_wrapEnabled && _config.wrapMode == DecorWrapMode.wrap) {
           _wrapParticle(particle);
         } else {
           particle.active = false;
@@ -94,7 +113,7 @@ class ParticleSystem {
       }
     }
 
-    if (_config.wrapMode == DecorWrapMode.respawn) {
+    if (_spawningEnabled && _config.wrapMode == DecorWrapMode.respawn) {
       _spawnAccumulator += _config.spawnRate * delta;
       _spawnWithBudget();
     }
@@ -357,7 +376,9 @@ class ParticleSystem {
 
       if (!particle.active) {
         if (particle.kind == ParticleKind.rocket) {
-          _burst(particle.position);
+          if (_spawningEnabled) {
+            _burst(particle.position);
+          }
         }
         continue;
       }
@@ -366,14 +387,16 @@ class ParticleSystem {
         activeRockets += 1;
         if (particle.position.dy <= burstHeight) {
           particle.active = false;
-          _burst(particle.position);
+          if (_spawningEnabled) {
+            _burst(particle.position);
+          }
         }
       } else if (particle.kind == ParticleKind.spark) {
         if (_isOutOfBounds(particle)) {
           particle.active = false;
         }
       } else if (_isOutOfBounds(particle)) {
-        if (_config.wrapMode == DecorWrapMode.wrap) {
+        if (_wrapEnabled && _config.wrapMode == DecorWrapMode.wrap) {
           _wrapParticle(particle);
         } else {
           particle.active = false;
@@ -381,40 +404,42 @@ class ParticleSystem {
       }
     }
 
-    _rocketSpawnAccumulator += _config.rocketSpawnRate * dt;
-    final maxRockets = math.min(_config.rocketsMax, _maxActive);
-    final availableRockets = maxRockets - activeRockets;
-    final availableSlots = _maxActive - activeCount;
-    if (availableRockets <= 0 || availableSlots <= 0) {
-      return;
-    }
+    if (_spawningEnabled) {
+      _rocketSpawnAccumulator += _config.rocketSpawnRate * dt;
+      final maxRockets = math.min(_config.rocketsMax, _maxActive);
+      final availableRockets = maxRockets - activeRockets;
+      final availableSlots = _maxActive - activeCount;
+      if (availableRockets <= 0 || availableSlots <= 0) {
+        return;
+      }
 
-    final toSpawn = math.min(
-      availableRockets,
-      math.min(availableSlots, _rocketSpawnAccumulator.floor()),
-    );
-    if (toSpawn <= 0) {
-      return;
-    }
-    final spawned = _spawnRockets(toSpawn);
-    activeCount += spawned;
-    _rocketSpawnAccumulator -= spawned;
+      final toSpawn = math.min(
+        availableRockets,
+        math.min(availableSlots, _rocketSpawnAccumulator.floor()),
+      );
+      if (toSpawn <= 0) {
+        return;
+      }
+      final spawned = _spawnRockets(toSpawn);
+      activeCount += spawned;
+      _rocketSpawnAccumulator -= spawned;
 
-    if (_config.spawnRate <= 0 || _config.wrapMode != DecorWrapMode.respawn) {
-      return;
-    }
+      if (_config.spawnRate <= 0 || _config.wrapMode != DecorWrapMode.respawn) {
+        return;
+      }
 
-    _spawnAccumulator += _config.spawnRate * dt;
-    final ambientSlots = _maxActive - activeCount;
-    if (ambientSlots <= 0) {
-      return;
+      _spawnAccumulator += _config.spawnRate * dt;
+      final ambientSlots = _maxActive - activeCount;
+      if (ambientSlots <= 0) {
+        return;
+      }
+      final ambientToSpawn = math.min(ambientSlots, _spawnAccumulator.floor());
+      if (ambientToSpawn <= 0) {
+        return;
+      }
+      final spawnedAmbient = _spawnInactive(ambientToSpawn);
+      _spawnAccumulator -= spawnedAmbient;
     }
-    final ambientToSpawn = math.min(ambientSlots, _spawnAccumulator.floor());
-    if (ambientToSpawn <= 0) {
-      return;
-    }
-    final spawnedAmbient = _spawnInactive(ambientToSpawn);
-    _spawnAccumulator -= spawnedAmbient;
   }
 
   int _spawnRockets(int count) {

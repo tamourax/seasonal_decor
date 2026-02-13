@@ -1,15 +1,24 @@
 ﻿name: seasonal_decor
 description: Drop-in seasonal decorative overlays for Flutter apps with a built-in particle engine.
-version: 0.1.0
+version: 1.0.1
 homepage: https://github.com/tamourax/seasonal_decor
 repository: https://github.com/tamourax/seasonal_decor
 issue_tracker: https://github.com/tamourax/seasonal_decor/issues
+screenshots:
+  - description: Ramadan preset preview
+    path: assets/gif/ramadan.gif
+  - description: Eid preset preview
+    path: assets/gif/eid.gif
+  - description: Christmas preset preview
+    path: assets/gif/christmas.gif
+  - description: Valentine preset preview
+    path: assets/gif/valentine.gif
 topics:
-  - flutter
-  - ui
-  - animation
-  - seasonal
+  - animations
   - ramadan
+  - seasonal
+  - overlay
+  - celebration
 
 environment:
   sdk: ">=3.2.0 <4.0.0"

@@ -69,7 +69,7 @@ class DecorController extends ChangeNotifier {
     _bounds = size;
     final area = size.width * size.height;
     final scale = math.sqrt(area / _baselineArea);
-    final clampedScale = scale.clamp(0.6, 1.4) as double;
+    final clampedScale = scale.clamp(0.6, 1.4).toDouble();
     _densityScale = clampedScale;
     _system.setBounds(size);
     _system.setDensityScale(clampedScale);
