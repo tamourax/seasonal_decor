@@ -45,7 +45,24 @@ class SeasonalDecorExampleApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: const Color(0xFF1BB8A3),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF1BB8A3),
+          brightness: Brightness.light,
+        ),
+        textTheme: const TextTheme(
+          headlineMedium: TextStyle(
+            fontFamily: 'Georgia',
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
+          ),
+          titleMedium: TextStyle(
+            fontFamily: 'Georgia',
+            fontWeight: FontWeight.w600,
+          ),
+          bodyMedium: TextStyle(
+            fontFamily: 'Trebuchet MS',
+          ),
+        ),
       ),
       home: const HomePage(),
     );
@@ -173,19 +190,34 @@ class _HomePageState extends State<HomePage> {
     );
     final reduceMotionActive =
         _respectReduceMotion && resolvedMedia.disableAnimations;
-    final controlsHeight =
-        (media.size.height * 0.48).clamp(260.0, 420.0).toDouble();
 
     return MediaQuery(
       data: resolvedMedia,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Seasonal Decor'),
-        ),
         body: Stack(
           children: [
-            Container(
-              decoration: _buildBackground(),
+            Container(decoration: _buildBackground()),
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: const Alignment(0.0, -0.6),
+                      radius: 1.1,
+                      colors: [
+                        Colors.white.withValues(alpha: 0.12),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                child: _Header(reduceMotionActive: reduceMotionActive),
+              ),
             ),
             Positioned.fill(
               child: SeasonalDecor(
@@ -208,20 +240,60 @@ class _HomePageState extends State<HomePage> {
                 child: const SizedBox.expand(),
               ),
             ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: _ControlsSheet(
-                height: controlsHeight,
-                child: _buildControls(context, reduceMotionActive),
-              ),
+            _ControlSheet(
+              presetOption: _presetOption,
+              intensity: _intensity,
+              enabled: _enabled,
+              pauseWhenInactive: _pauseWhenInactive,
+              respectReduceMotion: _respectReduceMotion,
+              simulateReduceMotion: _simulateReduceMotion,
+              opacity: _opacity,
+              showBackdrop: _showBackdrop,
+              showBackdropWhenDisabled: _showBackdropWhenDisabled,
+              playDurationSeconds: _playDurationSeconds,
+              autoRepeatEnabled: _autoRepeatEnabled,
+              repeatMinutes: _repeatMinutes,
+              useTeamColors: _useTeamColors,
+              onPresetChanged: (value) => setState(() => _presetOption = value),
+              onIntensityChanged: (value) =>
+                  setState(() => _intensity = value),
+              onEnabledChanged: (value) => setState(() => _enabled = value),
+              onPauseWhenInactiveChanged: (value) =>
+                  setState(() => _pauseWhenInactive = value),
+              onRespectReduceMotionChanged: (value) =>
+                  setState(() => _respectReduceMotion = value),
+              onSimulateReduceMotionChanged: (value) =>
+                  setState(() => _simulateReduceMotion = value),
+              onOpacityChanged: (value) => setState(() => _opacity = value),
+              onShowBackdropChanged: (value) =>
+                  setState(() => _showBackdrop = value),
+              onShowBackdropWhenDisabledChanged: (value) =>
+                  setState(() => _showBackdropWhenDisabled = value),
+              onPlayDurationChanged: (value) =>
+                  setState(() => _playDurationSeconds = value),
+              onAutoRepeatChanged: (value) =>
+                  setState(() => _autoRepeatEnabled = value),
+              onRepeatMinutesChanged: (value) =>
+                  setState(() => _repeatMinutes = value),
+              onUseTeamColorsChanged: (value) =>
+                  setState(() => _useTeamColors = value),
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildControls(BuildContext context, bool reduceMotionActive) {
+class _Header extends StatelessWidget {
+  final bool reduceMotionActive;
+
+  const _Header({
+    required this.reduceMotionActive,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final statusColor = reduceMotionActive
         ? Theme.of(context).colorScheme.error
         : Theme.of(context).colorScheme.primary;
@@ -233,234 +305,347 @@ class _HomePageState extends State<HomePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Overlay Controls',
-          style: Theme.of(context).textTheme.titleMedium,
+          'Seasonal Decor',
+          style: Theme.of(context).textTheme.headlineMedium,
         ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Icon(
-              reduceMotionActive ? Icons.pause_circle : Icons.play_circle,
-              color: statusColor,
+        const SizedBox(height: 4),
+        Text(
+          'Drop-in overlays with pooled particles.',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.white.withValues(alpha: 0.8),
+              ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.18),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                reduceMotionActive ? Icons.pause_circle : Icons.play_circle,
+                color: statusColor,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Text(
                 statusText,
                 style: Theme.of(context)
                     .textTheme
-                    .bodyMedium
+                    .bodySmall
                     ?.copyWith(color: statusColor),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            const Text('Preset'),
-            const SizedBox(width: 16),
-            Expanded(
-              child: DropdownButton<PresetOption>(
-                value: _presetOption,
-                isExpanded: true,
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() => _presetOption = value);
-                },
-                items: PresetOption.values
-                    .map(
-                      (preset) => DropdownMenuItem(
-                        value: preset,
-                        child: Text(preset.label),
-                      ),
-                    )
-                    .toList(),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            const Text('Intensity'),
-            const SizedBox(width: 16),
-            Expanded(
-              child: DropdownButton<DecorIntensity>(
-                value: _intensity,
-                isExpanded: true,
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() => _intensity = value);
-                },
-                items: DecorIntensity.values
-                    .map(
-                      (intensity) => DropdownMenuItem(
-                        value: intensity,
-                        child: Text(intensity.name),
-                      ),
-                    )
-                    .toList(),
-              ),
-            ),
-          ],
-        ),
-        if (_presetOption == PresetOption.sportEvent)
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Use Team Colors'),
-            subtitle: const Text('Applies a custom palette'),
-            value: _useTeamColors,
-            onChanged: (value) => setState(() => _useTeamColors = value),
+            ],
           ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Show Backdrop'),
-          subtitle: const Text('Render crescent/tree/garland'),
-          value: _showBackdrop,
-          onChanged: (value) => setState(() => _showBackdrop = value),
-        ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Keep Backdrop When Disabled'),
-          subtitle: const Text('Show backdrop after animation stops'),
-          value: _showBackdropWhenDisabled,
-          onChanged: (value) =>
-              setState(() => _showBackdropWhenDisabled = value),
-        ),
-        const SizedBox(height: 12),
-        Text('Animation duration (${_playDurationSeconds.toStringAsFixed(1)}s)'),
-        Text(
-          _playDurationSeconds == 0
-              ? '0 = continuous'
-              : 'Plays then settles',
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-        Slider(
-          value: _playDurationSeconds,
-          min: 0,
-          max: 10,
-          divisions: 20,
-          label: _playDurationSeconds.toStringAsFixed(1),
-          onChanged: (value) {
-            setState(() => _playDurationSeconds = value);
-          },
-        ),
-        const SizedBox(height: 4),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Auto Repeat'),
-          subtitle: const Text('Restart after a period'),
-          value: _autoRepeatEnabled,
-          onChanged: (value) => setState(() => _autoRepeatEnabled = value),
-        ),
-        Text('Repeat every (${_repeatMinutes.toStringAsFixed(1)} min)'),
-        Slider(
-          value: _repeatMinutes,
-          min: 0.5,
-          max: 10,
-          divisions: 19,
-          label: _repeatMinutes.toStringAsFixed(1),
-          onChanged: _autoRepeatEnabled
-              ? (value) => setState(() => _repeatMinutes = value)
-              : null,
-        ),
-        const SizedBox(height: 4),
-        Text('Opacity (${_opacity.toStringAsFixed(2)})'),
-        Slider(
-          value: _opacity,
-          min: 0.2,
-          max: 1.0,
-          onChanged: (value) {
-            setState(() => _opacity = value);
-          },
-        ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Enabled'),
-          value: _enabled,
-          onChanged: (value) => setState(() => _enabled = value),
-        ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Pause When Inactive'),
-          value: _pauseWhenInactive,
-          onChanged: (value) => setState(() => _pauseWhenInactive = value),
-        ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Respect Reduce Motion'),
-          subtitle: const Text('Uses MediaQuery.disableAnimations'),
-          value: _respectReduceMotion,
-          onChanged: (value) => setState(() => _respectReduceMotion = value),
-        ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Simulate Reduce Motion'),
-          value: _simulateReduceMotion,
-          onChanged: (value) => setState(() => _simulateReduceMotion = value),
         ),
       ],
     );
   }
 }
 
-class _ControlsSheet extends StatelessWidget {
-  final double height;
-  final Widget child;
+class _ControlSheet extends StatelessWidget {
+  final PresetOption presetOption;
+  final DecorIntensity intensity;
+  final bool enabled;
+  final bool pauseWhenInactive;
+  final bool respectReduceMotion;
+  final bool simulateReduceMotion;
+  final double opacity;
+  final bool showBackdrop;
+  final bool showBackdropWhenDisabled;
+  final double playDurationSeconds;
+  final bool autoRepeatEnabled;
+  final double repeatMinutes;
+  final bool useTeamColors;
+  final ValueChanged<PresetOption> onPresetChanged;
+  final ValueChanged<DecorIntensity> onIntensityChanged;
+  final ValueChanged<bool> onEnabledChanged;
+  final ValueChanged<bool> onPauseWhenInactiveChanged;
+  final ValueChanged<bool> onRespectReduceMotionChanged;
+  final ValueChanged<bool> onSimulateReduceMotionChanged;
+  final ValueChanged<double> onOpacityChanged;
+  final ValueChanged<bool> onShowBackdropChanged;
+  final ValueChanged<bool> onShowBackdropWhenDisabledChanged;
+  final ValueChanged<double> onPlayDurationChanged;
+  final ValueChanged<bool> onAutoRepeatChanged;
+  final ValueChanged<double> onRepeatMinutesChanged;
+  final ValueChanged<bool> onUseTeamColorsChanged;
 
-  const _ControlsSheet({
-    required this.height,
-    required this.child,
+  const _ControlSheet({
+    required this.presetOption,
+    required this.intensity,
+    required this.enabled,
+    required this.pauseWhenInactive,
+    required this.respectReduceMotion,
+    required this.simulateReduceMotion,
+    required this.opacity,
+    required this.showBackdrop,
+    required this.showBackdropWhenDisabled,
+    required this.playDurationSeconds,
+    required this.autoRepeatEnabled,
+    required this.repeatMinutes,
+    required this.useTeamColors,
+    required this.onPresetChanged,
+    required this.onIntensityChanged,
+    required this.onEnabledChanged,
+    required this.onPauseWhenInactiveChanged,
+    required this.onRespectReduceMotionChanged,
+    required this.onSimulateReduceMotionChanged,
+    required this.onOpacityChanged,
+    required this.onShowBackdropChanged,
+    required this.onShowBackdropWhenDisabledChanged,
+    required this.onPlayDurationChanged,
+    required this.onAutoRepeatChanged,
+    required this.onRepeatMinutesChanged,
+    required this.onUseTeamColorsChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(20);
-    return SafeArea(
-      top: false,
-      bottom: true,
-      child: Container(
-        height: height,
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: radius,
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x26000000),
-              blurRadius: 18,
-              offset: Offset(0, -6),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: radius,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 42,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
+    return DraggableScrollableSheet(
+      minChildSize: 0.22,
+      maxChildSize: 0.86,
+      initialChildSize: 0.44,
+      builder: (context, controller) {
+        return SafeArea(
+          top: false,
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.surface.withValues(alpha: 0.94),
+                  Theme.of(context).colorScheme.surface.withValues(alpha: 0.86),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              border: Border.all(
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.08),
+              ),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x26000000),
+                  blurRadius: 20,
+                  offset: Offset(0, -8),
                 ),
-                const SizedBox(height: 12),
-                child,
               ],
             ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: ListView(
+                controller: controller,
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _SectionTitle(
+                    title: 'Preset',
+                    subtitle: 'Choose the seasonal scene',
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: PresetOption.values
+                        .map(
+                          (preset) => ChoiceChip(
+                            label: Text(preset.label),
+                            selected: preset == presetOption,
+                            onSelected: (_) => onPresetChanged(preset),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                  const SizedBox(height: 18),
+                  _SectionTitle(
+                    title: 'Intensity',
+                    subtitle: 'Particle density and speed',
+                  ),
+                  const SizedBox(height: 10),
+                  SegmentedButton<DecorIntensity>(
+                    segments: DecorIntensity.values
+                        .map(
+                          (intensity) => ButtonSegment<DecorIntensity>(
+                            value: intensity,
+                            label: Text(intensity.name),
+                          ),
+                        )
+                        .toList(),
+                    selected: {intensity},
+                    onSelectionChanged: (selection) =>
+                        onIntensityChanged(selection.first),
+                  ),
+                  if (presetOption == PresetOption.sportEvent) ...[
+                    const SizedBox(height: 12),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Use Team Colors'),
+                      subtitle: const Text('Applies a custom palette'),
+                      value: useTeamColors,
+                      onChanged: onUseTeamColorsChanged,
+                    ),
+                  ],
+                  const SizedBox(height: 18),
+                  _SectionTitle(
+                    title: 'Playback',
+                    subtitle: 'Duration and repeating behavior',
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Animation duration (${playDurationSeconds.toStringAsFixed(1)}s)',
+                  ),
+                  Text(
+                    playDurationSeconds == 0
+                        ? '0 = continuous'
+                        : 'Plays then settles',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  Slider(
+                    value: playDurationSeconds,
+                    min: 0,
+                    max: 10,
+                    divisions: 20,
+                    label: playDurationSeconds.toStringAsFixed(1),
+                    onChanged: onPlayDurationChanged,
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Auto Repeat'),
+                    subtitle: const Text('Restart after a period'),
+                    value: autoRepeatEnabled,
+                    onChanged: onAutoRepeatChanged,
+                  ),
+                  Text('Repeat every (${repeatMinutes.toStringAsFixed(1)} min)'),
+                  Slider(
+                    value: repeatMinutes,
+                    min: 0.5,
+                    max: 10,
+                    divisions: 19,
+                    label: repeatMinutes.toStringAsFixed(1),
+                    onChanged:
+                        autoRepeatEnabled ? onRepeatMinutesChanged : null,
+                  ),
+                  const SizedBox(height: 18),
+                  _SectionTitle(
+                    title: 'Appearance',
+                    subtitle: 'Backdrop and opacity',
+                  ),
+                  const SizedBox(height: 10),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Show Backdrop'),
+                    subtitle: const Text('Render crescent/tree/garland'),
+                    value: showBackdrop,
+                    onChanged: onShowBackdropChanged,
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Keep Backdrop When Disabled'),
+                    subtitle: const Text('Show backdrop after animation stops'),
+                    value: showBackdropWhenDisabled,
+                    onChanged: onShowBackdropWhenDisabledChanged,
+                  ),
+                  const SizedBox(height: 8),
+                  Text('Opacity (${opacity.toStringAsFixed(2)})'),
+                  Slider(
+                    value: opacity,
+                    min: 0.2,
+                    max: 1.0,
+                    onChanged: onOpacityChanged,
+                  ),
+                  const SizedBox(height: 18),
+                  _SectionTitle(
+                    title: 'Controls',
+                    subtitle: 'Global playback switches',
+                  ),
+                  const SizedBox(height: 6),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Enabled'),
+                    value: enabled,
+                    onChanged: onEnabledChanged,
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Pause When Inactive'),
+                    value: pauseWhenInactive,
+                    onChanged: onPauseWhenInactiveChanged,
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Respect Reduce Motion'),
+                    subtitle: const Text('Uses MediaQuery.disableAnimations'),
+                    value: respectReduceMotion,
+                    onChanged: onRespectReduceMotionChanged,
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Simulate Reduce Motion'),
+                    value: simulateReduceMotion,
+                    onChanged: onSimulateReduceMotionChanged,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _SectionTitle({
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
         ),
-      ),
+        Text(
+          subtitle,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.6),
+              ),
+        ),
+      ],
     );
   }
 }
