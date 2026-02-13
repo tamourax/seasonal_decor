@@ -17,7 +17,7 @@ DecorConfig buildChristmasConfig(ChristmasVariant variant) {
         particleCount: 96,
         speedMultiplier: 0.85,
         spawnRate: 48,
-        spawnRateScale: 1.15,
+        spawnRateScale: 1.35,
         drift: 6,
         flow: ParticleFlow.falling,
         wrapMode: DecorWrapMode.respawn,
