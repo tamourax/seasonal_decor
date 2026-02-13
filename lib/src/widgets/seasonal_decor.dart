@@ -95,7 +95,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
       onResumed: _handleResumed,
       enabled: widget.pauseWhenInactive,
     );
-    if (widget.enabled) {
+    if (widget.enabled && !widget.preset.isNone) {
       _startPlayCycle();
     } else {
       _playing = false;
@@ -116,6 +116,12 @@ class _SeasonalDecorState extends State<SeasonalDecor>
         oldWidget.intensity != widget.intensity) {
       _controller.updateConfig(widget.preset.resolve(widget.intensity));
       _applySystemControls();
+    }
+    if (widget.preset.isNone) {
+      _cancelTimers();
+      _playing = false;
+      _syncAnimation();
+      return;
     }
     if (oldWidget.pauseWhenInactive != widget.pauseWhenInactive) {
       _lifecyclePause.setEnabled(widget.pauseWhenInactive);
@@ -238,6 +244,10 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   void debugStopPlayingForTest() => _stopPlaying();
 
   void _syncAnimation() {
+    if (widget.preset.isNone) {
+      _controller.stop();
+      return;
+    }
     final shouldAnimate = widget.enabled &&
         !_appPaused &&
         !_reduceMotion &&
@@ -261,6 +271,10 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   @override
   Widget build(BuildContext context) {
     final overlayOpacity = widget.opacity.clamp(0.0, 1.0).toDouble();
+
+    if (widget.preset.isNone) {
+      return widget.child;
+    }
 
     return LayoutBuilder(
       builder: (context, constraints) {

@@ -60,6 +60,31 @@ class ParticleStyle {
     required this.maxRotationSpeed,
     this.opacity = 1.0,
   });
+
+  /// Returns a copy with updated values.
+  ParticleStyle copyWith({
+    ParticleShape? shape,
+    Color? color,
+    double? minSize,
+    double? maxSize,
+    double? minSpeed,
+    double? maxSpeed,
+    double? minRotationSpeed,
+    double? maxRotationSpeed,
+    double? opacity,
+  }) {
+    return ParticleStyle(
+      shape: shape ?? this.shape,
+      color: color ?? this.color,
+      minSize: minSize ?? this.minSize,
+      maxSize: maxSize ?? this.maxSize,
+      minSpeed: minSpeed ?? this.minSpeed,
+      maxSpeed: maxSpeed ?? this.maxSpeed,
+      minRotationSpeed: minRotationSpeed ?? this.minRotationSpeed,
+      maxRotationSpeed: maxRotationSpeed ?? this.maxRotationSpeed,
+      opacity: opacity ?? this.opacity,
+    );
+  }
 }
 
 /// Decorative backdrop options.
@@ -72,6 +97,9 @@ enum BackdropType {
 
   /// A string of garland lights.
   garland,
+
+  /// A string of candy canes with ornaments.
+  candyGarland,
 
   /// A string of triangle bunting flags.
   bunting,
@@ -107,6 +135,23 @@ class DecorBackdrop {
     required this.anchor,
     required this.sizeFactor,
   });
+
+  /// Returns a copy with updated values.
+  DecorBackdrop copyWith({
+    BackdropType? type,
+    Color? color,
+    double? opacity,
+    Offset? anchor,
+    double? sizeFactor,
+  }) {
+    return DecorBackdrop(
+      type: type ?? this.type,
+      color: color ?? this.color,
+      opacity: opacity ?? this.opacity,
+      anchor: anchor ?? this.anchor,
+      sizeFactor: sizeFactor ?? this.sizeFactor,
+    );
+  }
 
   /// Convenience constructor for a crescent backdrop.
   const DecorBackdrop.crescent({
@@ -144,6 +189,20 @@ class DecorBackdrop {
     required double sizeFactor,
   }) : this(
           type: BackdropType.garland,
+          color: color,
+          opacity: opacity,
+          anchor: anchor,
+          sizeFactor: sizeFactor,
+        );
+
+  /// Convenience constructor for a candy garland backdrop.
+  const DecorBackdrop.candyGarland({
+    required Color color,
+    required double opacity,
+    required Offset anchor,
+    required double sizeFactor,
+  }) : this(
+          type: BackdropType.candyGarland,
           color: color,
           opacity: opacity,
           anchor: anchor,

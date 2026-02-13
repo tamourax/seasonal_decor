@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../config/decor_config.dart';
 import '../config/intensity.dart';
+import '../engine/particle.dart';
 import 'christmas.dart';
 import 'eid.dart';
 import 'halloween.dart';
@@ -24,11 +25,84 @@ class SeasonalPreset {
   /// Base configuration before intensity scaling.
   final DecorConfig baseConfig;
 
+  /// Whether this preset renders nothing.
+  final bool isNone;
+
   const SeasonalPreset._({
     required this.name,
     required this.variant,
     required this.baseConfig,
+    this.isNone = false,
   });
+
+  /// Returns a new preset with overrides applied to the base configuration.
+  SeasonalPreset withOverrides({
+    List<ParticleShape>? shapes,
+    List<ParticleStyle>? styles,
+    DecorBackdrop? backdrop,
+    List<DecorBackdrop>? backdrops,
+    BackdropType? backdropType,
+    Offset? backdropAnchor,
+    double? backdropSizeFactor,
+    Color? backdropColor,
+    double? backdropOpacity,
+    bool? enableFireworks,
+  }) {
+    var resolvedStyles = styles ?? baseConfig.styles;
+    if (styles == null && shapes != null && shapes.isNotEmpty) {
+      final nextStyles = <ParticleStyle>[];
+      for (var i = 0; i < baseConfig.styles.length; i += 1) {
+        final shape = shapes[i % shapes.length];
+        nextStyles.add(baseConfig.styles[i].copyWith(shape: shape));
+      }
+      resolvedStyles = nextStyles;
+    }
+
+    DecorBackdrop? resolvedBackdrop = backdrop ?? baseConfig.backdrop;
+    var resolvedBackdrops = backdrops ??
+        (backdrop != null ? const <DecorBackdrop>[] : baseConfig.backdrops);
+
+    if (backdropType != null ||
+        backdropAnchor != null ||
+        backdropSizeFactor != null ||
+        backdropColor != null ||
+        backdropOpacity != null) {
+      if (resolvedBackdrops.isNotEmpty) {
+        resolvedBackdrops = [
+          for (final item in resolvedBackdrops)
+            item.copyWith(
+              type: backdropType,
+              anchor: backdropAnchor,
+              sizeFactor: backdropSizeFactor,
+              color: backdropColor,
+              opacity: backdropOpacity,
+            ),
+        ];
+      } else if (resolvedBackdrop != null) {
+        resolvedBackdrop = resolvedBackdrop.copyWith(
+          type: backdropType,
+          anchor: backdropAnchor,
+          sizeFactor: backdropSizeFactor,
+          color: backdropColor,
+          opacity: backdropOpacity,
+        );
+      }
+    }
+
+    final updatedConfig = baseConfig.copyWith(
+      styles: resolvedStyles,
+      backdrop: resolvedBackdrop,
+      backdrops: resolvedBackdrops,
+      enableFireworks: enableFireworks,
+    );
+
+    return SeasonalPreset._(
+      name: name,
+      variant: variant,
+      baseConfig: updatedConfig,
+      isNone: isNone,
+    );
+  }
 
   /// Returns the fully resolved configuration for the given [intensity].
   DecorConfig resolve(DecorIntensity intensity) {
@@ -62,6 +136,16 @@ class SeasonalPreset {
       name: 'Ramadan',
       variant: resolvedVariant.name,
       baseConfig: buildRamadanConfig(resolvedVariant),
+    );
+  }
+
+  /// No decoration preset (renders only the child).
+  factory SeasonalPreset.none() {
+    return SeasonalPreset._(
+      name: 'None',
+      variant: 'none',
+      baseConfig: _emptyConfig,
+      isNone: true,
     );
   }
 
@@ -140,3 +224,26 @@ class SeasonalPreset {
     );
   }
 }
+
+const ParticleStyle _emptyStyle = ParticleStyle(
+  shape: ParticleShape.circle,
+  color: Color(0x00000000),
+  minSize: 1,
+  maxSize: 1,
+  minSpeed: 0,
+  maxSpeed: 0,
+  minRotationSpeed: 0,
+  maxRotationSpeed: 0,
+  opacity: 0,
+);
+
+const DecorConfig _emptyConfig = DecorConfig(
+  particleCount: 1,
+  speedMultiplier: 0,
+  spawnRate: 0,
+  spawnRateScale: 0,
+  drift: 0,
+  flow: ParticleFlow.falling,
+  wrapMode: DecorWrapMode.respawn,
+  styles: const [_emptyStyle],
+);
