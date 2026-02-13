@@ -39,6 +39,9 @@ class SeasonalPreset {
   SeasonalPreset withOverrides({
     List<ParticleShape>? shapes,
     List<ParticleStyle>? styles,
+
+    /// Per-shape speed multipliers for particle min/max speeds.
+    Map<ParticleShape, double>? shapeSpeedMultipliers,
     DecorBackdrop? backdrop,
     List<DecorBackdrop>? backdrops,
     BackdropType? backdropType,
@@ -56,6 +59,21 @@ class SeasonalPreset {
         nextStyles.add(baseConfig.styles[i].copyWith(shape: shape));
       }
       resolvedStyles = nextStyles;
+    }
+
+    if (shapeSpeedMultipliers != null && shapeSpeedMultipliers.isNotEmpty) {
+      resolvedStyles = [
+        for (final style in resolvedStyles)
+          if (shapeSpeedMultipliers.containsKey(style.shape))
+            style.copyWith(
+              minSpeed: style.minSpeed *
+                  shapeSpeedMultipliers[style.shape]!.clamp(0.0, 6.0),
+              maxSpeed: style.maxSpeed *
+                  shapeSpeedMultipliers[style.shape]!.clamp(0.0, 6.0),
+            )
+          else
+            style,
+      ];
     }
 
     DecorBackdrop? resolvedBackdrop = backdrop ?? baseConfig.backdrop;
@@ -155,9 +173,8 @@ class SeasonalPreset {
     final normalizedVariant = resolvedVariant == EidVariant.classic
         ? EidVariant.fitr
         : resolvedVariant;
-    final displayName = normalizedVariant == EidVariant.adha
-        ? 'Eid al-Adha'
-        : 'Eid al-Fitr';
+    final displayName =
+        normalizedVariant == EidVariant.adha ? 'Eid al-Adha' : 'Eid al-Fitr';
     return SeasonalPreset._(
       name: displayName,
       variant: normalizedVariant.name,
@@ -245,5 +262,5 @@ const DecorConfig _emptyConfig = DecorConfig(
   drift: 0,
   flow: ParticleFlow.falling,
   wrapMode: DecorWrapMode.respawn,
-  styles: const [_emptyStyle],
+  styles: [_emptyStyle],
 );

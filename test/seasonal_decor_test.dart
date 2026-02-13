@@ -1,14 +1,54 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:seasonal_decor/src/config/decor_config.dart';
+import 'package:seasonal_decor/src/config/intensity.dart';
 import 'package:seasonal_decor/src/engine/particle.dart';
 import 'package:seasonal_decor/src/engine/particle_system.dart';
+import 'package:seasonal_decor/src/presets/seasonal_preset.dart';
 import 'package:seasonal_decor/src/presets/sport_event.dart';
 import 'package:seasonal_decor/src/presets/valentine.dart';
 
 void main() {
+  test('extraHigh and max intensity profiles scale above high', () {
+    final high = DecorIntensity.high.profile;
+    final extraHigh = DecorIntensity.extraHigh.profile;
+    final max = DecorIntensity.max.profile;
+
+    expect(extraHigh.particleCount, greaterThan(high.particleCount));
+    expect(extraHigh.spawnRate, greaterThan(high.spawnRate));
+    expect(extraHigh.speedMultiplier, greaterThan(high.speedMultiplier));
+
+    expect(max.particleCount, greaterThan(extraHigh.particleCount));
+    expect(max.spawnRate, greaterThan(extraHigh.spawnRate));
+    expect(max.speedMultiplier, greaterThan(extraHigh.speedMultiplier));
+  });
+
+  test('shape speed multipliers update matching particle styles', () {
+    final basePreset =
+        SeasonalPreset.valentine(variant: ValentineVariant.hearts);
+    final updatedPreset = basePreset.withOverrides(
+      shapeSpeedMultipliers: const {
+        ParticleShape.heart: 2.0,
+      },
+    );
+
+    final baseHeart = basePreset.baseConfig.styles
+        .firstWhere((style) => style.shape == ParticleShape.heart);
+    final updatedHeart = updatedPreset.baseConfig.styles
+        .firstWhere((style) => style.shape == ParticleShape.heart);
+    final baseSparkle = basePreset.baseConfig.styles
+        .firstWhere((style) => style.shape == ParticleShape.sparkle);
+    final updatedSparkle = updatedPreset.baseConfig.styles
+        .firstWhere((style) => style.shape == ParticleShape.sparkle);
+
+    expect(updatedHeart.minSpeed, closeTo(baseHeart.minSpeed * 2.0, 0.0001));
+    expect(updatedHeart.maxSpeed, closeTo(baseHeart.maxSpeed * 2.0, 0.0001));
+    expect(updatedSparkle.minSpeed, closeTo(baseSparkle.minSpeed, 0.0001));
+    expect(updatedSparkle.maxSpeed, closeTo(baseSparkle.maxSpeed, 0.0001));
+  });
+
   test('particle system updates particle positions', () {
     const config = DecorConfig(
       particleCount: 1,

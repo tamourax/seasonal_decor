@@ -42,8 +42,38 @@ extension PresetOptionX on PresetOption {
   }
 }
 
-class SeasonalDecorExampleApp extends StatelessWidget {
+class SeasonalDecorExampleApp extends StatefulWidget {
   const SeasonalDecorExampleApp({super.key});
+
+  @override
+  State<SeasonalDecorExampleApp> createState() =>
+      _SeasonalDecorExampleAppState();
+}
+
+class _SeasonalDecorExampleAppState extends State<SeasonalDecorExampleApp> {
+  ThemeMode _themeMode = ThemeMode.light;
+
+  static const TextTheme _textTheme = TextTheme(
+    headlineMedium: TextStyle(
+      fontFamily: 'Georgia',
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.2,
+    ),
+    titleMedium: TextStyle(
+      fontFamily: 'Georgia',
+      fontWeight: FontWeight.w600,
+    ),
+    bodyMedium: TextStyle(
+      fontFamily: 'Trebuchet MS',
+    ),
+  );
+
+  void _toggleThemeMode() {
+    setState(() {
+      _themeMode =
+          _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,28 +85,34 @@ class SeasonalDecorExampleApp extends StatelessWidget {
           seedColor: const Color(0xFF1BB8A3),
           brightness: Brightness.light,
         ),
-        textTheme: const TextTheme(
-          headlineMedium: TextStyle(
-            fontFamily: 'Georgia',
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.2,
-          ),
-          titleMedium: TextStyle(
-            fontFamily: 'Georgia',
-            fontWeight: FontWeight.w600,
-          ),
-          bodyMedium: TextStyle(
-            fontFamily: 'Trebuchet MS',
-          ),
-        ),
+        textTheme: _textTheme,
       ),
-      home: const HomePage(),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF1BB8A3),
+          brightness: Brightness.dark,
+        ),
+        textTheme: _textTheme,
+      ),
+      themeMode: _themeMode,
+      home: HomePage(
+        isDarkMode: _themeMode == ThemeMode.dark,
+        onToggleThemeMode: _toggleThemeMode,
+      ),
     );
   }
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final bool isDarkMode;
+  final VoidCallback onToggleThemeMode;
+
+  const HomePage({
+    super.key,
+    required this.isDarkMode,
+    required this.onToggleThemeMode,
+  });
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -94,6 +130,8 @@ class _HomePageState extends State<HomePage> {
   bool _useTeamColors = false;
   bool _showBackdrop = true;
   bool _showBackdropWhenDisabled = true;
+  double _particleSpeedMultiplier = 1.0;
+  bool _adaptColorsToTheme = true;
   double _playDurationSeconds = 0.0;
   bool _settleOnDisable = true;
   bool _autoRepeatEnabled = false;
@@ -158,36 +196,45 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  BoxDecoration _buildBackground() {
+  BoxDecoration _buildBackground(Brightness brightness) {
+    final isDark = brightness == Brightness.dark;
     switch (_presetOption) {
       case PresetOption.none:
-        return const BoxDecoration(
+        return BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+            colors: isDark
+                ? const [Color(0xFF0F172A), Color(0xFF1E293B)]
+                : const [Color(0xFFEAF2FF), Color(0xFFF8FAFC)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         );
       case PresetOption.ramadan:
-        return const BoxDecoration(
+        return BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF0F1B2B), Color(0xFF123744)],
+            colors: isDark
+                ? const [Color(0xFF0F1B2B), Color(0xFF123744)]
+                : const [Color(0xFFE8F0FF), Color(0xFFDDF0F6)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         );
       case PresetOption.eidFitr:
-        return const BoxDecoration(
+        return BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF0B1320), Color(0xFF1B2A4A)],
+            colors: isDark
+                ? const [Color(0xFF0B1320), Color(0xFF1B2A4A)]
+                : const [Color(0xFFE7EEFF), Color(0xFFF3F7FF)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         );
       case PresetOption.eidAdha:
-        return const BoxDecoration(
+        return BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF0B1C2B), Color(0xFF1C3B5A)],
+            colors: isDark
+                ? const [Color(0xFF0B1C2B), Color(0xFF1C3B5A)]
+                : const [Color(0xFFE5F3FF), Color(0xFFF2FAFF)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -201,9 +248,11 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       case PresetOption.newYear:
-        return const BoxDecoration(
+        return BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF0B1120), Color(0xFF1F2A44)],
+            colors: isDark
+                ? const [Color(0xFF0B1120), Color(0xFF1F2A44)]
+                : const [Color(0xFFE7EEFF), Color(0xFFF4F7FF)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -217,17 +266,21 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       case PresetOption.halloween:
-        return const BoxDecoration(
+        return BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF120F1A), Color(0xFF2A1F3D)],
+            colors: isDark
+                ? const [Color(0xFF120F1A), Color(0xFF2A1F3D)]
+                : const [Color(0xFFF3ECFF), Color(0xFFFFF5E8)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         );
       case PresetOption.sportEvent:
-        return const BoxDecoration(
+        return BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF0C2D26), Color(0xFF165041)],
+            colors: isDark
+                ? const [Color(0xFF0C2D26), Color(0xFF165041)]
+                : const [Color(0xFFE5F7EF), Color(0xFFF1FCF7)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -237,9 +290,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     final media = MediaQuery.of(context);
     final resolvedMedia = media.copyWith(
       disableAnimations: _simulateReduceMotion || media.disableAnimations,
+      platformBrightness: brightness,
     );
     final reduceMotionActive =
         _respectReduceMotion && resolvedMedia.disableAnimations;
@@ -250,7 +305,7 @@ class _HomePageState extends State<HomePage> {
       child: Scaffold(
         body: Stack(
           children: [
-            Container(decoration: _buildBackground()),
+            Container(decoration: _buildBackground(brightness)),
             Positioned.fill(
               child: IgnorePointer(
                 child: DecoratedBox(
@@ -259,7 +314,10 @@ class _HomePageState extends State<HomePage> {
                       center: const Alignment(0.0, -0.6),
                       radius: 1.1,
                       colors: [
-                        Colors.white.withValues(alpha: 0.12),
+                        (brightness == Brightness.dark
+                                ? Colors.white
+                                : Colors.black)
+                            .withValues(alpha: 0.08),
                         Colors.transparent,
                       ],
                     ),
@@ -270,7 +328,11 @@ class _HomePageState extends State<HomePage> {
             SafeArea(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                child: _Header(reduceMotionActive: reduceMotionActive),
+                child: _Header(
+                  reduceMotionActive: reduceMotionActive,
+                  isDarkMode: widget.isDarkMode,
+                  onToggleThemeMode: widget.onToggleThemeMode,
+                ),
               ),
             ),
             Positioned.fill(
@@ -284,6 +346,8 @@ class _HomePageState extends State<HomePage> {
                 respectReduceMotion: _respectReduceMotion,
                 showBackdrop: _showBackdrop,
                 showBackdropWhenDisabled: _showBackdropWhenDisabled,
+                particleSpeedMultiplier: _particleSpeedMultiplier,
+                adaptColorsToTheme: _adaptColorsToTheme,
                 playDuration: Duration(
                   milliseconds: (_playDurationSeconds * 1000).round(),
                 ),
@@ -307,6 +371,8 @@ class _HomePageState extends State<HomePage> {
               opacity: _opacity,
               showBackdrop: _showBackdrop,
               showBackdropWhenDisabled: _showBackdropWhenDisabled,
+              particleSpeedMultiplier: _particleSpeedMultiplier,
+              adaptColorsToTheme: _adaptColorsToTheme,
               playDurationSeconds: _playDurationSeconds,
               settleOnDisable: _settleOnDisable,
               autoRepeatEnabled: _autoRepeatEnabled,
@@ -333,6 +399,10 @@ class _HomePageState extends State<HomePage> {
                   setState(() => _showBackdrop = value),
               onShowBackdropWhenDisabledChanged: (value) =>
                   setState(() => _showBackdropWhenDisabled = value),
+              onParticleSpeedMultiplierChanged: (value) =>
+                  setState(() => _particleSpeedMultiplier = value),
+              onAdaptColorsToThemeChanged: (value) =>
+                  setState(() => _adaptColorsToTheme = value),
               onPlayDurationChanged: (value) =>
                   setState(() => _playDurationSeconds = value),
               onSettleOnDisableChanged: (value) =>
@@ -363,13 +433,28 @@ class _HomePageState extends State<HomePage> {
 
 class _Header extends StatelessWidget {
   final bool reduceMotionActive;
+  final bool isDarkMode;
+  final VoidCallback onToggleThemeMode;
 
   const _Header({
     required this.reduceMotionActive,
+    required this.isDarkMode,
+    required this.onToggleThemeMode,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+    final subtitleColor = isDarkTheme
+        ? Colors.white.withValues(alpha: 0.82)
+        : Colors.black.withValues(alpha: 0.72);
+    final pillColor = isDarkTheme
+        ? Colors.white.withValues(alpha: 0.14)
+        : Colors.black.withValues(alpha: 0.06);
+    final pillBorderColor = isDarkTheme
+        ? Colors.white.withValues(alpha: 0.18)
+        : Colors.black.withValues(alpha: 0.08);
+
     final statusColor = reduceMotionActive
         ? Theme.of(context).colorScheme.error
         : Theme.of(context).colorScheme.primary;
@@ -380,25 +465,39 @@ class _Header extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Seasonal Decor',
-          style: Theme.of(context).textTheme.headlineMedium,
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Seasonal Decor',
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+            ),
+            FilledButton.tonalIcon(
+              onPressed: onToggleThemeMode,
+              icon: Icon(
+                isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                size: 18,
+              ),
+              label: Text(isDarkMode ? 'Light' : 'Dark'),
+            ),
+          ],
         ),
         const SizedBox(height: 4),
         Text(
           'Drop-in overlays with pooled particles.',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.white.withValues(alpha: 0.8),
+                color: subtitleColor,
               ),
         ),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.14),
+            color: pillColor,
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.18),
+              color: pillBorderColor,
             ),
           ),
           child: Row(
@@ -436,6 +535,8 @@ class _ControlSheet extends StatelessWidget {
   final double opacity;
   final bool showBackdrop;
   final bool showBackdropWhenDisabled;
+  final double particleSpeedMultiplier;
+  final bool adaptColorsToTheme;
   final double playDurationSeconds;
   final bool settleOnDisable;
   final bool autoRepeatEnabled;
@@ -456,6 +557,8 @@ class _ControlSheet extends StatelessWidget {
   final ValueChanged<double> onOpacityChanged;
   final ValueChanged<bool> onShowBackdropChanged;
   final ValueChanged<bool> onShowBackdropWhenDisabledChanged;
+  final ValueChanged<double> onParticleSpeedMultiplierChanged;
+  final ValueChanged<bool> onAdaptColorsToThemeChanged;
   final ValueChanged<double> onPlayDurationChanged;
   final ValueChanged<bool> onSettleOnDisableChanged;
   final ValueChanged<bool> onAutoRepeatChanged;
@@ -478,6 +581,8 @@ class _ControlSheet extends StatelessWidget {
     required this.opacity,
     required this.showBackdrop,
     required this.showBackdropWhenDisabled,
+    required this.particleSpeedMultiplier,
+    required this.adaptColorsToTheme,
     required this.playDurationSeconds,
     required this.settleOnDisable,
     required this.autoRepeatEnabled,
@@ -498,6 +603,8 @@ class _ControlSheet extends StatelessWidget {
     required this.onOpacityChanged,
     required this.onShowBackdropChanged,
     required this.onShowBackdropWhenDisabledChanged,
+    required this.onParticleSpeedMultiplierChanged,
+    required this.onAdaptColorsToThemeChanged,
     required this.onPlayDurationChanged,
     required this.onSettleOnDisableChanged,
     required this.onAutoRepeatChanged,
@@ -527,7 +634,6 @@ class _ControlSheet extends StatelessWidget {
         case BackdropType.trophy:
           return 'Trophy';
         case BackdropType.candyGarland:
-        default:
           return 'Candy Garland';
       }
     }
@@ -768,6 +874,24 @@ class _ControlSheet extends StatelessWidget {
                     min: 0.2,
                     max: 1.0,
                     onChanged: onOpacityChanged,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Speed (${particleSpeedMultiplier.toStringAsFixed(2)}x)',
+                  ),
+                  Slider(
+                    value: particleSpeedMultiplier,
+                    min: 0.4,
+                    max: 2.6,
+                    divisions: 22,
+                    onChanged: onParticleSpeedMultiplierChanged,
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Adapt Colors To Theme'),
+                    subtitle: const Text('Improve contrast in light/dark mode'),
+                    value: adaptColorsToTheme,
+                    onChanged: onAdaptColorsToThemeChanged,
                   ),
                   const SizedBox(height: 18),
                   _SectionTitle(

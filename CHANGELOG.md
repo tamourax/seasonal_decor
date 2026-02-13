@@ -1,3 +1,16 @@
+## 1.1.4
+
+- Add two new intensity levels: `DecorIntensity.extraHigh` and `DecorIntensity.max`.
+- Add `particleSpeedMultiplier` to control particle fall/motion speed at runtime.
+- Add `adaptColorsToTheme` to tune particle/backdrop colors for light and dark UI.
+- Improve light-mode backdrop visibility for subtle presets (like Ramadan crescent).
+- Add per-shape speed override support via `SeasonalPreset.withOverrides(shapeSpeedMultipliers: ...)`.
+- Add widget-level preset override params in `SeasonalDecor` for full runtime control:
+  `presetShapes`, `presetStyles`, `presetShapeSpeedMultipliers`, `presetBackdrop`,
+  `presetBackdrops`, `presetBackdropType`, `presetBackdropAnchor`,
+  `presetBackdropSizeFactor`, `presetBackdropColor`, `presetBackdropOpacity`,
+  `presetEnableFireworks`.
+
 ## 1.1.3
 
 - Add simple example entrypoint and keep advanced demo in `advanced_main.dart`.

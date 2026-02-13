@@ -10,6 +10,12 @@ enum DecorIntensity {
 
   /// Rich decoration with higher density and speed.
   high,
+
+  /// Very rich decoration for festive screens.
+  extraHigh,
+
+  /// Maximum density and speed profile.
+  max,
 }
 
 /// Concrete values derived from a [DecorIntensity].
@@ -53,6 +59,18 @@ extension DecorIntensityX on DecorIntensity {
           particleCount: 120,
           speedMultiplier: 1.35,
           spawnRate: 72,
+        );
+      case DecorIntensity.extraHigh:
+        return const DecorIntensityProfile(
+          particleCount: 180,
+          speedMultiplier: 1.7,
+          spawnRate: 105,
+        );
+      case DecorIntensity.max:
+        return const DecorIntensityProfile(
+          particleCount: 260,
+          speedMultiplier: 2.1,
+          spawnRate: 155,
         );
     }
   }
