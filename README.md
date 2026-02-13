@@ -151,9 +151,16 @@ If `enabled` is `false`, this keeps the backdrop visible while particles remain 
 
 ## Preset Previews
 
+Ramadan
 ![Ramadan](assets/gif/ramadan.gif)
+
+Eid
 ![Eid](assets/gif/eid.gif)
+
+Christmas
 ![Christmas](assets/gif/christmas.gif)
+
+Valentine
 ![Valentine](assets/gif/valentine.gif)
 
 ## Performance Notes
