@@ -29,6 +29,41 @@ SeasonalDecor(
 );
 ```
 
+## Easy Usage
+
+Basic overlay:
+
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.christmas(),
+  child: const HomeScreen(),
+);
+```
+
+Control intensity and opacity:
+
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.eid(),
+  intensity: DecorIntensity.high,
+  opacity: 0.9,
+  child: const HomeScreen(),
+);
+```
+
+Timed playback with optional auto-repeat:
+
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.sportEvent(),
+  playDuration: const Duration(seconds: 8),
+  repeatEvery: const Duration(minutes: 10),
+  settleOnDisable: true,
+  showBackdrop: true,
+  child: const HomeScreen(),
+);
+```
+
 ## Advanced Example
 
 ```dart
@@ -63,6 +98,47 @@ SeasonalDecor(
 Notes:
 - Use `playDuration: Duration.zero` for continuous animation.
 
+### Option Details
+
+`child`
+The widget you want to decorate. The overlay is painted on top of this widget.
+
+`preset`
+Pick a ready-made style like Ramadan, Eid, Christmas, New Year, Valentine, Halloween, or Sport Event. Presets include shapes, colors, and backdrops.
+
+`enabled`
+Turn the overlay on or off. When `false`, particles stop rendering. Backdrops can still show if `showBackdropWhenDisabled` is `true`.
+
+`intensity`
+Controls how many particles spawn and how fast they move. Use `low` for subtle effects, `high` for celebrations.
+
+`opacity`
+Overall overlay opacity. Use lower values to keep UI readable.
+
+`respectReduceMotion`
+If the system has Reduce Motion enabled, the overlay renders a static decoration instead of animating.
+
+`pauseWhenInactive`
+Stops the animation when the app is paused or inactive to save resources.
+
+`ignorePointer`
+If `true`, the overlay does not block touches. Your UI remains fully interactive.
+
+`playDuration`
+How long each animation cycle runs. Use `Duration.zero` to keep it running continuously.
+
+`settleOnDisable`
+When stopping, existing particles keep moving and fall out naturally instead of disappearing instantly.
+
+`repeatEvery`
+Automatically replays the animation after the given time. Set to `null` to disable auto-repeat.
+
+`showBackdrop`
+Show or hide decorative backdrops like crescents, trees, garlands, or stadium elements.
+
+`showBackdropWhenDisabled`
+If `enabled` is `false`, this keeps the backdrop visible while particles remain hidden.
+
 ## Presets
 
 - Ramadan (`classic`, `night`)
@@ -72,6 +148,13 @@ Notes:
 - Valentine (`hearts`, `minimal`) - floating hearts with sparkles
 - Halloween (`spooky`, `pumpkin`) - bats/pumpkins with moon
 - Sport Event (`worldCup`, `teamColors`) - trophy + celebration
+
+## Preset Previews
+
+![Ramadan](assets/gif/ramadan.gif)
+![Eid](assets/gif/eid.gif)
+![Christmas](assets/gif/christmas.gif)
+![Valentine](assets/gif/valentine.gif)
 
 ## Performance Notes
 
