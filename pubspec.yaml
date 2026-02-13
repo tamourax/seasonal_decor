@@ -5,14 +5,10 @@ homepage: https://github.com/tamourax/seasonal_decor
 repository: https://github.com/tamourax/seasonal_decor
 issue_tracker: https://github.com/tamourax/seasonal_decor/issues
 topics:
-  - flutter
-  - ui
-  - animation
-  - seasonal
+  - animations
   - ramadan
+  - seasonal
   - overlay
-  - particles
-  - graphics
   - celebration
 
 environment:
