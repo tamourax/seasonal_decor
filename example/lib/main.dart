@@ -508,6 +508,9 @@ class _ControlSheet extends StatelessWidget {
           return 'Mosque';
         case BackdropType.trophy:
           return 'Trophy';
+        case BackdropType.candyGarland:
+        default:
+          return 'Candy Garland';
       }
     }
 
