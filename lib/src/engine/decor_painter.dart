@@ -344,7 +344,7 @@ class DecorPainter extends CustomPainter {
   ) {
     final shortest = math.min(size.width, size.height);
     final width = shortest * backdrop.sizeFactor;
-    final height = width * 0.65;
+    final height = width * 0.62;
     final center = Offset(
       size.width * backdrop.anchor.dx,
       size.height * backdrop.anchor.dy,
@@ -354,9 +354,9 @@ class DecorPainter extends CustomPainter {
     final combinedAlpha =
         (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
     final primary = backdrop.color.withValues(alpha: combinedAlpha);
-    final accent = const Color(0xFFF5C542).withValues(alpha: combinedAlpha);
-    final accentSoft = const Color(0xFFFFE08A).withValues(
-      alpha: (combinedAlpha * 0.85).clamp(0.0, 1.0),
+    final accent = const Color(0xFFF2C94C).withValues(alpha: combinedAlpha);
+    final accentSoft = const Color(0xFFFFE6A3).withValues(
+      alpha: (combinedAlpha * 0.75).clamp(0.0, 1.0),
     );
 
     _paint
@@ -366,9 +366,9 @@ class DecorPainter extends CustomPainter {
     canvas.save();
     canvas.translate(center.dx, center.dy);
 
-    final baseWidth = width * 0.95;
-    final baseHeight = height * 0.42;
-    final baseTop = height * 0.06;
+    final baseWidth = width * 0.92;
+    final baseHeight = height * 0.44;
+    final baseTop = height * 0.08;
     final baseRect = Rect.fromLTWH(
       -baseWidth * 0.5,
       baseTop,
@@ -383,9 +383,9 @@ class DecorPainter extends CustomPainter {
 
     final platformRect = RRect.fromRectAndRadius(
       Rect.fromLTWH(
-        -width * 0.62,
-        baseTop + baseHeight * 0.84,
-        width * 1.24,
+        -width * 0.65,
+        baseTop + baseHeight * 0.86,
+        width * 1.3,
         height * 0.12,
       ),
       Radius.circular(width * 0.06),
@@ -393,7 +393,7 @@ class DecorPainter extends CustomPainter {
     canvas.drawRRect(platformRect, _paint);
 
     _paint.color = accent;
-    final bandHeight = height * 0.045;
+    final bandHeight = height * 0.04;
     canvas.drawRect(
       Rect.fromLTWH(
         -baseWidth * 0.5,
@@ -413,32 +413,45 @@ class DecorPainter extends CustomPainter {
       _paint,
     );
 
-    void drawDome(Offset domeCenter, double radius) {
+    void drawOnionDome(Offset domeCenter, double radius) {
+      final baseY = domeCenter.dy;
       final path = Path()
-        ..moveTo(domeCenter.dx - radius, domeCenter.dy)
+        ..moveTo(domeCenter.dx - radius, baseY)
         ..quadraticBezierTo(
+          domeCenter.dx - radius * 0.65,
+          baseY - radius * 0.9,
           domeCenter.dx,
-          domeCenter.dy - radius * 1.35,
-          domeCenter.dx + radius,
-          domeCenter.dy,
+          baseY - radius * 1.35,
         )
-        ..lineTo(domeCenter.dx + radius, domeCenter.dy + radius * 0.25)
-        ..lineTo(domeCenter.dx - radius, domeCenter.dy + radius * 0.25)
+        ..quadraticBezierTo(
+          domeCenter.dx + radius * 0.65,
+          baseY - radius * 0.9,
+          domeCenter.dx + radius,
+          baseY,
+        )
+        ..lineTo(domeCenter.dx + radius, baseY + radius * 0.24)
+        ..lineTo(domeCenter.dx - radius, baseY + radius * 0.24)
         ..close();
       _paint.color = primary;
       canvas.drawPath(path, _paint);
       _paint.color = accentSoft;
       canvas.drawCircle(
-        Offset(domeCenter.dx - radius * 0.25, domeCenter.dy - radius * 0.15),
-        radius * 0.32,
+        Offset(domeCenter.dx - radius * 0.28, baseY - radius * 0.35),
+        radius * 0.22,
         _paint,
       );
     }
 
-    final mainDomeCenter = Offset(0, baseTop - height * 0.05);
-    drawDome(mainDomeCenter, width * 0.23);
-    drawDome(Offset(-width * 0.32, baseTop + height * 0.02), width * 0.14);
-    drawDome(Offset(width * 0.32, baseTop + height * 0.02), width * 0.14);
+    final mainDomeCenter = Offset(0, baseTop - height * 0.02);
+    drawOnionDome(mainDomeCenter, width * 0.24);
+    drawOnionDome(
+      Offset(-width * 0.32, baseTop + height * 0.05),
+      width * 0.15,
+    );
+    drawOnionDome(
+      Offset(width * 0.32, baseTop + height * 0.05),
+      width * 0.15,
+    );
 
     void drawCrescent(Offset crescentCenter, double size) {
       _paint.color = accent;
@@ -450,16 +463,16 @@ class DecorPainter extends CustomPainter {
     }
 
     drawCrescent(
-      mainDomeCenter + Offset(0, -width * 0.28),
-      width * 0.07,
+      mainDomeCenter + Offset(0, -width * 0.32),
+      width * 0.075,
     );
     drawCrescent(
-      Offset(-width * 0.32, baseTop - height * 0.06),
-      width * 0.045,
+      Offset(-width * 0.32, baseTop - height * 0.03),
+      width * 0.05,
     );
     drawCrescent(
-      Offset(width * 0.32, baseTop - height * 0.06),
-      width * 0.045,
+      Offset(width * 0.32, baseTop - height * 0.03),
+      width * 0.05,
     );
 
     final doorWidth = baseWidth * 0.26;

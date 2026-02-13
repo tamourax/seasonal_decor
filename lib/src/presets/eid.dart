@@ -147,7 +147,7 @@ DecorConfig _buildEidAdha() {
     ],
     backdrops: const [
       DecorBackdrop.mosque(
-        color: Color(0xFF4B2A83),
+        color: Color(0xFF4A2B7C),
         opacity: 0.55,
         anchor: Offset(0.82, 0.22),
         sizeFactor: 0.5,
