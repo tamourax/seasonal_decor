@@ -15,11 +15,12 @@ Add beautiful seasonal particle effects to your Flutter app in one line of code.
 ## Live Demo
 
 [Live Demo](https://tamourax.github.io/seasonal_decor/)
+Published from the `live-demo` branch to keep the package branch lightweight.
 
 ## Releases
 
 - GitHub Releases: https://github.com/tamourax/seasonal_decor/releases
-- Latest release notes draft: `release_notes/v1.1.4.md`
+- Latest release notes draft: `release_notes/v1.1.5.md`
 
 ## Installation
 
@@ -27,7 +28,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  seasonal_decor: ^1.1.4
+  seasonal_decor: ^1.1.5
 ```
 
 Then run:

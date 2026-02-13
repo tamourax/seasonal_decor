@@ -1,3 +1,11 @@
+## 1.1.5
+
+- Improve `example/lib/advanced_main.dart` layout responsiveness for web and narrow screens.
+- Update advanced demo defaults to:
+  `SeasonalPreset.ramadan()`, `DecorIntensity.max`, dark mode, `opacity: 1.0`,
+  `particleSpeedMultiplier: 2.0`, and `playDuration: 10s`.
+- Refresh package docs for the new release metadata and release-notes link.
+
 ## 1.1.4
 
 - Add two new intensity levels: `DecorIntensity.extraHigh` and `DecorIntensity.max`.
