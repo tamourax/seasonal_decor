@@ -8,7 +8,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  seasonal_decor: ^1.0.0
+  seasonal_decor: ^1.0.1
 ```
 
 Then run:
@@ -156,17 +156,17 @@ If `enabled` is `false`, this keeps the backdrop visible while particles remain 
 
 ## Preset Previews
 
-<h3><strong>Ramadan</strong></h3>
-<img src="assets/gif/ramadan.gif" alt="Ramadan" />
+### **Ramadan**
+![Ramadan](https://raw.githubusercontent.com/tamourax/seasonal_decor/main/assets/gif/ramadan.gif)
 
-<h3><strong>Eid</strong></h3>
-<img src="assets/gif/eid.gif" alt="Eid" />
+### **Eid**
+![Eid](https://raw.githubusercontent.com/tamourax/seasonal_decor/main/assets/gif/eid.gif)
 
-<h3><strong>Christmas</strong></h3>
-<img src="assets/gif/christmas.gif" alt="Christmas" />
+### **Christmas**
+![Christmas](https://raw.githubusercontent.com/tamourax/seasonal_decor/main/assets/gif/christmas.gif)
 
-<h3><strong>Valentine</strong></h3>
-<img src="assets/gif/valentine.gif" alt="Valentine" />
+### **Valentine**
+![Valentine](https://raw.githubusercontent.com/tamourax/seasonal_decor/main/assets/gif/valentine.gif)
 
 ## Performance Notes
 

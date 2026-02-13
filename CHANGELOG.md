@@ -1,3 +1,7 @@
+## 1.0.1
+
+- Update README previews to use GitHub raw links.
+
 ## 1.0.0
 
 - Stable release of seasonal_decor.
