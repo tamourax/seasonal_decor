@@ -1,18 +1,23 @@
 # seasonal_decor
 
+[![Demo](assets/demo.gif)](https://tamourax.github.io/seasonal_decor/)
+
 [![Flutter](https://img.shields.io/badge/Flutter-3.16%2B-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![Pub Version](https://img.shields.io/pub/v/seasonal_decor?logo=dart&logoColor=white)](https://pub.dev/packages/seasonal_decor)
 ![Production Ready](https://img.shields.io/badge/Production-Ready-16a34a)
 
+Seasonal overlays for Flutter apps - Ramadan, Eid, Christmas, New Year, Valentine, Halloween, and more.
+
 Add beautiful seasonal particle effects to your Flutter app in one line of code.
-
-![Demo](https://raw.githubusercontent.com/tamourax/seasonal_decor/main/assets/gif/ramadan.gif)
-
-Beautiful seasonal overlays for Flutter apps with presets like Ramadan, Eid, Christmas, New Year, Valentine, Halloween, and Sport Event.
 
 ## Live Demo
 
 [Live Demo](https://tamourax.github.io/seasonal_decor/)
+
+## Releases
+
+- GitHub Releases: https://github.com/tamourax/seasonal_decor/releases
+- Latest release notes draft: `release_notes/v1.1.4.md`
 
 ## Installation
 
@@ -45,11 +50,53 @@ SeasonalDecor(
 );
 ```
 
+## Examples
+
+### Basic
+
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.christmas(),
+  child: const HomeScreen(),
+);
+```
+
+### Medium (Common Controls)
+
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.eid(variant: EidVariant.fitr),
+  intensity: DecorIntensity.high,
+  particleSpeedMultiplier: 1.3,
+  showBackdrop: true,
+  adaptColorsToTheme: true,
+  child: const HomeScreen(),
+);
+```
+
+### Advanced (Preset Overrides)
+
+```dart
+SeasonalDecor(
+  preset: SeasonalPreset.ramadan(),
+  intensity: DecorIntensity.max,
+  presetShapes: const [ParticleShape.lantern, ParticleShape.crescent],
+  presetShapeSpeedMultipliers: const {
+    ParticleShape.lantern: 1.25,
+  },
+  presetBackdropType: BackdropType.crescent,
+  presetBackdropAnchor: const Offset(0.8, 0.2),
+  presetBackdropSizeFactor: 0.3,
+  repeatEvery: const Duration(minutes: 10),
+  child: const HomeScreen(),
+);
+```
+
 ## Quick Comparison
 
-Comparison against a typical confetti-only package (exact features vary by package/version):
+Comparison against a typical confetti package (exact features vary by package/version):
 
-| Capability | `seasonal_decor` | Confetti-only package |
+| Feature | `seasonal_decor` | `confetti`-style package |
 | --- | --- | --- |
 | One-line seasonal preset setup | Yes | No |
 | Built-in Ramadan/Eid/Christmas/New Year presets | Yes | No |
@@ -208,7 +255,22 @@ SeasonalDecor(
 );
 ```
 
-## Options
+## Core Options (Quick Table)
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `enabled` | `true` | Show or hide overlay. |
+| `intensity` | `medium` | Particle count and baseline speed. |
+| `opacity` | `1.0` | Global overlay opacity. |
+| `showBackdrop` | `true` | Render seasonal backdrop graphics. |
+| `showBackdropWhenDisabled` | `true` | Keep backdrop visible when disabled. |
+| `particleSpeedMultiplier` | `1.0` | Runtime speed scaling. |
+| `adaptColorsToTheme` | `true` | Auto-tune colors for light/dark mode. |
+| `playDuration` | `5s` | Duration of each play cycle. |
+| `repeatEvery` | `null` | Optional automatic replay interval. |
+| `settleOnDisable` | `true` | Let particles finish naturally on stop. |
+
+## Full Options Reference
 
 | Option                     | Type             | Default  | Description                            |
 | -------------------------- | ---------------- | -------- | -------------------------------------- |
