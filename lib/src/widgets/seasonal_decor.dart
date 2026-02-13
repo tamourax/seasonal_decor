@@ -2,8 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 
-
-
 import '../config/intensity.dart';
 import '../engine/decor_controller.dart';
 import '../engine/decor_painter.dart';
