@@ -18,44 +18,66 @@ DecorConfig buildSportEventConfig(
   List<Color>? teamColors,
 }) {
   final palette = _resolvePalette(variant, teamColors);
+  final hasTeamColors =
+      variant == SportEventVariant.teamColors && palette.isNotEmpty;
+  final confettiColors = palette.length > 2 ? palette.take(2).toList() : palette;
+  final ballPalette = hasTeamColors
+      ? palette
+      : const [
+          Color(0xFFFFFFFF),
+          Color(0xFF111827),
+        ];
+  final sparkleColor = hasTeamColors ? palette.first : const Color(0xFFFFD166);
 
   final styles = <ParticleStyle>[
-    for (final color in palette)
+    for (final color in confettiColors)
       ParticleStyle(
         shape: ParticleShape.confettiRect,
         color: color,
-        minSize: 2.8,
-        maxSize: 6.0,
+        minSize: 2.6,
+        maxSize: 5.2,
         minSpeed: 18,
-        maxSpeed: 42,
-        minRotationSpeed: -2.4,
-        maxRotationSpeed: 2.4,
-        opacity: 0.9,
+        maxSpeed: 40,
+        minRotationSpeed: -2.2,
+        maxRotationSpeed: 2.2,
+        opacity: 0.75,
       ),
     ParticleStyle(
       shape: ParticleShape.sparkle,
-      color: palette.first,
+      color: sparkleColor,
       minSize: 2.0,
       maxSize: 3.6,
       minSpeed: 8,
-      maxSpeed: 18,
+      maxSpeed: 16,
       minRotationSpeed: -1.4,
       maxRotationSpeed: 1.4,
       opacity: 0.7,
     ),
+    for (final color in ballPalette)
+      ParticleStyle(
+        shape: ParticleShape.ball,
+        color: color,
+        minSize: 3.4,
+        maxSize: 6.0,
+        minSpeed: 10,
+        maxSpeed: 22,
+        minRotationSpeed: -0.6,
+        maxRotationSpeed: 0.6,
+        opacity: 0.9,
+      ),
   ];
 
   return DecorConfig(
     particleCount: 120,
     speedMultiplier: 1.0,
     spawnRate: 1,
-    spawnRateScale: 0.85,
-    drift: 16,
+    spawnRateScale: 0.7,
+    drift: 14,
     flow: ParticleFlow.falling,
     wrapMode: DecorWrapMode.respawn,
     enableFireworks: true,
     rocketsMax: 3,
-    rocketSpawnRate: 0.5,
+    rocketSpawnRate: 0.55,
     sparksPerBurstMin: 18,
     sparksPerBurstMax: 30,
     burstHeightFactor: 0.22,

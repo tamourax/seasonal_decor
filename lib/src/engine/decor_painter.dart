@@ -397,6 +397,23 @@ class DecorPainter extends CustomPainter {
         canvas.drawRect(_unitRect, _paint);
         canvas.restore();
         break;
+      case ParticleShape.ball:
+        final strokeWidth = math.max(1.0, particle.size * 0.2);
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        _paint
+          ..color = color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth;
+        canvas.drawCircle(Offset.zero, particle.size, _paint);
+        _paint
+          ..color =
+              color.withValues(alpha: (combinedAlpha * 0.7).clamp(0.0, 1.0))
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(Offset.zero, particle.size * 0.18, _paint);
+        canvas.restore();
+        break;
     }
   }
 

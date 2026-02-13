@@ -1,6 +1,6 @@
-﻿# seasonal_decor
+# seasonal_decor
 
-Drop-in seasonal decorative overlays for Flutter apps. Ships with a lightweight CustomPainter + Ticker particle engine and ready-to-use presets for Ramadan, Eid, Christmas, New Year, Valentine, Halloween, and Sport Event.
+Drop-in seasonal decorative overlays for Flutter apps. Ships with a lightweight **CustomPainter + Ticker** particle engine and ready-to-use presets for **Ramadan, Eid, Christmas, New Year, Valentine, Halloween, and Sport Event**.
 
 Repository: https://github.com/tamourax/seasonal_decor
 
@@ -31,26 +31,26 @@ SeasonalDecor(
 
 ## Options
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `child` | `Widget` | required | Widget below the overlay. |
-| `preset` | `SeasonalPreset` | required | Decorative preset to render. |
-| `enabled` | `bool` | `true` | Shows or hides the overlay. |
-| `intensity` | `DecorIntensity` | `medium` | Particle count, speed, spawn rate. |
-| `opacity` | `double` | `1.0` | Global overlay opacity (0.0 to 1.0). |
-| `respectReduceMotion` | `bool` | `true` | Honors `MediaQuery.disableAnimations`. |
-| `pauseWhenInactive` | `bool` | `true` | Pauses animation when app is inactive. |
-| `ignorePointer` | `bool` | `true` | Lets taps pass through the overlay. |
+| Option                | Type             | Default  | Description                            |
+| --------------------- | ---------------- | -------- | -------------------------------------- |
+| `child`               | `Widget`         | required | Widget below the overlay.              |
+| `preset`              | `SeasonalPreset` | required | Decorative preset to render.           |
+| `enabled`             | `bool`           | `true`   | Shows or hides the overlay.            |
+| `intensity`           | `DecorIntensity` | `medium` | Particle count, speed, spawn rate.     |
+| `opacity`             | `double`         | `1.0`    | Global overlay opacity (0.0 to 1.0).   |
+| `respectReduceMotion` | `bool`           | `true`   | Honors `MediaQuery.disableAnimations`. |
+| `pauseWhenInactive`   | `bool`           | `true`   | Pauses animation when app is inactive. |
+| `ignorePointer`       | `bool`           | `true`   | Lets taps pass through the overlay.    |
 
 ## Presets
 
 - Ramadan (`classic`, `night`)
-- Eid (`classic`) — fireworks rockets and bursts
-- Christmas (`classic`) — heavier snow with tree and garland
-- New Year (`fireworks`, `gold`) — fireworks with confetti
-- Valentine (`hearts`, `minimal`) — floating hearts with sparkles
-- Halloween (`spooky`, `pumpkin`) — bats/pumpkins with mist and moon
-- Sport Event (`worldCup`, `teamColors`) — confetti with optional fireworks
+- Eid (`classic`) � fireworks rockets and bursts
+- Christmas (`classic`) � snow with tree/garland
+- New Year (`fireworks`, `gold`) � fireworks with confetti
+- Valentine (`hearts`, `minimal`) � floating hearts with sparkles
+- Halloween (`spooky`, `pumpkin`) � bats/pumpkins with moon
+- Sport Event (`worldCup`, `teamColors`) � trophy + celebration
 
 ## Performance Notes
 
@@ -61,7 +61,7 @@ SeasonalDecor(
 
 ## Accessibility
 
-- If `respectReduceMotion` is true and `MediaQuery.disableAnimations` is set, the overlay renders a static decoration instead of animating.
+- If `respectReduceMotion` is true and `MediaQuery.disableAnimations` is enabled, the overlay renders a static decoration instead of animating.
 
 ## Supported Platforms
 

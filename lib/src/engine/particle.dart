@@ -11,6 +11,7 @@ enum ParticleShape {
   pumpkin,
   confettiRect,
   sparkle,
+  ball,
 }
 
 /// Distinguishes particle behavior in the system.
