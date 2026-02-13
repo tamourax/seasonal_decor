@@ -1,6 +1,6 @@
 # seasonal_decor
 
-[![Demo](assets/demo.gif)](https://tamourax.github.io/seasonal_decor/)
+![Live Demo](https://raw.githubusercontent.com/tamourax/seasonal_decor/main/assets/demo.gif)
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.16%2B-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![Pub Version](https://img.shields.io/pub/v/seasonal_decor?logo=dart&logoColor=white)](https://pub.dev/packages/seasonal_decor)
@@ -9,6 +9,8 @@
 Seasonal overlays for Flutter apps - Ramadan, Eid, Christmas, New Year, Valentine, Halloween, and more.
 
 Add beautiful seasonal particle effects to your Flutter app in one line of code.
+
+**Try the Live Demo above or install with one line: `flutter pub add seasonal_decor`**
 
 ## Live Demo
 
