@@ -2,9 +2,6 @@ name: Deploy Flutter Web Demo
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - live-demo
 
 permissions:
   contents: read
