@@ -63,19 +63,23 @@ class SeasonalDecor extends StatefulWidget {
   /// In light theme, colors are boosted for better visibility.
   final bool adaptColorsToTheme;
 
-  /// Optional particle shape overrides applied to [preset].
+  /// Optional particle shape overrides applied to [preset] as
+  /// `List<ParticleShape>`.
   final List<ParticleShape>? presetShapes;
 
-  /// Optional full style overrides applied to [preset].
+  /// Optional full style overrides applied to [preset] as
+  /// `List<ParticleStyle>`.
   final List<ParticleStyle>? presetStyles;
 
-  /// Optional per-shape speed multipliers applied to [preset].
+  /// Optional per-shape speed multipliers applied to [preset] as
+  /// `Map<ParticleShape, double>`.
   final Map<ParticleShape, double>? presetShapeSpeedMultipliers;
 
   /// Optional single backdrop override applied to [preset].
   final DecorBackdrop? presetBackdrop;
 
-  /// Optional backdrop list override applied to [preset].
+  /// Optional backdrop list override applied to [preset] as
+  /// `List<DecorBackdrop>`.
   final List<DecorBackdrop>? presetBackdrops;
 
   /// Optional backdrop type override applied to [preset].

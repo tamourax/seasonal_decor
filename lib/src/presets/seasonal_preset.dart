@@ -35,7 +35,8 @@ class SeasonalPreset {
     this.isNone = false,
   });
 
-  /// Returns a new preset with overrides applied to the base configuration.
+  /// Returns a new preset with strongly typed overrides applied to the base
+  /// configuration.
   SeasonalPreset withOverrides({
     List<ParticleShape>? shapes,
     List<ParticleStyle>? styles,
@@ -223,6 +224,9 @@ class SeasonalPreset {
   }
 
   /// Sport event preset.
+  ///
+  /// When [teamColors] is provided, pass a `List<Color>` palette to drive
+  /// `SportEventVariant.teamColors`.
   factory SeasonalPreset.sportEvent({
     SportEventVariant? variant,
     List<Color>? teamColors,

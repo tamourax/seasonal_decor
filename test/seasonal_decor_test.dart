@@ -49,6 +49,46 @@ void main() {
     expect(updatedSparkle.maxSpeed, closeTo(baseSparkle.maxSpeed, 0.0001));
   });
 
+  test('withOverrides accepts typed shapes, styles, maps, and backdrops', () {
+    final preset = SeasonalPreset.ramadan().withOverrides(
+      shapes: const <ParticleShape>[
+        ParticleShape.lantern,
+        ParticleShape.crescent,
+      ],
+      styles: const <ParticleStyle>[
+        ParticleStyle(
+          shape: ParticleShape.lantern,
+          color: Color(0xFFFFD166),
+          minSize: 3.0,
+          maxSize: 6.0,
+          minSpeed: 12.0,
+          maxSpeed: 20.0,
+          minRotationSpeed: 0.0,
+          maxRotationSpeed: 0.0,
+          opacity: 0.9,
+        ),
+      ],
+      shapeSpeedMultipliers: const <ParticleShape, double>{
+        ParticleShape.lantern: 1.5,
+      },
+      backdrops: const <DecorBackdrop>[
+        DecorBackdrop.crescent(
+          color: Color(0x22FFFFFF),
+          opacity: 0.25,
+          anchor: Offset(0.8, 0.2),
+          sizeFactor: 0.3,
+        ),
+      ],
+    );
+
+    expect(preset.baseConfig.styles, hasLength(1));
+    expect(preset.baseConfig.styles.first.shape, ParticleShape.lantern);
+    expect(preset.baseConfig.styles.first.minSpeed, closeTo(18.0, 0.0001));
+    expect(preset.baseConfig.styles.first.maxSpeed, closeTo(30.0, 0.0001));
+    expect(preset.baseConfig.backdrops, hasLength(1));
+    expect(preset.baseConfig.backdrops.first.type, BackdropType.crescent);
+  });
+
   test('particle system updates particle positions', () {
     const config = DecorConfig(
       particleCount: 1,
