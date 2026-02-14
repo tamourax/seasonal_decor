@@ -37,7 +37,7 @@ jobs:
         working-directory: example
         run: |
           REPO_NAME="${GITHUB_REPOSITORY#*/}"
-          flutter build web -t lib/advanced_main.dart --release --base-href "/${REPO_NAME}/"
+          flutter build web -t lib/main.dart --release --base-href "/${REPO_NAME}/" -o ../docs
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -45,7 +45,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: example/build/web
+          path: docs
 
   deploy:
     environment:
