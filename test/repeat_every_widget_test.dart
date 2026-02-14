@@ -119,6 +119,53 @@ void main() {
     expect(scaledStyle.maxSize, closeTo(baseStyle.maxSize * 1.5, 0.0001));
   });
 
+  testWidgets('custom background backdrop replaces built-in background layer',
+      (tester) async {
+    const customBackdropKey = Key('custom-background-backdrop');
+    final preset = SeasonalPreset.ramadan().withOverrides(
+      backdrops: const [
+        DecorBackdrop.crescent(
+          layer: BackdropLayer.background,
+          color: Color(0x66FFE2A6),
+          opacity: 0.3,
+          anchor: Offset(0.84, 0.2),
+          sizeFactor: 0.2,
+        ),
+        DecorBackdrop.bunting(
+          layer: BackdropLayer.decorative,
+          color: Color(0x55F2D8A5),
+          opacity: 0.22,
+          anchor: Offset(0.5, 0.11),
+          sizeFactor: 0.04,
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SeasonalDecor(
+          preset: preset,
+          backgroundBackdrop: const ColoredBox(
+            key: customBackdropKey,
+            color: Colors.transparent,
+          ),
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    expect(find.byKey(customBackdropKey), findsOneWidget);
+
+    final customPaint = tester
+        .widgetList<CustomPaint>(find.byType(CustomPaint))
+        .firstWhere((widget) => widget.painter is DecorPainter);
+    final painter = customPaint.painter! as DecorPainter;
+
+    expect(painter.config.backdrops, hasLength(1));
+    expect(painter.config.backdrops.first.layer, BackdropLayer.decorative);
+    expect(painter.config.backdrops.first.type, BackdropType.bunting);
+  });
+
   testWidgets('decorativeBackdropDensityMultiplier is forwarded to painter',
       (tester) async {
     await tester.pumpWidget(

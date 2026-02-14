@@ -56,6 +56,12 @@ class SeasonalDecor extends StatefulWidget {
   /// Whether to paint backdrops in the [BackdropLayer.background] layer.
   final bool showBackgroundBackdrops;
 
+  /// Optional custom widget to replace built-in background backdrops.
+  ///
+  /// When provided, built-in [BackdropLayer.background] backdrops are hidden
+  /// and this widget is painted behind particles/decorative backdrops.
+  final Widget? backgroundBackdrop;
+
   /// Whether to paint backdrops in the [BackdropLayer.decorative] layer.
   final bool showDecorativeBackdrops;
 
@@ -133,6 +139,7 @@ class SeasonalDecor extends StatefulWidget {
     this.showBackdrop = true,
     this.showBackdropWhenDisabled = true,
     this.showBackgroundBackdrops = true,
+    this.backgroundBackdrop,
     this.showDecorativeBackdrops = true,
     this.particleSpeedMultiplier = 1.0,
     this.particleSizeMultiplier = 1.0,
@@ -209,6 +216,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     if (oldWidget.preset != widget.preset ||
         oldWidget.intensity != widget.intensity ||
         oldWidget.showBackgroundBackdrops != widget.showBackgroundBackdrops ||
+        oldWidget.backgroundBackdrop != widget.backgroundBackdrop ||
         oldWidget.showDecorativeBackdrops != widget.showDecorativeBackdrops ||
         oldWidget.particleSpeedMultiplier != widget.particleSpeedMultiplier ||
         oldWidget.particleSizeMultiplier != widget.particleSizeMultiplier ||
@@ -293,14 +301,17 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   }
 
   DecorConfig _applyBackdropLayerVisibility(DecorConfig config) {
-    if (widget.showBackgroundBackdrops && widget.showDecorativeBackdrops) {
+    final effectiveShowBackgroundBackdrops =
+        widget.showBackgroundBackdrops && widget.backgroundBackdrop == null;
+
+    if (effectiveShowBackgroundBackdrops && widget.showDecorativeBackdrops) {
       return config;
     }
 
     bool shouldKeep(DecorBackdrop backdrop) {
       switch (backdrop.layer) {
         case BackdropLayer.background:
-          return widget.showBackgroundBackdrops;
+          return effectiveShowBackgroundBackdrops;
         case BackdropLayer.decorative:
           return widget.showDecorativeBackdrops;
       }
@@ -607,11 +618,20 @@ class _SeasonalDecorState extends State<SeasonalDecor>
 
         final shouldShowOverlay = widget.enabled ||
             (widget.showBackdropWhenDisabled && widget.showBackdrop);
+        final shouldShowCustomBackgroundBackdrop =
+            widget.backgroundBackdrop != null &&
+                widget.showBackdrop &&
+                (widget.enabled || widget.showBackdropWhenDisabled);
 
         return Stack(
           fit: StackFit.expand,
           children: [
             widget.child,
+            if (shouldShowCustomBackgroundBackdrop)
+              IgnorePointer(
+                ignoring: true,
+                child: RepaintBoundary(child: widget.backgroundBackdrop!),
+              ),
             if (shouldShowOverlay)
               IgnorePointer(
                 ignoring: widget.ignorePointer,
