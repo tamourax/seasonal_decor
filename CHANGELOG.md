@@ -1,3 +1,21 @@
+## 1.2.0
+
+- Add emotional seasonal greeting overlay text with animation support:
+  `showText`, `text`, `textStyle`, `textOpacity`, `textAlignment`,
+  `textPadding`, `textDisplayDuration`, `textAnimationDuration`,
+  and `textSlideOffset`.
+- Add layered backdrop customization:
+  `showBackgroundBackdrops`, `showDecorativeBackdrops`,
+  and `backgroundBackdrop` to replace built-in background backdrops
+  with a custom widget.
+- Add visual tuning controls:
+  `particleSizeMultiplier` and `decorativeBackdropDensityMultiplier`.
+- Improve fireworks repeat cycles so `repeatEvery` restarts feel immediate
+  in presets like Eid al-Adha.
+- Expand example apps (`main.dart` and `advanced_main.dart`) with full live
+  controls for greeting text, backdrop layers, density, and size.
+- Add/extend tests for text overlay behavior and backdrop layer composition.
+
 ## 1.1.6
 
 - Improve runtime update performance by keeping the particle system instance
