@@ -118,4 +118,24 @@ void main() {
     expect(scaledStyle.minSize, closeTo(baseStyle.minSize * 1.5, 0.0001));
     expect(scaledStyle.maxSize, closeTo(baseStyle.maxSize * 1.5, 0.0001));
   });
+
+  testWidgets('decorativeBackdropDensityMultiplier is forwarded to painter',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SeasonalDecor(
+          preset: SeasonalPreset.ramadan(),
+          decorativeBackdropDensityMultiplier: 0.6,
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    final customPaint = tester
+        .widgetList<CustomPaint>(find.byType(CustomPaint))
+        .firstWhere((widget) => widget.painter is DecorPainter);
+    final painter = customPaint.painter! as DecorPainter;
+
+    expect(painter.decorativeBackdropDensityMultiplier, closeTo(0.6, 0.0001));
+  });
 }

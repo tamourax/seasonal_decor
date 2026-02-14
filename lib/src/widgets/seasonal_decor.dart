@@ -69,6 +69,12 @@ class SeasonalDecor extends StatefulWidget {
   /// `1.0` keeps preset sizes. Higher values make particles larger.
   final double particleSizeMultiplier;
 
+  /// Additional density multiplier for decorative backdrops.
+  ///
+  /// Affects decorative backdrop details such as garland bulbs and bunting
+  /// flags. `1.0` keeps preset density.
+  final double decorativeBackdropDensityMultiplier;
+
   /// Whether to adapt particle/backdrop colors to platform brightness.
   ///
   /// In light theme, colors are boosted for better visibility.
@@ -130,6 +136,7 @@ class SeasonalDecor extends StatefulWidget {
     this.showDecorativeBackdrops = true,
     this.particleSpeedMultiplier = 1.0,
     this.particleSizeMultiplier = 1.0,
+    this.decorativeBackdropDensityMultiplier = 1.0,
     this.adaptColorsToTheme = true,
     this.presetShapes,
     this.presetStyles,
@@ -305,9 +312,10 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     ];
 
     final singleBackdrop = config.backdrop;
-    final filteredBackdrop = singleBackdrop != null && shouldKeep(singleBackdrop)
-        ? singleBackdrop
-        : null;
+    final filteredBackdrop =
+        singleBackdrop != null && shouldKeep(singleBackdrop)
+            ? singleBackdrop
+            : null;
 
     return config.copyWith(
       backdrop: filteredBackdrop,
@@ -393,7 +401,8 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   }
 
   DecorConfig _applySizeMultiplier(DecorConfig config) {
-    final sizeMultiplier = widget.particleSizeMultiplier.clamp(0.2, 4.0).toDouble();
+    final sizeMultiplier =
+        widget.particleSizeMultiplier.clamp(0.2, 4.0).toDouble();
     if ((sizeMultiplier - 1.0).abs() < 0.0001) {
       return config;
     }
@@ -588,6 +597,8 @@ class _SeasonalDecorState extends State<SeasonalDecor>
               staticMode: _reduceMotion,
               paintParticles: widget.enabled,
               showBackdrop: widget.showBackdrop,
+              decorativeBackdropDensityMultiplier:
+                  widget.decorativeBackdropDensityMultiplier,
               repaint: _controller,
             ),
             size: Size.infinite,
