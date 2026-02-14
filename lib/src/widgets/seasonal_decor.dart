@@ -112,6 +112,17 @@ class SeasonalDecor extends StatefulWidget {
   /// flags. `1.0` keeps preset density.
   final double decorativeBackdropDensityMultiplier;
 
+  /// Optional fixed row count for decorative backdrop strings.
+  ///
+  /// Applies to decorative rows such as garlands, bunting, Ramadan lights,
+  /// and Ramadan bunting. When null, each backdrop uses its own auto layout.
+  final int? decorativeBackdropRows;
+
+  /// Optional fixed row count for Ramadan bunting decorative backdrop.
+  ///
+  /// When null, row count is chosen automatically from density.
+  final int? ramadanBuntingRows;
+
   /// Whether to adapt particle/backdrop colors to platform brightness.
   ///
   /// In light theme, colors are boosted for better visibility.
@@ -184,6 +195,8 @@ class SeasonalDecor extends StatefulWidget {
     this.particleSpeedMultiplier = 1.0,
     this.particleSizeMultiplier = 1.0,
     this.decorativeBackdropDensityMultiplier = 1.0,
+    this.decorativeBackdropRows,
+    this.ramadanBuntingRows,
     this.adaptColorsToTheme = true,
     this.presetShapes,
     this.presetStyles,
@@ -754,6 +767,8 @@ class _SeasonalDecorState extends State<SeasonalDecor>
               showBackdrop: widget.showBackdrop,
               decorativeBackdropDensityMultiplier:
                   widget.decorativeBackdropDensityMultiplier,
+              decorativeBackdropRows: widget.decorativeBackdropRows,
+              ramadanBuntingRows: widget.ramadanBuntingRows,
               repaint: _controller,
             ),
             size: Size.infinite,

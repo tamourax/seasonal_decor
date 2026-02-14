@@ -31,8 +31,9 @@ class SimpleHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SeasonalDecor(
-      preset: SeasonalPreset.ramadan(),
-      intensity: DecorIntensity.medium,
+      decorativeBackdropRows: 1,
+      preset: SeasonalPreset.ramadan(variant: RamadanVariant.hangingLanterns),
+      intensity: DecorIntensity.extraHigh,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Seasonal Decor'),

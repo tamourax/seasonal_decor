@@ -14,11 +14,11 @@ enum HalloweenVariant {
 
 /// Builds the base configuration for Halloween overlays.
 DecorConfig buildHalloweenConfig(HalloweenVariant variant) {
-  const moonBackdrop = DecorBackdrop.crescent(
-    color: Color(0xFFFFF3C1),
-    opacity: 0.18,
-    anchor: Offset(0.82, 0.2),
-    sizeFactor: 0.23,
+  const pumpkinBackdrop = DecorBackdrop.pumpkin(
+    color: Color(0xFFFF8A1F),
+    opacity: 0.26,
+    anchor: Offset(0.82, 0.24),
+    sizeFactor: 0.24,
   );
 
   switch (variant) {
@@ -66,7 +66,7 @@ DecorConfig buildHalloweenConfig(HalloweenVariant variant) {
             opacity: 0.65,
           ),
         ],
-        backdrops: const [moonBackdrop],
+        backdrops: const [pumpkinBackdrop],
       );
     case HalloweenVariant.spooky:
       return DecorConfig(
@@ -123,7 +123,7 @@ DecorConfig buildHalloweenConfig(HalloweenVariant variant) {
             opacity: 0.06,
           ),
         ],
-        backdrops: const [moonBackdrop],
+        backdrops: const [pumpkinBackdrop],
       );
   }
 }

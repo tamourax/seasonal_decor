@@ -8,13 +8,14 @@ void main() {
 enum PresetOption {
   none,
   ramadan,
+  ramadanHangingLanterns,
   eidFitr,
   eidAdha,
   christmas,
   newYear,
   valentine,
   halloween,
-  sportEvent,
+  football,
 }
 
 extension PresetOptionX on PresetOption {
@@ -22,6 +23,8 @@ extension PresetOptionX on PresetOption {
     switch (this) {
       case PresetOption.ramadan:
         return 'Ramadan';
+      case PresetOption.ramadanHangingLanterns:
+        return 'Ramadan Lights';
       case PresetOption.eidFitr:
         return 'Eid al-Fitr';
       case PresetOption.eidAdha:
@@ -36,8 +39,8 @@ extension PresetOptionX on PresetOption {
         return 'Valentine';
       case PresetOption.halloween:
         return 'Halloween';
-      case PresetOption.sportEvent:
-        return 'Sport Event';
+      case PresetOption.football:
+        return 'Football Celebration';
     }
   }
 }
@@ -127,7 +130,6 @@ class _HomePageState extends State<HomePage> {
   bool _respectReduceMotion = false;
   bool _simulateReduceMotion = false;
   double _opacity = 1.0;
-  bool _useTeamColors = false;
   bool _showBackdrop = true;
   bool _showBackdropWhenDisabled = true;
   bool _showBackgroundBackdrops = true;
@@ -135,6 +137,7 @@ class _HomePageState extends State<HomePage> {
   double _particleSpeedMultiplier = 2.0;
   double _particleSizeMultiplier = 2.0;
   double _decorativeBackdropDensityMultiplier = 1.0;
+  int _ramadanBuntingRows = 3;
   bool _showText = true;
   String _customOverlayText = '';
   double _textOpacity = 0.5;
@@ -152,12 +155,6 @@ class _HomePageState extends State<HomePage> {
   double _backdropSizeFactor = 0.55;
   BackdropType _backdropType = BackdropType.mosque;
 
-  static const List<Color> _teamColors = [
-    Color(0xFF1D4ED8),
-    Color(0xFFDC2626),
-    Color(0xFFFFFFFF),
-  ];
-
   SeasonalPreset _buildPreset() {
     SeasonalPreset preset;
     switch (_presetOption) {
@@ -165,6 +162,11 @@ class _HomePageState extends State<HomePage> {
         return SeasonalPreset.none();
       case PresetOption.ramadan:
         preset = SeasonalPreset.ramadan();
+        break;
+      case PresetOption.ramadanHangingLanterns:
+        preset = SeasonalPreset.ramadan(
+          variant: RamadanVariant.hangingLanterns,
+        );
         break;
       case PresetOption.eidFitr:
         preset = SeasonalPreset.eid(variant: EidVariant.fitr);
@@ -184,13 +186,8 @@ class _HomePageState extends State<HomePage> {
       case PresetOption.halloween:
         preset = SeasonalPreset.halloween();
         break;
-      case PresetOption.sportEvent:
-        preset = SeasonalPreset.sportEvent(
-          variant: _useTeamColors
-              ? SportEventVariant.teamColors
-              : SportEventVariant.worldCup,
-          teamColors: _useTeamColors ? _teamColors : null,
-        );
+      case PresetOption.football:
+        preset = SeasonalPreset.football();
         break;
     }
 
@@ -198,9 +195,11 @@ class _HomePageState extends State<HomePage> {
       return preset;
     }
 
-    final overrideShapes = _presetOption == PresetOption.eidAdha
-        ? const [ParticleShape.sheep]
-        : const [ParticleShape.balloon, ParticleShape.sheep];
+    final overrideShapes = _presetOption == PresetOption.football
+        ? const [ParticleShape.ball]
+        : _presetOption == PresetOption.eidAdha
+            ? const [ParticleShape.sheep]
+            : const [ParticleShape.balloon, ParticleShape.sheep];
 
     return preset.withOverrides(
       shapes: overrideShapes,
@@ -229,6 +228,16 @@ class _HomePageState extends State<HomePage> {
             colors: isDark
                 ? const [Color(0xFF0F1B2B), Color(0xFF123744)]
                 : const [Color(0xFFE8F0FF), Color(0xFFDDF0F6)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        );
+      case PresetOption.ramadanHangingLanterns:
+        return BoxDecoration(
+          gradient: LinearGradient(
+            colors: isDark
+                ? const [Color(0xFF23190F), Color(0xFF4A3119)]
+                : const [Color(0xFFFFF3DB), Color(0xFFFFE9C7)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -289,7 +298,7 @@ class _HomePageState extends State<HomePage> {
             end: Alignment.bottomCenter,
           ),
         );
-      case PresetOption.sportEvent:
+      case PresetOption.football:
         return BoxDecoration(
           gradient: LinearGradient(
             colors: isDark
@@ -382,6 +391,8 @@ class _HomePageState extends State<HomePage> {
                 particleSizeMultiplier: _particleSizeMultiplier,
                 decorativeBackdropDensityMultiplier:
                     _decorativeBackdropDensityMultiplier,
+                decorativeBackdropRows: _ramadanBuntingRows,
+                ramadanBuntingRows: _ramadanBuntingRows,
                 adaptColorsToTheme: _adaptColorsToTheme,
                 playDuration: Duration(
                   milliseconds: (_playDurationSeconds * 1000).round(),
@@ -418,12 +429,12 @@ class _HomePageState extends State<HomePage> {
               particleSizeMultiplier: _particleSizeMultiplier,
               decorativeBackdropDensityMultiplier:
                   _decorativeBackdropDensityMultiplier,
+              ramadanBuntingRows: _ramadanBuntingRows,
               adaptColorsToTheme: _adaptColorsToTheme,
               playDurationSeconds: _playDurationSeconds,
               settleOnDisable: _settleOnDisable,
               autoRepeatEnabled: _autoRepeatEnabled,
               repeatMinutes: _repeatMinutes,
-              useTeamColors: _useTeamColors,
               usePresetOverrides: _usePresetOverrides,
               backdropAnchorX: _backdropAnchorX,
               backdropAnchorY: _backdropAnchorY,
@@ -465,6 +476,9 @@ class _HomePageState extends State<HomePage> {
                   setState(() => _particleSizeMultiplier = value),
               onDecorativeBackdropDensityMultiplierChanged: (value) =>
                   setState(() => _decorativeBackdropDensityMultiplier = value),
+              onRamadanBuntingRowsChanged: (value) => setState(
+                () => _ramadanBuntingRows = (value.round().clamp(1, 6)).toInt(),
+              ),
               onAdaptColorsToThemeChanged: (value) =>
                   setState(() => _adaptColorsToTheme = value),
               onPlayDurationChanged: (value) =>
@@ -475,8 +489,6 @@ class _HomePageState extends State<HomePage> {
                   setState(() => _autoRepeatEnabled = value),
               onRepeatMinutesChanged: (value) =>
                   setState(() => _repeatMinutes = value),
-              onUseTeamColorsChanged: (value) =>
-                  setState(() => _useTeamColors = value),
               onUsePresetOverridesChanged: (value) =>
                   setState(() => _usePresetOverrides = value),
               onBackdropAnchorXChanged: (value) =>
@@ -638,12 +650,12 @@ class _ControlSheet extends StatelessWidget {
   final double particleSpeedMultiplier;
   final double particleSizeMultiplier;
   final double decorativeBackdropDensityMultiplier;
+  final int ramadanBuntingRows;
   final bool adaptColorsToTheme;
   final double playDurationSeconds;
   final bool settleOnDisable;
   final bool autoRepeatEnabled;
   final double repeatMinutes;
-  final bool useTeamColors;
   final bool usePresetOverrides;
   final double backdropAnchorX;
   final double backdropAnchorY;
@@ -670,12 +682,12 @@ class _ControlSheet extends StatelessWidget {
   final ValueChanged<double> onParticleSpeedMultiplierChanged;
   final ValueChanged<double> onParticleSizeMultiplierChanged;
   final ValueChanged<double> onDecorativeBackdropDensityMultiplierChanged;
+  final ValueChanged<double> onRamadanBuntingRowsChanged;
   final ValueChanged<bool> onAdaptColorsToThemeChanged;
   final ValueChanged<double> onPlayDurationChanged;
   final ValueChanged<bool> onSettleOnDisableChanged;
   final ValueChanged<bool> onAutoRepeatChanged;
   final ValueChanged<double> onRepeatMinutesChanged;
-  final ValueChanged<bool> onUseTeamColorsChanged;
   final ValueChanged<bool> onUsePresetOverridesChanged;
   final ValueChanged<double> onBackdropAnchorXChanged;
   final ValueChanged<double> onBackdropAnchorYChanged;
@@ -704,12 +716,12 @@ class _ControlSheet extends StatelessWidget {
     required this.particleSpeedMultiplier,
     required this.particleSizeMultiplier,
     required this.decorativeBackdropDensityMultiplier,
+    required this.ramadanBuntingRows,
     required this.adaptColorsToTheme,
     required this.playDurationSeconds,
     required this.settleOnDisable,
     required this.autoRepeatEnabled,
     required this.repeatMinutes,
-    required this.useTeamColors,
     required this.usePresetOverrides,
     required this.backdropAnchorX,
     required this.backdropAnchorY,
@@ -736,12 +748,12 @@ class _ControlSheet extends StatelessWidget {
     required this.onParticleSpeedMultiplierChanged,
     required this.onParticleSizeMultiplierChanged,
     required this.onDecorativeBackdropDensityMultiplierChanged,
+    required this.onRamadanBuntingRowsChanged,
     required this.onAdaptColorsToThemeChanged,
     required this.onPlayDurationChanged,
     required this.onSettleOnDisableChanged,
     required this.onAutoRepeatChanged,
     required this.onRepeatMinutesChanged,
-    required this.onUseTeamColorsChanged,
     required this.onUsePresetOverridesChanged,
     required this.onBackdropAnchorXChanged,
     required this.onBackdropAnchorYChanged,
@@ -754,6 +766,7 @@ class _ControlSheet extends StatelessWidget {
     final screenWidth = MediaQuery.sizeOf(context).width;
     final horizontalPadding = screenWidth < 560 ? 8.0 : 16.0;
     final maxPanelWidth = screenWidth >= 1000 ? 560.0 : double.infinity;
+    final canTuneDecorRows = showBackdrop && showDecorativeBackdrops;
 
     String backdropLabel(BackdropType type) {
       switch (type) {
@@ -769,8 +782,18 @@ class _ControlSheet extends StatelessWidget {
           return 'Mosque';
         case BackdropType.trophy:
           return 'Trophy';
+        case BackdropType.football:
+          return 'Football';
         case BackdropType.candyGarland:
           return 'Candy Garland';
+        case BackdropType.lantern:
+          return 'Lantern';
+        case BackdropType.pumpkin:
+          return 'Pumpkin';
+        case BackdropType.ramadanLights:
+          return 'Ramadan Lights';
+        case BackdropType.ramadanBunting:
+          return 'Ramadan Bunting';
       }
     }
 
@@ -880,16 +903,6 @@ class _ControlSheet extends StatelessWidget {
                               )
                               .toList(),
                         ),
-                        if (presetOption == PresetOption.sportEvent) ...[
-                          const SizedBox(height: 12),
-                          SwitchListTile(
-                            contentPadding: EdgeInsets.zero,
-                            title: const Text('Use Team Colors'),
-                            subtitle: const Text('Applies a custom palette'),
-                            value: useTeamColors,
-                            onChanged: onUseTeamColorsChanged,
-                          ),
-                        ],
                         const SizedBox(height: 18),
                         _SectionTitle(
                           title: 'Overrides',
@@ -1115,6 +1128,17 @@ class _ControlSheet extends StatelessWidget {
                           divisions: 14,
                           onChanged: showBackdrop && showDecorativeBackdrops
                               ? onDecorativeBackdropDensityMultiplierChanged
+                              : null,
+                        ),
+                        Text('Decor Rows ($ramadanBuntingRows)'),
+                        Slider(
+                          value: ramadanBuntingRows.toDouble(),
+                          min: 1,
+                          max: 6,
+                          divisions: 5,
+                          label: '$ramadanBuntingRows',
+                          onChanged: canTuneDecorRows
+                              ? onRamadanBuntingRowsChanged
                               : null,
                         ),
                         const SizedBox(height: 8),
