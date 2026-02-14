@@ -53,10 +53,64 @@ class SeasonalDecor extends StatefulWidget {
   /// Whether to keep drawing backdrops when [enabled] is false.
   final bool showBackdropWhenDisabled;
 
+  /// Whether to paint backdrops in the [BackdropLayer.background] layer.
+  final bool showBackgroundBackdrops;
+
+  /// Optional custom widget to replace built-in background backdrops.
+  ///
+  /// When provided, built-in [BackdropLayer.background] backdrops are hidden
+  /// and this widget is painted behind particles/decorative backdrops.
+  final Widget? backgroundBackdrop;
+
+  /// Whether to paint backdrops in the [BackdropLayer.decorative] layer.
+  final bool showDecorativeBackdrops;
+
+  /// Whether to render seasonal greeting text overlay.
+  final bool showText;
+
+  /// Optional custom greeting text.
+  ///
+  /// When null or empty, a preset-based default greeting is used.
+  final String? text;
+
+  /// Optional style override for greeting text.
+  final TextStyle? textStyle;
+
+  /// Opacity multiplier for greeting text.
+  ///
+  /// Defaults to `0.5`.
+  final double textOpacity;
+
+  /// Alignment for greeting text overlay.
+  final Alignment textAlignment;
+
+  /// Padding around greeting text overlay.
+  final EdgeInsets textPadding;
+
+  /// How long the text stays visible before exiting.
+  final Duration textDisplayDuration;
+
+  /// Duration of the text enter/exit animation.
+  final Duration textAnimationDuration;
+
+  /// Slide offset used when the text is hidden.
+  final Offset textSlideOffset;
+
   /// Additional speed multiplier for particle motion.
   ///
   /// `1.0` keeps preset speeds. Higher values make the animation faster.
   final double particleSpeedMultiplier;
+
+  /// Additional size multiplier for particle visuals.
+  ///
+  /// `1.0` keeps preset sizes. Higher values make particles larger.
+  final double particleSizeMultiplier;
+
+  /// Additional density multiplier for decorative backdrops.
+  ///
+  /// Affects decorative backdrop details such as garland bulbs and bunting
+  /// flags. `1.0` keeps preset density.
+  final double decorativeBackdropDensityMultiplier;
 
   /// Whether to adapt particle/backdrop colors to platform brightness.
   ///
@@ -115,7 +169,21 @@ class SeasonalDecor extends StatefulWidget {
     this.repeatEvery,
     this.showBackdrop = true,
     this.showBackdropWhenDisabled = true,
+    this.showBackgroundBackdrops = true,
+    this.backgroundBackdrop,
+    this.showDecorativeBackdrops = true,
+    this.showText = false,
+    this.text,
+    this.textStyle,
+    this.textOpacity = 0.5,
+    this.textAlignment = Alignment.topCenter,
+    this.textPadding = const EdgeInsets.fromLTRB(20, 56, 20, 0),
+    this.textDisplayDuration = const Duration(milliseconds: 1800),
+    this.textAnimationDuration = const Duration(milliseconds: 550),
+    this.textSlideOffset = const Offset(0, -0.2),
     this.particleSpeedMultiplier = 1.0,
+    this.particleSizeMultiplier = 1.0,
+    this.decorativeBackdropDensityMultiplier = 1.0,
     this.adaptColorsToTheme = true,
     this.presetShapes,
     this.presetStyles,
@@ -142,10 +210,12 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   bool _appPaused = false;
   bool _reduceMotion = false;
   bool _playing = true;
+  bool _textVisible = false;
   Brightness _themeBrightness =
       WidgetsBinding.instance.platformDispatcher.platformBrightness;
   Timer? _stopTimer;
   Timer? _repeatTimer;
+  Timer? _textHideTimer;
 
   @override
   void initState() {
@@ -187,7 +257,11 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.preset != widget.preset ||
         oldWidget.intensity != widget.intensity ||
+        oldWidget.showBackgroundBackdrops != widget.showBackgroundBackdrops ||
+        oldWidget.backgroundBackdrop != widget.backgroundBackdrop ||
+        oldWidget.showDecorativeBackdrops != widget.showDecorativeBackdrops ||
         oldWidget.particleSpeedMultiplier != widget.particleSpeedMultiplier ||
+        oldWidget.particleSizeMultiplier != widget.particleSizeMultiplier ||
         oldWidget.adaptColorsToTheme != widget.adaptColorsToTheme ||
         _presetOverridesChanged(oldWidget)) {
       _controller.updateConfig(_resolveConfig());
@@ -195,6 +269,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     }
     if (widget.preset.isNone) {
       _cancelTimers();
+      _hideText();
       _playing = false;
       _syncAnimation();
       return;
@@ -215,11 +290,28 @@ class _SeasonalDecorState extends State<SeasonalDecor>
         _startPlayCycle();
       } else {
         _cancelTimers();
+        _hideText();
         _playing = false;
         _applySystemControls();
         _syncAnimation();
       }
       return;
+    }
+    final textSettingsChanged = oldWidget.showText != widget.showText ||
+        oldWidget.text != widget.text ||
+        oldWidget.textStyle != widget.textStyle ||
+        oldWidget.textOpacity != widget.textOpacity ||
+        oldWidget.textAlignment != widget.textAlignment ||
+        oldWidget.textPadding != widget.textPadding ||
+        oldWidget.textDisplayDuration != widget.textDisplayDuration ||
+        oldWidget.textAnimationDuration != widget.textAnimationDuration ||
+        oldWidget.textSlideOffset != widget.textSlideOffset;
+    if (textSettingsChanged || oldWidget.preset != widget.preset) {
+      if (widget.enabled) {
+        _startTextCycle();
+      } else {
+        _hideText();
+      }
     }
     if (oldWidget.playDuration != widget.playDuration ||
         oldWidget.repeatEvery != widget.repeatEvery) {
@@ -261,10 +353,45 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     final resolvedPreset = _resolvePreset();
     final baseConfig = resolvedPreset.resolve(widget.intensity);
     final speedAdjusted = _applySpeedMultiplier(baseConfig);
-    if (!widget.adaptColorsToTheme) {
-      return speedAdjusted;
+    final sizeAdjusted = _applySizeMultiplier(speedAdjusted);
+    final themed = widget.adaptColorsToTheme
+        ? _adaptColorsForTheme(sizeAdjusted)
+        : sizeAdjusted;
+    return _applyBackdropLayerVisibility(themed);
+  }
+
+  DecorConfig _applyBackdropLayerVisibility(DecorConfig config) {
+    final effectiveShowBackgroundBackdrops =
+        widget.showBackgroundBackdrops && widget.backgroundBackdrop == null;
+
+    if (effectiveShowBackgroundBackdrops && widget.showDecorativeBackdrops) {
+      return config;
     }
-    return _adaptColorsForTheme(speedAdjusted);
+
+    bool shouldKeep(DecorBackdrop backdrop) {
+      switch (backdrop.layer) {
+        case BackdropLayer.background:
+          return effectiveShowBackgroundBackdrops;
+        case BackdropLayer.decorative:
+          return widget.showDecorativeBackdrops;
+      }
+    }
+
+    final filteredBackdrops = [
+      for (final backdrop in config.backdrops)
+        if (shouldKeep(backdrop)) backdrop,
+    ];
+
+    final singleBackdrop = config.backdrop;
+    final filteredBackdrop =
+        singleBackdrop != null && shouldKeep(singleBackdrop)
+            ? singleBackdrop
+            : null;
+
+    return config.copyWith(
+      backdrop: filteredBackdrop,
+      backdrops: filteredBackdrops,
+    );
   }
 
   SeasonalPreset _resolvePreset() {
@@ -344,6 +471,33 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     );
   }
 
+  DecorConfig _applySizeMultiplier(DecorConfig config) {
+    final sizeMultiplier =
+        widget.particleSizeMultiplier.clamp(0.2, 4.0).toDouble();
+    if ((sizeMultiplier - 1.0).abs() < 0.0001) {
+      return config;
+    }
+
+    final styles = [
+      for (final style in config.styles)
+        style.copyWith(
+          minSize: style.minSize * sizeMultiplier,
+          maxSize: style.maxSize * sizeMultiplier,
+        ),
+    ];
+
+    if (!config.enableFireworks) {
+      return config.copyWith(styles: styles);
+    }
+
+    return config.copyWith(
+      styles: styles,
+      rocketSize: config.rocketSize * sizeMultiplier,
+      sparkMinSize: config.sparkMinSize * sizeMultiplier,
+      sparkMaxSize: config.sparkMaxSize * sizeMultiplier,
+    );
+  }
+
   DecorConfig _adaptColorsForTheme(DecorConfig config) {
     final styles = [
       for (final style in config.styles)
@@ -402,10 +556,18 @@ class _SeasonalDecorState extends State<SeasonalDecor>
 
   void _startPlayCycle() {
     if (!widget.enabled) {
+      _hideText();
       return;
     }
+    final wasPlaying = _playing;
     _playing = true;
     _applySystemControls();
+    if (!wasPlaying && _controller.config.enableFireworks) {
+      // Fireworks presets can look delayed on restart because rocket spawning
+      // is accumulator-based. Force an immediate cycle respawn on restart.
+      _controller.system.setConfig(_controller.config, respawn: true);
+    }
+    _startTextCycle();
     _stopTimer?.cancel();
     _repeatTimer?.cancel();
     if (widget.playDuration > Duration.zero) {
@@ -427,6 +589,79 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   void _cancelTimers() {
     _stopTimer?.cancel();
     _repeatTimer?.cancel();
+    _textHideTimer?.cancel();
+  }
+
+  void _hideText() {
+    _textHideTimer?.cancel();
+    _setTextVisible(false);
+  }
+
+  void _startTextCycle() {
+    _textHideTimer?.cancel();
+    final resolvedText = _resolveOverlayText();
+    if (resolvedText == null ||
+        resolvedText.isEmpty ||
+        !widget.showText ||
+        !widget.enabled) {
+      _setTextVisible(false);
+      return;
+    }
+
+    _setTextVisible(true);
+    if (widget.textDisplayDuration <= Duration.zero) {
+      return;
+    }
+    _textHideTimer = Timer(widget.textDisplayDuration, () {
+      if (!mounted) {
+        return;
+      }
+      _setTextVisible(false);
+    });
+  }
+
+  void _setTextVisible(bool visible) {
+    if (_textVisible == visible) {
+      return;
+    }
+    if (!mounted) {
+      _textVisible = visible;
+      return;
+    }
+    setState(() => _textVisible = visible);
+  }
+
+  String? _resolveOverlayText() {
+    if (!widget.showText || widget.preset.isNone) {
+      return null;
+    }
+    final custom = widget.text?.trim();
+    if (custom != null && custom.isNotEmpty) {
+      return custom;
+    }
+    return _defaultTextForPreset(widget.preset);
+  }
+
+  String _defaultTextForPreset(SeasonalPreset preset) {
+    switch (preset.name) {
+      case 'Ramadan':
+        return 'Ramadan Kareem';
+      case 'Eid al-Fitr':
+      case 'Eid al-Adha':
+        return 'Eid Mubarak';
+      case 'Christmas':
+        return 'Merry Christmas';
+      case 'New Year':
+        return 'Happy New Year';
+      case 'Valentine':
+        return "Happy Valentine's Day";
+      case 'Halloween':
+        return 'Happy Halloween';
+      case 'Sport Event':
+        return 'Let the game begin';
+      default:
+        return preset.name;
+    }
   }
 
   void _applySystemControls() {
@@ -461,6 +696,9 @@ class _SeasonalDecorState extends State<SeasonalDecor>
 
   @visibleForTesting
   void debugStopPlayingForTest() => _stopPlaying();
+
+  @visibleForTesting
+  bool debugIsTextVisible() => _textVisible;
 
   void _syncAnimation() {
     if (widget.preset.isNone) {
@@ -514,6 +752,8 @@ class _SeasonalDecorState extends State<SeasonalDecor>
               staticMode: _reduceMotion,
               paintParticles: widget.enabled,
               showBackdrop: widget.showBackdrop,
+              decorativeBackdropDensityMultiplier:
+                  widget.decorativeBackdropDensityMultiplier,
               repaint: _controller,
             ),
             size: Size.infinite,
@@ -522,15 +762,83 @@ class _SeasonalDecorState extends State<SeasonalDecor>
 
         final shouldShowOverlay = widget.enabled ||
             (widget.showBackdropWhenDisabled && widget.showBackdrop);
+        final shouldShowCustomBackgroundBackdrop =
+            widget.backgroundBackdrop != null &&
+                widget.showBackdrop &&
+                (widget.enabled || widget.showBackdropWhenDisabled);
+        final shouldShowText = widget.enabled && widget.showText;
+        final overlayText = _resolveOverlayText();
+        final clampedTextOpacity =
+            widget.textOpacity.clamp(0.0, 1.0).toDouble();
+        final defaultTextStyle = DefaultTextStyle.of(context).style.copyWith(
+          fontSize: 34,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.6,
+          color: const Color(0xFFFFFFFF),
+          shadows: const [
+            Shadow(
+              color: Color(0x55000000),
+              blurRadius: 12,
+              offset: Offset(0, 2),
+            ),
+          ],
+        );
+        final mergedTextStyle = defaultTextStyle.merge(widget.textStyle);
+        final textColor = mergedTextStyle.color ?? const Color(0xFFFFFFFF);
+        final textStyle = mergedTextStyle.copyWith(
+          color: textColor.withValues(
+            alpha:
+                (textColor.a * clampedTextOpacity).clamp(0.0, 1.0).toDouble(),
+          ),
+        );
+        final textAnimationDuration = _reduceMotion
+            ? const Duration(milliseconds: 240)
+            : widget.textAnimationDuration;
+        final hiddenTextOffset =
+            _reduceMotion ? Offset.zero : widget.textSlideOffset;
 
         return Stack(
           fit: StackFit.expand,
           children: [
             widget.child,
+            if (shouldShowCustomBackgroundBackdrop)
+              IgnorePointer(
+                ignoring: true,
+                child: RepaintBoundary(child: widget.backgroundBackdrop!),
+              ),
             if (shouldShowOverlay)
               IgnorePointer(
                 ignoring: widget.ignorePointer,
                 child: overlay,
+              ),
+            if (shouldShowText && overlayText != null && overlayText.isNotEmpty)
+              IgnorePointer(
+                ignoring: true,
+                child: Padding(
+                  padding: widget.textPadding,
+                  child: Align(
+                    alignment: widget.textAlignment,
+                    child: AnimatedSlide(
+                      duration: textAnimationDuration,
+                      curve: Curves.easeOutCubic,
+                      offset: _textVisible ? Offset.zero : hiddenTextOffset,
+                      child: AnimatedOpacity(
+                        duration: textAnimationDuration,
+                        curve: Curves.easeOutCubic,
+                        opacity: _textVisible ? 1.0 : 0.0,
+                        child: RepaintBoundary(
+                          child: Text(
+                            overlayText,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: textStyle,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
           ],
         );
