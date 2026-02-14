@@ -2,6 +2,16 @@
 
 - No pending changes.
 
+## 1.3.2
+
+- Bump package version to `1.3.2`.
+- Keep football naming only across the public API:
+  remove `SeasonalPreset.sportEvent()`,
+  rename `SportEventVariant` to `FootballVariant`,
+  and rename `buildSportEventConfig(...)` to `buildFootballConfig(...)`.
+- Align football preset labels/default text and tests with football-only naming.
+- Update README install snippet to `1.3.2`.
+
 ## 1.3.1
 
 - Bump package version to `1.3.1`.

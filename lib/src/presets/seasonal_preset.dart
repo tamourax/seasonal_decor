@@ -225,25 +225,15 @@ class SeasonalPreset {
 
   /// Football celebration preset.
   factory SeasonalPreset.football({
-    SportEventVariant? variant,
+    FootballVariant? variant,
   }) {
-    final resolvedVariant = variant ?? SportEventVariant.worldCup;
+    final resolvedVariant = variant ?? FootballVariant.worldCup;
     return SeasonalPreset._(
       name: 'Football Celebration',
       variant: resolvedVariant.name,
-      baseConfig: buildSportEventConfig(
+      baseConfig: buildFootballConfig(
         resolvedVariant,
       ),
-    );
-  }
-
-  /// Alias for [SeasonalPreset.football].
-  @Deprecated('Use SeasonalPreset.football() instead.')
-  factory SeasonalPreset.sportEvent({
-    SportEventVariant? variant,
-  }) {
-    return SeasonalPreset.football(
-      variant: variant,
     );
   }
 }

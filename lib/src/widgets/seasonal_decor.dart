@@ -670,7 +670,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
         return "Happy Valentine's Day";
       case 'Halloween':
         return 'Happy Halloween';
-      case 'Sport Event':
+      case 'Football Celebration':
         return 'Let the game begin';
       default:
         return preset.name;

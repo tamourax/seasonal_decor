@@ -129,7 +129,7 @@ void main() {
     expect(preset.baseConfig.backdrops.first.type, BackdropType.pumpkin);
   });
 
-  test('sport event preset uses football backdrop', () {
+  test('football preset uses football backdrop', () {
     final preset = SeasonalPreset.football();
 
     expect(preset.baseConfig.backdrops, isNotEmpty);
@@ -328,8 +328,8 @@ void main() {
       Color(0xFFFFFFFF),
       Color(0xFF111827),
     ];
-    final config = buildSportEventConfig(
-      SportEventVariant.worldCup,
+    final config = buildFootballConfig(
+      FootballVariant.worldCup,
     ).copyWith(particleCount: 10);
     final system = ParticleSystem(
       config: config,

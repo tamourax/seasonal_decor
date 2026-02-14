@@ -4,13 +4,13 @@ import '../config/decor_config.dart';
 import '../engine/particle.dart';
 
 /// Variants for the football preset.
-enum SportEventVariant {
+enum FootballVariant {
   /// Classic football visual style.
   worldCup,
 }
 
 /// Builds the base configuration for football overlays.
-DecorConfig buildSportEventConfig(SportEventVariant _) {
+DecorConfig buildFootballConfig(FootballVariant _) {
   final ballPalette = const [
     Color(0xFFFFFFFF),
     Color(0xFF111827),

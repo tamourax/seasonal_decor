@@ -81,7 +81,7 @@ In the advanced example app (`example/lib/advanced_main.dart`), users can intera
 - `SeasonalPreset.newYear()`
 - `SeasonalPreset.valentine()`
 - `SeasonalPreset.halloween()`
-- `SeasonalPreset.football()` (`sportEvent()` still works as alias)
+- `SeasonalPreset.football()`
 - `SeasonalPreset.none()`
 
 ## 🎬 Preset GIF Previews
@@ -139,7 +139,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  seasonal_decor: ^1.3.1
+  seasonal_decor: ^1.3.2
 ```
 
 Then run:
