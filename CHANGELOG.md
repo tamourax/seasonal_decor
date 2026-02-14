@@ -1,14 +1,27 @@
 ## Unreleased
 
-- Add `RamadanVariant.hangingLanterns` with a hanging moon/star lights style.
-- Add new backdrop types: `BackdropType.lantern` and `BackdropType.ramadanLights`.
-- Add `BackdropType.ramadanBunting` and use it in `RamadanVariant.classic`.
-- Add built-in lantern background backdrop support via `DecorBackdrop.lantern(...)`.
+- No pending changes.
+
+## 1.3.1
+
+- Add `SeasonalPreset.football()` and keep `sportEvent()` as a deprecated alias.
+- Replace sports visuals with football-first rendering:
+  realistic football particles and `BackdropType.football`.
+- Remove football team-color options and keep a classic black/white football palette.
+- Disable fireworks in the football preset (balls-only behavior).
+- Add Halloween pumpkin backdrop support via `BackdropType.pumpkin` and `DecorBackdrop.pumpkin(...)`.
+- Improve decorative backdrop controls:
+  add `decorativeBackdropRows` and `ramadanBuntingRows`.
+- Refresh GIF assets and add new previews:
+  `football.gif`, `halloween.gif`, and `ramadanLights.gif`.
+- Move demo media to `assets/gif/demo.gif`, add `assets/images/logo.png`,
+  and remove the old None preview image.
+- Update README preview media and installation snippet to `1.3.1`.
 
 ## 1.2.1
 
 - Shorten package `description` in `pubspec.yaml` to satisfy pub points validation.
-- Improve README media reliability by switching the hero preview to local `assets/demo.gif`.
+- Improve README media reliability by switching the hero preview to local `assets/gif/demo.gif`.
 - Add explicit preset GIF gallery in README (`assets/gif/*.gif`) for stronger preview visibility on pub.dev.
 - Update README install snippet to `1.2.1`.
 
