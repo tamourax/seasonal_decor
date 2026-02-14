@@ -64,7 +64,7 @@ Recommended defaults for most apps:
 
 ## 🎮 Interactive Demo Controls
 
-In the example app, users can interact with:
+In the advanced example app (`example/lib/advanced_main.dart`), users can interact with:
 
 - Preset picker and intensity controls
 - `repeatEvery` and play duration

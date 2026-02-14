@@ -15,7 +15,7 @@
 - Refresh GIF assets and add new previews:
   `football.gif`, `halloween.gif`, and `ramadanLights.gif`.
 - Move demo media to `assets/gif/demo.gif`, add `assets/images/logo.png`,
-  and remove the old None preview image.
+  and include the None preset preview image (`assets/images/none.png`).
 - Update README preview media and installation snippet to `1.3.1`.
 
 ## 1.2.1
