@@ -311,7 +311,7 @@ class DecorPainter extends CustomPainter {
   ) {
     final width = size.width;
     final y = size.height * backdrop.anchor.dy;
-    final amplitude = size.height * backdrop.sizeFactor;
+    final amplitude = _resolveDecorativeAmplitude(size, backdrop);
 
     final baseAlpha = backdrop.color.a;
     final combinedAlpha =
@@ -329,7 +329,12 @@ class DecorPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
     canvas.drawPath(_garlandPath, _paint);
 
-    final bulbCount = 8;
+    final bulbCount = math.max(5, (width / 72).round());
+    final bulbSpacing = width / bulbCount;
+    final bulbRadius = math.min(
+      math.max(2.0, amplitude * 0.18 + 1.0),
+      bulbSpacing * 0.28,
+    );
     for (var i = 0; i <= bulbCount; i += 1) {
       final t = i / bulbCount;
       final point = _quadraticBezierPoint(
@@ -343,7 +348,7 @@ class DecorPainter extends CustomPainter {
       _paint
         ..color = color
         ..style = PaintingStyle.fill;
-      canvas.drawCircle(point, amplitude * 0.22 + 2.0, _paint);
+      canvas.drawCircle(point, bulbRadius, _paint);
     }
   }
 
@@ -355,7 +360,7 @@ class DecorPainter extends CustomPainter {
   ) {
     final width = size.width;
     final y = size.height * backdrop.anchor.dy;
-    final amplitude = size.height * backdrop.sizeFactor;
+    final amplitude = _resolveDecorativeAmplitude(size, backdrop);
 
     final baseAlpha = backdrop.color.a;
     final combinedAlpha =
@@ -373,9 +378,16 @@ class DecorPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
     canvas.drawPath(_garlandPath, _paint);
 
-    final itemCount = 9;
-    final candySize = math.max(8.0, amplitude * 0.9);
-    final ballSize = math.max(5.0, amplitude * 0.6);
+    final itemCount = math.max(6, (width / 70).round());
+    final itemSpacing = width / itemCount;
+    final candySize = math.min(
+      math.max(8.0, amplitude * 0.28),
+      itemSpacing * 0.3,
+    );
+    final ballSize = math.min(
+      math.max(4.0, amplitude * 0.2),
+      itemSpacing * 0.22,
+    );
     for (var i = 0; i <= itemCount; i += 1) {
       final t = i / itemCount;
       final point = _quadraticBezierPoint(
@@ -408,9 +420,21 @@ class DecorPainter extends CustomPainter {
           ..strokeWidth = 0.08
           ..color = const Color(0xFFE63946)
               .withValues(alpha: (combinedAlpha * 0.9).clamp(0.0, 1.0));
-        canvas.drawLine(const Offset(0.06, 0.32), const Offset(-0.06, 0.22), _paint);
-        canvas.drawLine(const Offset(0.06, 0.14), const Offset(-0.06, 0.04), _paint);
-        canvas.drawLine(const Offset(0.06, -0.04), const Offset(-0.06, -0.14), _paint);
+        canvas.drawLine(
+          const Offset(0.06, 0.32),
+          const Offset(-0.06, 0.22),
+          _paint,
+        );
+        canvas.drawLine(
+          const Offset(0.06, 0.14),
+          const Offset(-0.06, 0.04),
+          _paint,
+        );
+        canvas.drawLine(
+          const Offset(0.06, -0.04),
+          const Offset(-0.06, -0.14),
+          _paint,
+        );
         canvas.restore();
       } else {
         // Red ornament ball.
@@ -441,7 +465,7 @@ class DecorPainter extends CustomPainter {
   ) {
     final width = size.width;
     final y = size.height * backdrop.anchor.dy;
-    final amplitude = size.height * backdrop.sizeFactor;
+    final amplitude = _resolveDecorativeAmplitude(size, backdrop);
 
     final baseAlpha = backdrop.color.a;
     final combinedAlpha =
@@ -459,9 +483,13 @@ class DecorPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
     canvas.drawPath(_buntingPath, _paint);
 
-    final flagCount = 9;
-    final flagHeight = math.max(10.0, amplitude * 1.1);
-    final flagWidth = flagHeight * 0.9;
+    final flagCount = math.max(6, (width / 88).round());
+    final flagSpacing = width / flagCount;
+    final flagHeight = math.min(
+      math.max(9.0, amplitude * 1.15),
+      flagSpacing * 0.9,
+    );
+    final flagWidth = math.min(flagHeight * 0.86, flagSpacing * 0.82);
     for (var i = 0; i < flagCount; i += 1) {
       final t = (i + 0.5) / flagCount;
       final point = _quadraticBezierPoint(
@@ -483,6 +511,13 @@ class DecorPainter extends CustomPainter {
         ..style = PaintingStyle.fill;
       canvas.drawPath(_trianglePath, _paint);
     }
+  }
+
+  double _resolveDecorativeAmplitude(Size size, DecorBackdrop backdrop) {
+    final shortest = math.min(size.width, size.height);
+    final base = shortest * backdrop.sizeFactor;
+    final maxByHeight = size.height * 0.14;
+    return base.clamp(6.0, maxByHeight).toDouble();
   }
 
   void _paintMosque(
