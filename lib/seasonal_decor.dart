@@ -1,3 +1,6 @@
+// ignore_for_file: unnecessary_library_name
+/// Seasonal decor package public API.
+library seasonal_decor;
 
 export 'src/config/decor_config.dart'
     show BackdropLayer, BackdropType, DecorBackdrop, DecorConfig, ParticleStyle;

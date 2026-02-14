@@ -155,6 +155,7 @@ class DecorBackdrop {
   /// Size relative to the shortest side.
   final double sizeFactor;
 
+  /// Creates a backdrop configuration.
   const DecorBackdrop({
     required this.type,
     this.layer = BackdropLayer.decorative,
@@ -431,10 +432,14 @@ class DecorConfig {
 
   /// Rocket speed range (logical px/sec).
   final double rocketMinSpeed;
+
+  /// Maximum rocket speed in logical pixels per second.
   final double rocketMaxSpeed;
 
   /// Rocket life range (seconds).
   final double rocketLifeMin;
+
+  /// Maximum rocket lifetime in seconds.
   final double rocketLifeMax;
 
   /// Rocket visual size.
@@ -455,6 +460,7 @@ class DecorConfig {
   final double sparkMinSize;
   final double sparkMaxSize;
 
+  /// Creates a full decorative overlay configuration.
   const DecorConfig({
     required this.particleCount,
     required this.speedMultiplier,

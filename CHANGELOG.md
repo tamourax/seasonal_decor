@@ -2,6 +2,15 @@
 
 - No pending changes.
 
+## 1.3.1
+
+- Bump package version to `1.3.1`.
+- Keep pub.dev screenshots within the 10-image limit
+  (remove `valentine.gif` and `football.gif` from `pubspec.yaml` screenshots).
+- Add missing public API dartdoc comments for library/config constructors
+  and fireworks rocket limits.
+- Update README install snippet to `1.3.1`.
+
 ## 1.3.0
 
 - Add `SeasonalPreset.football()` and keep `sportEvent()` as a deprecated alias.
