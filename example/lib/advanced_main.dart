@@ -130,7 +130,17 @@ class _HomePageState extends State<HomePage> {
   bool _useTeamColors = false;
   bool _showBackdrop = true;
   bool _showBackdropWhenDisabled = true;
+  bool _showBackgroundBackdrops = true;
+  bool _showDecorativeBackdrops = true;
   double _particleSpeedMultiplier = 2.0;
+  double _particleSizeMultiplier = 2.0;
+  double _decorativeBackdropDensityMultiplier = 1.0;
+  bool _showText = true;
+  String _customOverlayText = '';
+  double _textOpacity = 0.5;
+  double _textSize = 34.0;
+  double _textDisplaySeconds = 1.8;
+  double _textAnimationMilliseconds = 550.0;
   bool _adaptColorsToTheme = true;
   double _playDurationSeconds = 10.0;
   bool _settleOnDisable = true;
@@ -188,8 +198,12 @@ class _HomePageState extends State<HomePage> {
       return preset;
     }
 
+    final overrideShapes = _presetOption == PresetOption.eidAdha
+        ? const [ParticleShape.sheep]
+        : const [ParticleShape.balloon, ParticleShape.sheep];
+
     return preset.withOverrides(
-      shapes: const [ParticleShape.balloon, ParticleShape.sheep],
+      shapes: overrideShapes,
       backdropType: _backdropType,
       backdropAnchor: Offset(_backdropAnchorX, _backdropAnchorY),
       backdropSizeFactor: _backdropSizeFactor,
@@ -346,7 +360,28 @@ class _HomePageState extends State<HomePage> {
                 respectReduceMotion: _respectReduceMotion,
                 showBackdrop: _showBackdrop,
                 showBackdropWhenDisabled: _showBackdropWhenDisabled,
+                showBackgroundBackdrops: _showBackgroundBackdrops,
+                showDecorativeBackdrops: _showDecorativeBackdrops,
+                showText: _showText,
+                text: _customOverlayText.trim().isEmpty
+                    ? null
+                    : _customOverlayText.trim(),
+                textOpacity: _textOpacity,
+                textStyle: TextStyle(
+                  fontSize: _textSize,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.6,
+                ),
+                textDisplayDuration: Duration(
+                  milliseconds: (_textDisplaySeconds * 1000).round(),
+                ),
+                textAnimationDuration: Duration(
+                  milliseconds: _textAnimationMilliseconds.round(),
+                ),
                 particleSpeedMultiplier: _particleSpeedMultiplier,
+                particleSizeMultiplier: _particleSizeMultiplier,
+                decorativeBackdropDensityMultiplier:
+                    _decorativeBackdropDensityMultiplier,
                 adaptColorsToTheme: _adaptColorsToTheme,
                 playDuration: Duration(
                   milliseconds: (_playDurationSeconds * 1000).round(),
@@ -371,7 +406,18 @@ class _HomePageState extends State<HomePage> {
               opacity: _opacity,
               showBackdrop: _showBackdrop,
               showBackdropWhenDisabled: _showBackdropWhenDisabled,
+              showBackgroundBackdrops: _showBackgroundBackdrops,
+              showDecorativeBackdrops: _showDecorativeBackdrops,
+              showText: _showText,
+              customOverlayText: _customOverlayText,
+              textOpacity: _textOpacity,
+              textSize: _textSize,
+              textDisplaySeconds: _textDisplaySeconds,
+              textAnimationMilliseconds: _textAnimationMilliseconds,
               particleSpeedMultiplier: _particleSpeedMultiplier,
+              particleSizeMultiplier: _particleSizeMultiplier,
+              decorativeBackdropDensityMultiplier:
+                  _decorativeBackdropDensityMultiplier,
               adaptColorsToTheme: _adaptColorsToTheme,
               playDurationSeconds: _playDurationSeconds,
               settleOnDisable: _settleOnDisable,
@@ -399,8 +445,26 @@ class _HomePageState extends State<HomePage> {
                   setState(() => _showBackdrop = value),
               onShowBackdropWhenDisabledChanged: (value) =>
                   setState(() => _showBackdropWhenDisabled = value),
+              onShowBackgroundBackdropsChanged: (value) =>
+                  setState(() => _showBackgroundBackdrops = value),
+              onShowDecorativeBackdropsChanged: (value) =>
+                  setState(() => _showDecorativeBackdrops = value),
+              onShowTextChanged: (value) => setState(() => _showText = value),
+              onCustomOverlayTextChanged: (value) =>
+                  setState(() => _customOverlayText = value),
+              onTextOpacityChanged: (value) =>
+                  setState(() => _textOpacity = value),
+              onTextSizeChanged: (value) => setState(() => _textSize = value),
+              onTextDisplaySecondsChanged: (value) =>
+                  setState(() => _textDisplaySeconds = value),
+              onTextAnimationMillisecondsChanged: (value) =>
+                  setState(() => _textAnimationMilliseconds = value),
               onParticleSpeedMultiplierChanged: (value) =>
                   setState(() => _particleSpeedMultiplier = value),
+              onParticleSizeMultiplierChanged: (value) =>
+                  setState(() => _particleSizeMultiplier = value),
+              onDecorativeBackdropDensityMultiplierChanged: (value) =>
+                  setState(() => _decorativeBackdropDensityMultiplier = value),
               onAdaptColorsToThemeChanged: (value) =>
                   setState(() => _adaptColorsToTheme = value),
               onPlayDurationChanged: (value) =>
@@ -563,7 +627,17 @@ class _ControlSheet extends StatelessWidget {
   final double opacity;
   final bool showBackdrop;
   final bool showBackdropWhenDisabled;
+  final bool showBackgroundBackdrops;
+  final bool showDecorativeBackdrops;
+  final bool showText;
+  final String customOverlayText;
+  final double textOpacity;
+  final double textSize;
+  final double textDisplaySeconds;
+  final double textAnimationMilliseconds;
   final double particleSpeedMultiplier;
+  final double particleSizeMultiplier;
+  final double decorativeBackdropDensityMultiplier;
   final bool adaptColorsToTheme;
   final double playDurationSeconds;
   final bool settleOnDisable;
@@ -585,7 +659,17 @@ class _ControlSheet extends StatelessWidget {
   final ValueChanged<double> onOpacityChanged;
   final ValueChanged<bool> onShowBackdropChanged;
   final ValueChanged<bool> onShowBackdropWhenDisabledChanged;
+  final ValueChanged<bool> onShowBackgroundBackdropsChanged;
+  final ValueChanged<bool> onShowDecorativeBackdropsChanged;
+  final ValueChanged<bool> onShowTextChanged;
+  final ValueChanged<String> onCustomOverlayTextChanged;
+  final ValueChanged<double> onTextOpacityChanged;
+  final ValueChanged<double> onTextSizeChanged;
+  final ValueChanged<double> onTextDisplaySecondsChanged;
+  final ValueChanged<double> onTextAnimationMillisecondsChanged;
   final ValueChanged<double> onParticleSpeedMultiplierChanged;
+  final ValueChanged<double> onParticleSizeMultiplierChanged;
+  final ValueChanged<double> onDecorativeBackdropDensityMultiplierChanged;
   final ValueChanged<bool> onAdaptColorsToThemeChanged;
   final ValueChanged<double> onPlayDurationChanged;
   final ValueChanged<bool> onSettleOnDisableChanged;
@@ -609,7 +693,17 @@ class _ControlSheet extends StatelessWidget {
     required this.opacity,
     required this.showBackdrop,
     required this.showBackdropWhenDisabled,
+    required this.showBackgroundBackdrops,
+    required this.showDecorativeBackdrops,
+    required this.showText,
+    required this.customOverlayText,
+    required this.textOpacity,
+    required this.textSize,
+    required this.textDisplaySeconds,
+    required this.textAnimationMilliseconds,
     required this.particleSpeedMultiplier,
+    required this.particleSizeMultiplier,
+    required this.decorativeBackdropDensityMultiplier,
     required this.adaptColorsToTheme,
     required this.playDurationSeconds,
     required this.settleOnDisable,
@@ -631,7 +725,17 @@ class _ControlSheet extends StatelessWidget {
     required this.onOpacityChanged,
     required this.onShowBackdropChanged,
     required this.onShowBackdropWhenDisabledChanged,
+    required this.onShowBackgroundBackdropsChanged,
+    required this.onShowDecorativeBackdropsChanged,
+    required this.onShowTextChanged,
+    required this.onCustomOverlayTextChanged,
+    required this.onTextOpacityChanged,
+    required this.onTextSizeChanged,
+    required this.onTextDisplaySecondsChanged,
+    required this.onTextAnimationMillisecondsChanged,
     required this.onParticleSpeedMultiplierChanged,
+    required this.onParticleSizeMultiplierChanged,
+    required this.onDecorativeBackdropDensityMultiplierChanged,
     required this.onAdaptColorsToThemeChanged,
     required this.onPlayDurationChanged,
     required this.onSettleOnDisableChanged,
@@ -918,6 +1022,101 @@ class _ControlSheet extends StatelessWidget {
                           value: showBackdropWhenDisabled,
                           onChanged: onShowBackdropWhenDisabledChanged,
                         ),
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text('Background Backdrops'),
+                          subtitle: const Text('Moon, mosque, and base scene'),
+                          value: showBackgroundBackdrops,
+                          onChanged: showBackdrop
+                              ? onShowBackgroundBackdropsChanged
+                              : null,
+                        ),
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text('Decorative Backdrops'),
+                          subtitle: const Text('Zina elements like bunting'),
+                          value: showDecorativeBackdrops,
+                          onChanged: showBackdrop
+                              ? onShowDecorativeBackdropsChanged
+                              : null,
+                        ),
+                        const SizedBox(height: 10),
+                        _SectionTitle(
+                          title: 'Greeting Text',
+                          subtitle: 'Animated seasonal message',
+                        ),
+                        const SizedBox(height: 8),
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text('Show Text'),
+                          subtitle: const Text('Display animated greeting'),
+                          value: showText,
+                          onChanged: onShowTextChanged,
+                        ),
+                        TextFormField(
+                          initialValue: customOverlayText,
+                          onChanged: onCustomOverlayTextChanged,
+                          decoration: const InputDecoration(
+                            labelText: 'Custom Text (optional)',
+                            hintText: 'Leave empty for preset default',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                            'Text Opacity (${textOpacity.toStringAsFixed(2)})'),
+                        Slider(
+                          value: textOpacity,
+                          min: 0.1,
+                          max: 1.0,
+                          divisions: 18,
+                          onChanged: showText ? onTextOpacityChanged : null,
+                        ),
+                        Text('Text Size (${textSize.toStringAsFixed(0)})'),
+                        Slider(
+                          value: textSize,
+                          min: 18,
+                          max: 56,
+                          divisions: 19,
+                          onChanged: showText ? onTextSizeChanged : null,
+                        ),
+                        Text(
+                          'Text Display (${textDisplaySeconds.toStringAsFixed(1)}s)',
+                        ),
+                        Slider(
+                          value: textDisplaySeconds,
+                          min: 0.4,
+                          max: 4.0,
+                          divisions: 18,
+                          onChanged:
+                              showText ? onTextDisplaySecondsChanged : null,
+                        ),
+                        Text(
+                          'Text Animation (${textAnimationMilliseconds.toStringAsFixed(0)}ms)',
+                        ),
+                        Slider(
+                          value: textAnimationMilliseconds,
+                          min: 120,
+                          max: 1200,
+                          divisions: 18,
+                          onChanged: showText
+                              ? onTextAnimationMillisecondsChanged
+                              : null,
+                        ),
+                        Text(
+                          'Decorative Density '
+                          '(${decorativeBackdropDensityMultiplier.toStringAsFixed(2)}x)',
+                        ),
+                        Slider(
+                          value: decorativeBackdropDensityMultiplier,
+                          min: 0.4,
+                          max: 1.8,
+                          divisions: 14,
+                          onChanged: showBackdrop && showDecorativeBackdrops
+                              ? onDecorativeBackdropDensityMultiplierChanged
+                              : null,
+                        ),
                         const SizedBox(height: 8),
                         Text('Opacity (${opacity.toStringAsFixed(2)})'),
                         Slider(
@@ -936,6 +1135,16 @@ class _ControlSheet extends StatelessWidget {
                           max: 2.6,
                           divisions: 22,
                           onChanged: onParticleSpeedMultiplierChanged,
+                        ),
+                        Text(
+                          'Size (${particleSizeMultiplier.toStringAsFixed(2)}x)',
+                        ),
+                        Slider(
+                          value: particleSizeMultiplier,
+                          min: 0.5,
+                          max: 2.4,
+                          divisions: 19,
+                          onChanged: onParticleSizeMultiplierChanged,
                         ),
                         SwitchListTile(
                           contentPadding: EdgeInsets.zero,
