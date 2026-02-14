@@ -78,10 +78,11 @@ class ParticleSystem {
 
   /// Applies a configuration update in-place without reallocating the pool.
   void setConfig(DecorConfig config, {required bool respawn}) {
-    if (config.particleCount != _particles.length) {
-      rebuildPool(config);
-      return;
-    }
+    assert(
+      config.particleCount == _particles.length,
+      'ParticleSystem.setConfig expects matching particleCount. '
+      'Use rebuildPool from DecorController for pool-size changes.',
+    );
 
     final fireworksToggled = _config.enableFireworks != config.enableFireworks;
     _config = config;
