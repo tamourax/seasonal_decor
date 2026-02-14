@@ -1,6 +1,6 @@
 ﻿# seasonal_decor
 
-![Live Demo](https://raw.githubusercontent.com/tamourax/seasonal_decor/main/assets/demo.gif)
+![Live Demo](assets/demo.gif)
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.16%2B-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![Pub Version](https://img.shields.io/pub/v/seasonal_decor?logo=dart&logoColor=white)](https://pub.dev/packages/seasonal_decor)
@@ -11,29 +11,20 @@ Add beautiful seasonal animations and festive overlays to your Flutter app with 
 Bring Ramadan vibes, Christmas magic, Valentine effects, New Year celebrations, and more instantly.
 
 **Install with one command: `flutter pub add seasonal_decor`**
-✨ Features
 
-🎄 Christmas snow and festive decorations
+## ✨ Features
 
-🌙 Ramadan lanterns and crescents
-
-🎉 Eid balloons and sparkles
-
-🎃 Halloween particles and spooky mood
-
-❤️ Valentine hearts
-
-🎆 New Year fireworks and confetti
-
-🏆 Sports celebration mode
-
-🌗 Light and dark theme adaptation
-
-📱 Android, iOS, Web, Windows, macOS, Linux
-
-🎛 Control intensity, speed, size, and backdrop layers
-
-💬 Animated greeting text (showText, text, textOpacity)
+- 🎄 Christmas snow and festive decorations
+- 🌙 Ramadan lanterns and crescents
+- 🎉 Eid balloons and sparkles
+- 🎃 Halloween particles and spooky mood
+- ❤️ Valentine hearts
+- 🎆 New Year fireworks and confetti
+- 🏆 Sports celebration mode
+- 🌗 Light and dark theme adaptation
+- 📱 Android, iOS, Web, Windows, macOS, Linux
+- 🎛 Control intensity, speed, size, and backdrop layers
+- 💬 Animated greeting text (`showText`, `text`, `textOpacity`)
 
 ## 🚀 Quick Start
 
@@ -92,6 +83,18 @@ In the example app, users can interact with:
 - `SeasonalPreset.sportEvent()`
 - `SeasonalPreset.none()`
 
+## 🎬 Preset GIF Previews
+
+If GIFs do not render in your mirror/CDN, open files directly from `assets/gif/`.
+
+| Ramadan | Eid al-Fitr | Eid al-Adha |
+| --- | --- | --- |
+| ![Ramadan](assets/gif/ramadan.gif) | ![Eid al-Fitr](assets/gif/eid_fitr.gif) | ![Eid al-Adha](assets/gif/eid-adha.gif) |
+
+| Christmas | Valentine | New Year |
+| --- | --- | --- |
+| ![Christmas](assets/gif/christmas.gif) | ![Valentine](assets/gif/valentine.gif) | ![New Year](assets/gif/new-year.gif) |
+
 ## 🎛 Customization
 
 ```dart
@@ -131,7 +134,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  seasonal_decor: ^1.2.0
+  seasonal_decor: ^1.2.1
 ```
 
 Then run:
@@ -243,12 +246,6 @@ Run advanced demo:
 ```bash
 flutter run -t example/lib/advanced_main.dart
 ```
-
-## 📦 Releases
-
-- GitHub Releases: https://github.com/tamourax/seasonal_decor/releases
-- Release notes draft: `release_notes/v1.2.0.md`
-- Full changelog: `CHANGELOG.md`
 
 ## 📄 License
 

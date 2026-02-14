@@ -1,3 +1,10 @@
+## 1.2.1
+
+- Shorten package `description` in `pubspec.yaml` to satisfy pub points validation.
+- Improve README media reliability by switching the hero preview to local `assets/demo.gif`.
+- Add explicit preset GIF gallery in README (`assets/gif/*.gif`) for stronger preview visibility on pub.dev.
+- Update README install snippet to `1.2.1`.
+
 ## 1.2.0
 
 - Add emotional seasonal greeting overlay text with animation support:
