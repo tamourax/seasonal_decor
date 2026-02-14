@@ -50,6 +50,7 @@ class DecorPainter extends CustomPainter {
   static final Path _unitBatPath = _buildUnitBatPath();
   static final Path _unitPumpkinPath = _buildUnitPumpkinPath();
   static final Path _unitTrophyPath = _buildUnitTrophyPath();
+  static final Path _unitPentagonPath = _buildUnitPentagonPath();
   static const Rect _unitRect = Rect.fromLTRB(-0.5, -0.5, 0.5, 0.5);
   static const Rect _giftBoxRect = Rect.fromLTRB(-0.6, -0.2, 0.6, 0.6);
   static const Rect _giftLidRect = Rect.fromLTRB(-0.68, -0.45, 0.68, -0.2);
@@ -162,8 +163,14 @@ class DecorPainter extends CustomPainter {
       case BackdropType.trophy:
         _paintTrophy(canvas, size, opacity, backdrop);
         break;
+      case BackdropType.football:
+        _paintFootballBackdrop(canvas, size, opacity, backdrop);
+        break;
       case BackdropType.lantern:
         _paintLanternBackdrop(canvas, size, opacity, backdrop);
+        break;
+      case BackdropType.pumpkin:
+        _paintPumpkinBackdrop(canvas, size, opacity, backdrop);
         break;
       case BackdropType.ramadanLights:
         _paintRamadanLights(canvas, size, opacity, backdrop);
@@ -1129,6 +1136,132 @@ class DecorPainter extends CustomPainter {
     canvas.restore();
   }
 
+  void _paintPumpkinBackdrop(
+    Canvas canvas,
+    Size size,
+    double opacity,
+    DecorBackdrop backdrop,
+  ) {
+    final shortest = math.min(size.width, size.height);
+    final scale = shortest * backdrop.sizeFactor;
+    final center = Offset(
+      size.width * backdrop.anchor.dx,
+      size.height * backdrop.anchor.dy,
+    );
+    final baseAlpha = backdrop.color.a;
+    final combinedAlpha =
+        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
+    final pumpkinBase =
+        Color.lerp(backdrop.color, const Color(0xFFFF8C1A), 0.4)!
+            .withValues(alpha: combinedAlpha);
+    final pumpkinRib =
+        Color.lerp(backdrop.color, const Color(0xFF8D3F0A), 0.42)!
+            .withValues(alpha: (combinedAlpha * 0.9).clamp(0.0, 1.0));
+    final stemColor = const Color(0xFF4B2E1F).withValues(
+      alpha: (combinedAlpha * 0.95).clamp(0.0, 1.0),
+    );
+    final cutoutDark = const Color(0xFF1B0D07).withValues(
+      alpha: (combinedAlpha * 0.62).clamp(0.0, 1.0),
+    );
+    final cutoutGlow = const Color(0xFFFFD27A).withValues(
+      alpha: (combinedAlpha * 0.72).clamp(0.0, 1.0),
+    );
+
+    _paint
+      ..color = const Color(0xFFFFA246).withValues(
+        alpha: (combinedAlpha * 0.24).clamp(0.0, 1.0),
+      )
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center.translate(0, scale * 0.08), scale * 1.18, _paint);
+
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.scale(scale, scale);
+
+    final bodyRect = Rect.fromCenter(
+        center: const Offset(0, 0.08), width: 1.9, height: 1.45);
+    _paint
+      ..color = pumpkinBase
+      ..style = PaintingStyle.fill;
+    canvas.drawOval(bodyRect, _paint);
+
+    for (var i = 0; i < 5; i += 1) {
+      final ribX = -0.52 + i * 0.26;
+      final ribWidth = i == 2 ? 0.66 : 0.56;
+      final ribRect = Rect.fromCenter(
+          center: Offset(ribX, 0.12), width: ribWidth, height: 1.34);
+      _paint
+        ..color = pumpkinRib.withValues(
+          alpha: (combinedAlpha * (i == 2 ? 0.35 : 0.5)).clamp(0.0, 1.0),
+        )
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.08;
+      canvas.drawOval(ribRect, _paint);
+    }
+
+    final stemPath = Path()
+      ..moveTo(-0.14, -0.62)
+      ..quadraticBezierTo(-0.06, -0.9, 0.08, -0.86)
+      ..quadraticBezierTo(0.2, -0.84, 0.14, -0.58)
+      ..lineTo(0.05, -0.48)
+      ..lineTo(-0.1, -0.48)
+      ..close();
+    _paint
+      ..color = stemColor
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(stemPath, _paint);
+
+    final leftEye = Path()
+      ..moveTo(-0.45, -0.02)
+      ..lineTo(-0.17, -0.04)
+      ..lineTo(-0.31, -0.27)
+      ..close();
+    final rightEye = Path()
+      ..moveTo(0.45, -0.02)
+      ..lineTo(0.17, -0.04)
+      ..lineTo(0.31, -0.27)
+      ..close();
+    final nose = Path()
+      ..moveTo(0, 0.02)
+      ..lineTo(0.12, 0.2)
+      ..lineTo(-0.12, 0.2)
+      ..close();
+    final mouth = Path()
+      ..moveTo(-0.56, 0.3)
+      ..lineTo(-0.44, 0.44)
+      ..lineTo(-0.3, 0.34)
+      ..lineTo(-0.14, 0.5)
+      ..lineTo(0.0, 0.33)
+      ..lineTo(0.14, 0.5)
+      ..lineTo(0.3, 0.34)
+      ..lineTo(0.44, 0.44)
+      ..lineTo(0.56, 0.3)
+      ..quadraticBezierTo(0.38, 0.68, 0.0, 0.72)
+      ..quadraticBezierTo(-0.38, 0.68, -0.56, 0.3)
+      ..close();
+
+    _paint
+      ..color = cutoutDark
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(leftEye, _paint);
+    canvas.drawPath(rightEye, _paint);
+    canvas.drawPath(nose, _paint);
+    canvas.drawPath(mouth, _paint);
+
+    _paint
+      ..color = cutoutGlow
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.06
+      ..strokeJoin = StrokeJoin.round
+      ..strokeCap = StrokeCap.round;
+    canvas.drawPath(leftEye, _paint);
+    canvas.drawPath(rightEye, _paint);
+    canvas.drawPath(nose, _paint);
+    canvas.drawPath(mouth, _paint);
+
+    canvas.restore();
+  }
+
   void _paintRamadanLights(
     Canvas canvas,
     Size size,
@@ -1289,6 +1422,198 @@ class DecorPainter extends CustomPainter {
     canvas.scale(scale, scale);
     canvas.drawPath(_unitTrophyPath, _paint);
     canvas.restore();
+  }
+
+  void _paintFootballBackdrop(
+    Canvas canvas,
+    Size size,
+    double opacity,
+    DecorBackdrop backdrop,
+  ) {
+    final shortest = math.min(size.width, size.height);
+    final radius = shortest * backdrop.sizeFactor;
+    final center = Offset(
+      size.width * backdrop.anchor.dx,
+      size.height * backdrop.anchor.dy,
+    );
+    final baseAlpha = backdrop.color.a;
+    final combinedAlpha =
+        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
+    _paintSoccerBall(
+      canvas,
+      center: center,
+      radius: radius,
+      alpha: combinedAlpha,
+      rotation: -0.08,
+      withBackdropShadow: true,
+    );
+  }
+
+  void _paintSoccerBall(
+    Canvas canvas, {
+    required Offset center,
+    required double radius,
+    required double alpha,
+    required double rotation,
+    required bool withBackdropShadow,
+  }) {
+    if (radius <= 0 || alpha <= 0) {
+      return;
+    }
+
+    final combinedAlpha = alpha.clamp(0.0, 1.0).toDouble();
+    final shellRect = Rect.fromCircle(center: center, radius: radius);
+    final seamColor = const Color(0xFF1C1C1C).withValues(
+      alpha: (combinedAlpha * 0.76).clamp(0.0, 1.0),
+    );
+    final patchEdge = const Color(0xFF050505).withValues(
+      alpha: (combinedAlpha * 0.92).clamp(0.0, 1.0),
+    );
+
+    if (withBackdropShadow) {
+      _paint
+        ..shader = null
+        ..color = const Color(0xFF000000).withValues(
+          alpha: (combinedAlpha * 0.16).clamp(0.0, 1.0),
+        )
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(
+        center.translate(radius * 0.06, radius * 0.14),
+        radius * 1.08,
+        _paint,
+      );
+    }
+
+    _paint
+      ..shader = RadialGradient(
+        center: const Alignment(-0.32, -0.34),
+        radius: 1.12,
+        colors: [
+          const Color(0xFFFFFFFF).withValues(alpha: combinedAlpha),
+          const Color(0xFFF4F4F4).withValues(alpha: combinedAlpha),
+          const Color(0xFFD8D8D8).withValues(alpha: combinedAlpha),
+        ],
+        stops: const [0.0, 0.56, 1.0],
+      ).createShader(shellRect)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, radius, _paint);
+
+    _paint
+      ..shader = null
+      ..color = seamColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(0.8, radius * 0.055);
+    canvas.drawCircle(center, radius, _paint);
+
+    const patchCenters = <Offset>[
+      Offset(0.0, -0.02),
+      Offset(0.0, -0.59),
+      Offset(-0.57, -0.2),
+      Offset(0.57, -0.2),
+      Offset(-0.35, 0.5),
+      Offset(0.35, 0.5),
+    ];
+    const patchScales = <double>[0.28, 0.2, 0.2, 0.2, 0.2, 0.2];
+    const patchRotations = <double>[0.0, 0.26, -0.18, 0.18, -0.32, 0.32];
+
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(rotation);
+    canvas.clipPath(
+      Path()..addOval(Rect.fromCircle(center: Offset.zero, radius: radius)),
+    );
+
+    for (var i = 0; i < patchCenters.length; i += 1) {
+      final patchCenter = patchCenters[i];
+      final patchScale = patchScales[i];
+      canvas.save();
+      canvas.translate(patchCenter.dx * radius, patchCenter.dy * radius);
+      canvas.rotate(patchRotations[i]);
+      canvas.scale(radius * patchScale, radius * patchScale * 0.98);
+      _paint
+        ..shader = const RadialGradient(
+          center: Alignment(-0.18, -0.2),
+          radius: 1.15,
+          colors: [
+            Color(0xFF2B2B2B),
+            Color(0xFF0B0B0B),
+          ],
+        ).createShader(Rect.fromCircle(center: Offset.zero, radius: 1.15))
+        ..style = PaintingStyle.fill;
+      canvas.drawPath(_unitPentagonPath, _paint);
+      _paint
+        ..shader = null
+        ..color = patchEdge
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.09;
+      canvas.drawPath(_unitPentagonPath, _paint);
+      canvas.restore();
+    }
+
+    _paint
+      ..shader = null
+      ..color = seamColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(0.7, radius * 0.045)
+      ..strokeCap = StrokeCap.round;
+    for (var i = 1; i < patchCenters.length; i += 1) {
+      final target = patchCenters[i];
+      final seamPath = Path()
+        ..moveTo(0, 0)
+        ..quadraticBezierTo(
+          target.dx * radius * 0.36,
+          target.dy * radius * 0.36 - radius * 0.03,
+          target.dx * radius * 0.72,
+          target.dy * radius * 0.72,
+        );
+      canvas.drawPath(seamPath, _paint);
+    }
+
+    _paint
+      ..color = const Color(0xFFFFFFFF).withValues(
+        alpha: (combinedAlpha * 0.12).clamp(0.0, 1.0),
+      )
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(0.5, radius * 0.02);
+    canvas.drawArc(
+      Rect.fromCircle(
+        center: Offset(radius * 0.16, radius * 0.08),
+        radius: radius * 0.62,
+      ),
+      math.pi * 0.22,
+      math.pi * 1.02,
+      false,
+      _paint,
+    );
+
+    canvas.restore();
+
+    _paint
+      ..shader = RadialGradient(
+        center: const Alignment(0.56, 0.56),
+        radius: 1.0,
+        colors: [
+          const Color(0x00000000),
+          const Color(0xFF000000).withValues(
+            alpha: (combinedAlpha * 0.16).clamp(0.0, 1.0),
+          ),
+        ],
+        stops: const [0.62, 1.0],
+      ).createShader(shellRect)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, radius, _paint);
+
+    _paint
+      ..shader = null
+      ..color = const Color(0xFFFFFFFF).withValues(
+        alpha: (combinedAlpha * 0.28).clamp(0.0, 1.0),
+      )
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(
+      center.translate(-radius * 0.26, -radius * 0.3),
+      radius * 0.24,
+      _paint,
+    );
   }
 
   void _paintParticle(Canvas canvas, Particle particle, double opacity) {
@@ -1598,21 +1923,14 @@ class DecorPainter extends CustomPainter {
         canvas.restore();
         break;
       case ParticleShape.ball:
-        final strokeWidth = math.max(1.0, particle.size * 0.2);
-        canvas.save();
-        canvas.translate(particle.position.dx, particle.position.dy);
-        canvas.rotate(particle.rotation);
-        _paint
-          ..color = color
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = strokeWidth;
-        canvas.drawCircle(Offset.zero, particle.size, _paint);
-        _paint
-          ..color =
-              color.withValues(alpha: (combinedAlpha * 0.7).clamp(0.0, 1.0))
-          ..style = PaintingStyle.fill;
-        canvas.drawCircle(Offset.zero, particle.size * 0.18, _paint);
-        canvas.restore();
+        _paintSoccerBall(
+          canvas,
+          center: particle.position,
+          radius: particle.size,
+          alpha: combinedAlpha,
+          rotation: particle.rotation,
+          withBackdropShadow: false,
+        );
         break;
     }
   }
@@ -1765,6 +2083,21 @@ class DecorPainter extends CustomPainter {
       ..lineTo(-0.25, 0.0)
       ..lineTo(-0.6, 0.0)
       ..close();
+    return path;
+  }
+
+  static Path _buildUnitPentagonPath() {
+    final path = Path();
+    for (var i = 0; i < 5; i += 1) {
+      final angle = -math.pi / 2 + i * (2 * math.pi / 5);
+      final point = Offset(math.cos(angle), math.sin(angle));
+      if (i == 0) {
+        path.moveTo(point.dx, point.dy);
+      } else {
+        path.lineTo(point.dx, point.dy);
+      }
+    }
+    path.close();
     return path;
   }
 

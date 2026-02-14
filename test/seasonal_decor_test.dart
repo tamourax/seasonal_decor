@@ -8,7 +8,7 @@ import 'package:seasonal_decor/src/engine/particle.dart';
 import 'package:seasonal_decor/src/engine/particle_system.dart';
 import 'package:seasonal_decor/src/presets/ramadan.dart';
 import 'package:seasonal_decor/src/presets/seasonal_preset.dart';
-import 'package:seasonal_decor/src/presets/sport_event.dart';
+import 'package:seasonal_decor/src/presets/football.dart';
 import 'package:seasonal_decor/src/presets/valentine.dart';
 
 void main() {
@@ -120,6 +120,26 @@ void main() {
 
     expect(decorative, isNotEmpty);
     expect(decorative.first.type, BackdropType.ramadanBunting);
+  });
+
+  test('halloween preset uses pumpkin backdrop instead of crescent', () {
+    final preset = SeasonalPreset.halloween();
+
+    expect(preset.baseConfig.backdrops, isNotEmpty);
+    expect(preset.baseConfig.backdrops.first.type, BackdropType.pumpkin);
+  });
+
+  test('sport event preset uses football backdrop', () {
+    final preset = SeasonalPreset.football();
+
+    expect(preset.baseConfig.backdrops, isNotEmpty);
+    expect(preset.baseConfig.backdrops.first.type, BackdropType.football);
+  });
+
+  test('football preset has fireworks disabled', () {
+    final preset = SeasonalPreset.football();
+
+    expect(preset.baseConfig.enableFireworks, isFalse);
   });
 
   test('particle system updates particle positions', () {
@@ -303,14 +323,13 @@ void main() {
     }
   });
 
-  test('sport event team colors are used in particles', () {
-    const teamPalette = [
-      Color(0xFF123456),
-      Color(0xFF654321),
+  test('football preset particles use classic black and white palette', () {
+    const classicPalette = [
+      Color(0xFFFFFFFF),
+      Color(0xFF111827),
     ];
     final config = buildSportEventConfig(
-      SportEventVariant.teamColors,
-      teamColors: teamPalette,
+      SportEventVariant.worldCup,
     ).copyWith(particleCount: 10);
     final system = ParticleSystem(
       config: config,
@@ -319,7 +338,7 @@ void main() {
     );
 
     for (final particle in system.particles.where((p) => p.active)) {
-      expect(teamPalette.contains(particle.color), isTrue);
+      expect(classicPalette.contains(particle.color), isTrue);
     }
   });
 

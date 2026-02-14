@@ -10,7 +10,7 @@ import 'eid.dart';
 import 'halloween.dart';
 import 'new_year.dart';
 import 'ramadan.dart';
-import 'sport_event.dart';
+import 'football.dart';
 import 'valentine.dart';
 
 /// A ready-to-use decorative preset.
@@ -223,25 +223,27 @@ class SeasonalPreset {
     );
   }
 
-  /// Sport event preset.
-  ///
-  /// When [teamColors] is provided, pass a `List<Color>` palette to drive
-  /// `SportEventVariant.teamColors`.
-  factory SeasonalPreset.sportEvent({
+  /// Football celebration preset.
+  factory SeasonalPreset.football({
     SportEventVariant? variant,
-    List<Color>? teamColors,
   }) {
-    final resolvedVariant = variant ??
-        (teamColors == null
-            ? SportEventVariant.worldCup
-            : SportEventVariant.teamColors);
+    final resolvedVariant = variant ?? SportEventVariant.worldCup;
     return SeasonalPreset._(
-      name: 'Sport Event',
+      name: 'Football Celebration',
       variant: resolvedVariant.name,
       baseConfig: buildSportEventConfig(
         resolvedVariant,
-        teamColors: teamColors,
       ),
+    );
+  }
+
+  /// Alias for [SeasonalPreset.football].
+  @Deprecated('Use SeasonalPreset.football() instead.')
+  factory SeasonalPreset.sportEvent({
+    SportEventVariant? variant,
+  }) {
+    return SeasonalPreset.football(
+      variant: variant,
     );
   }
 }

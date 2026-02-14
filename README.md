@@ -81,7 +81,7 @@ In the example app, users can interact with:
 - `SeasonalPreset.newYear()`
 - `SeasonalPreset.valentine()`
 - `SeasonalPreset.halloween()`
-- `SeasonalPreset.sportEvent()`
+- `SeasonalPreset.football()` (`sportEvent()` still works as alias)
 - `SeasonalPreset.none()`
 
 ## 🎬 Preset GIF Previews

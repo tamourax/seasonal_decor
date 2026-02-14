@@ -68,4 +68,38 @@ void main() {
     expect(controller.system.config.particleCount, 40);
     expect(controller.system.particles.length, 40);
   });
+
+  test('shape palette update respawns active particles', () {
+    final controller = DecorController(
+      vsync: const TestVSync(),
+      config: _baseConfig,
+    );
+    addTearDown(controller.dispose);
+
+    controller.updateBounds(const Size(360, 640));
+    final updated = _baseConfig.copyWith(
+      styles: const [
+        ParticleStyle(
+          shape: ParticleShape.ball,
+          color: Color(0xFFFFFFFF),
+          minSize: 2.0,
+          maxSize: 3.5,
+          minSpeed: 12,
+          maxSpeed: 28,
+          minRotationSpeed: 0,
+          maxRotationSpeed: 0,
+          opacity: 0.9,
+        ),
+      ],
+    );
+
+    controller.updateConfig(updated);
+
+    final activeParticles =
+        controller.system.particles.where((particle) => particle.active);
+    expect(activeParticles, isNotEmpty);
+    for (final particle in activeParticles) {
+      expect(particle.shape, ParticleShape.ball);
+    }
+  });
 }
