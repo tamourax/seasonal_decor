@@ -78,11 +78,15 @@ class ParticleSystem {
 
   /// Applies a configuration update in-place without reallocating the pool.
   void setConfig(DecorConfig config, {required bool respawn}) {
+    assert(
+      config.particleCount == _particles.length,
+      'ParticleSystem.setConfig expects matching particleCount. '
+      'Use rebuildPool from DecorController for pool-size changes.',
+    );
+
     if (config.particleCount != _particles.length) {
-      throw StateError(
-        'ParticleSystem.setConfig expects matching particleCount. '
-        'Use rebuildPool from DecorController for pool-size changes.',
-      );
+      rebuildPool(config);
+      return;
     }
 
     final fireworksToggled = _config.enableFireworks != config.enableFireworks;
@@ -290,9 +294,8 @@ class ParticleSystem {
   void _spawnParticle(Particle particle) {
     final style = _config.styles[_random.nextInt(_config.styles.length)];
     final size = _lerp(style.minSize, style.maxSize, _random.nextDouble());
-    final speed =
-        _lerp(style.minSpeed, style.maxSpeed, _random.nextDouble()) *
-            _config.speedMultiplier;
+    final speed = _lerp(style.minSpeed, style.maxSpeed, _random.nextDouble()) *
+        _config.speedMultiplier;
     final rotation = _random.nextDouble() * math.pi * 2;
     final rotationSpeed = _randomSigned(
       _lerp(
