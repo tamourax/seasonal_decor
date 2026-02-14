@@ -53,6 +53,32 @@ SeasonalDecor(
 );
 ```
 
+## Scene Modes + Moments
+
+```dart
+final decorController = SeasonalDecorController();
+
+SeasonalDecor(
+  preset: SeasonalPreset.newYear(),
+  mode: SeasonalMode.ambient, // or SeasonalMode.festive
+  controller: decorController,
+  child: const HomeScreen(),
+);
+```
+
+Trigger short celebration moments:
+
+```dart
+decorController.trigger(SeasonalMoment.greetingBurst);
+decorController.trigger(
+  SeasonalMoment.fireworksBurst,
+  options: const SeasonalMomentOptions(
+    intensity: 0.8,
+    origin: Offset(0.5, 0.35),
+  ),
+);
+```
+
 ## Examples
 
 ### Basic

@@ -1,14 +1,25 @@
 import 'dart:async';
-
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart' show listEquals, mapEquals;
-import 'package:flutter/widgets.dart';
-
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart' as scheduler;
 import '../config/decor_config.dart';
 import '../config/intensity.dart';
-import '../engine/decor_controller.dart';
+import '../engine/backdrop_animator.dart';
 import '../engine/decor_painter.dart';
+import '../engine/layered_particle_system.dart';
+import '../engine/moment_engine.dart';
+import '../engine/moment_painter.dart';
 import '../engine/particle.dart';
+import '../engine/particle_system.dart';
+import '../engine/scene_backdrop_painter.dart';
+import '../engine/scene_transition.dart';
+import '../engine/seasonal_decor_controller.dart';
 import '../presets/seasonal_preset.dart';
+import '../scene/palette_harmony.dart';
+import '../scene/scene_registry.dart';
+import '../scene/scene_spec.dart';
+import '../scene/seasonal_mode.dart';
 import '../utils/lifecycle_pause.dart';
 import '../utils/reduce_motion.dart';
 
@@ -54,14 +65,16 @@ class SeasonalDecor extends StatefulWidget {
   final bool showBackdropWhenDisabled;
 
   /// Additional speed multiplier for particle motion.
-  ///
-  /// `1.0` keeps preset speeds. Higher values make the animation faster.
   final double particleSpeedMultiplier;
 
-  /// Whether to adapt particle/backdrop colors to platform brightness.
-  ///
-  /// In light theme, colors are boosted for better visibility.
+  /// Whether to adapt particle/backdrop colors to app theme.
   final bool adaptColorsToTheme;
+
+  /// Scene energy profile.
+  final SeasonalMode mode;
+
+  /// Optional external controller to trigger short moments.
+  final SeasonalDecorController? controller;
 
   /// Optional particle shape overrides applied to [preset].
   final List<ParticleShape>? presetShapes;
@@ -113,6 +126,8 @@ class SeasonalDecor extends StatefulWidget {
     this.showBackdropWhenDisabled = true,
     this.particleSpeedMultiplier = 1.0,
     this.adaptColorsToTheme = true,
+    this.mode = SeasonalMode.ambient,
+    this.controller,
     this.presetShapes,
     this.presetStyles,
     this.presetShapeSpeedMultipliers,
@@ -132,47 +147,75 @@ class SeasonalDecor extends StatefulWidget {
 
 class _SeasonalDecorState extends State<SeasonalDecor>
     with TickerProviderStateMixin {
-  late DecorController _controller;
+  static const double _baselineArea = 360.0 * 640.0;
+
   late LifecyclePause _lifecyclePause;
+  late final scheduler.Ticker _ticker;
+  final ValueNotifier<int> _frameNotifier = ValueNotifier<int>(0);
+  final MomentEngine _momentEngine = MomentEngine();
+  final BackdropAnimator _backdropAnimator = BackdropAnimator();
+  final SceneTransitionController _transition = SceneTransitionController();
+
   Size _lastSize = Size.zero;
+  double _densityScale = 1.0;
   bool _appPaused = false;
   bool _reduceMotion = false;
   bool _playing = true;
-  Brightness _themeBrightness =
-      WidgetsBinding.instance.platformDispatcher.platformBrightness;
+  bool _tickerRunning = false;
+  Duration _lastTick = Duration.zero;
+  int _activeParticleCount = 0;
+
   Timer? _stopTimer;
   Timer? _repeatTimer;
+
+  Brightness _themeBrightness =
+      WidgetsBinding.instance.platformDispatcher.platformBrightness;
+  Color _themePrimary = const Color(0xFF1BB8A3);
+
+  LayeredParticleSystem? _ambientSystem;
+  DecorConfig? _resolvedConfig;
+  SceneSpec _sceneSpec = SceneRegistry.resolve(SeasonalPreset.ramadan());
+  ScenePalette _scenePalette = const ScenePalette(
+    gradient: [Color(0xFF0E1B33), Color(0xFF123744), Color(0xFF0A1320)],
+    glow: Color(0xFFF7E8BD),
+    vignette: Color(0xCC03060A),
+    particleColors: [Color(0xFFCAD6FF), Color(0xFFFFE8A3)],
+    momentPrimary: Color(0xFFFFE8A3),
+    momentAccent: Color(0xFFCAD6FF),
+  );
+
+  SeasonalDecorController? _externalController;
+  int _lastSeenMomentEventId = -1;
 
   @override
   void initState() {
     super.initState();
-    _controller = DecorController(
-      vsync: this,
-      config: _resolveConfig(),
-    );
-    _controller.addListener(_handleControllerTick);
+    _ticker = createTicker(_handleTick);
+    _attachController(widget.controller);
     _lifecyclePause = LifecyclePause(
       onPaused: _handlePaused,
       onResumed: _handleResumed,
       enabled: widget.pauseWhenInactive,
     );
+    _rebuildScene();
     if (widget.enabled && !widget.preset.isNone) {
       _startPlayCycle();
     } else {
       _playing = false;
+      _transition.idle();
     }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final brightness = MediaQuery.platformBrightnessOf(context);
-    if (brightness != _themeBrightness) {
+    final theme = Theme.of(context);
+    final brightness = theme.brightness;
+    final primary = theme.colorScheme.primary;
+    if (brightness != _themeBrightness || primary != _themePrimary) {
       _themeBrightness = brightness;
-      if (widget.adaptColorsToTheme) {
-        _controller.updateConfig(_resolveConfig());
-        _applySystemControls();
-      }
+      _themePrimary = primary;
+      _rebuildScene();
     }
     _updateReduceMotion();
     _syncAnimation();
@@ -181,42 +224,55 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   @override
   void didUpdateWidget(covariant SeasonalDecor oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.preset != widget.preset ||
+    if (oldWidget.controller != widget.controller) {
+      _attachController(widget.controller);
+    }
+
+    final shouldRebuild = oldWidget.preset != widget.preset ||
         oldWidget.intensity != widget.intensity ||
         oldWidget.particleSpeedMultiplier != widget.particleSpeedMultiplier ||
         oldWidget.adaptColorsToTheme != widget.adaptColorsToTheme ||
-        _presetOverridesChanged(oldWidget)) {
-      _controller.updateConfig(_resolveConfig());
-      _applySystemControls();
+        oldWidget.mode != widget.mode ||
+        _presetOverridesChanged(oldWidget);
+
+    if (shouldRebuild) {
+      _rebuildScene();
     }
+
     if (widget.preset.isNone) {
       _cancelTimers();
       _playing = false;
+      _transition.idle();
+      _momentEngine.clear();
       _syncAnimation();
       return;
     }
+
     if (oldWidget.pauseWhenInactive != widget.pauseWhenInactive) {
       _lifecyclePause.setEnabled(widget.pauseWhenInactive);
       if (!widget.pauseWhenInactive) {
         _appPaused = false;
-        _syncAnimation();
       }
     }
+
     if (oldWidget.respectReduceMotion != widget.respectReduceMotion) {
       _updateReduceMotion();
-      _syncAnimation();
+      _rebuildScene();
     }
+
     if (oldWidget.enabled != widget.enabled) {
       if (widget.enabled) {
         _startPlayCycle();
       } else {
         _cancelTimers();
         _playing = false;
+        _transition.exit();
         _applySystemControls();
-        _syncAnimation();
       }
+      _syncAnimation();
       return;
     }
+
     if (oldWidget.playDuration != widget.playDuration ||
         oldWidget.repeatEvery != widget.repeatEvery) {
       if (widget.enabled) {
@@ -225,9 +281,37 @@ class _SeasonalDecorState extends State<SeasonalDecor>
         _cancelTimers();
       }
     }
+
     if (oldWidget.settleOnDisable != widget.settleOnDisable) {
       _applySystemControls();
       _syncAnimation();
+    }
+  }
+
+  void _attachController(SeasonalDecorController? controller) {
+    _externalController?.removeListener(_handleControllerMoments);
+    _externalController = controller;
+    _externalController?.addListener(_handleControllerMoments);
+    _lastSeenMomentEventId = -1;
+  }
+
+  void _handleControllerMoments() {
+    final controller = _externalController;
+    if (controller == null) {
+      return;
+    }
+    final events = controller.eventsSince(_lastSeenMomentEventId);
+    if (events.isEmpty) {
+      return;
+    }
+    for (final event in events) {
+      if (event.id > _lastSeenMomentEventId) {
+        _lastSeenMomentEventId = event.id;
+      }
+      if (!widget.enabled || widget.preset.isNone) {
+        continue;
+      }
+      _triggerMoment(event.moment, options: event.options);
     }
   }
 
@@ -248,19 +332,50 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   }
 
   void _updateReduceMotion() {
-    final shouldReduce =
+    _reduceMotion =
         widget.respectReduceMotion && ReduceMotion.isEnabled(context);
-    _reduceMotion = shouldReduce;
   }
 
-  DecorConfig _resolveConfig() {
-    final resolvedPreset = _resolvePreset();
-    final baseConfig = resolvedPreset.resolve(widget.intensity);
-    final speedAdjusted = _applySpeedMultiplier(baseConfig);
-    if (!widget.adaptColorsToTheme) {
-      return speedAdjusted;
+  void _rebuildScene() {
+    if (!mounted) {
+      return;
     }
-    return _adaptColorsForTheme(speedAdjusted);
+
+    final preset = _resolvePreset();
+    _sceneSpec = SceneRegistry.resolve(preset);
+
+    final anchors = SceneRegistry.anchorsForPreset(preset);
+    _scenePalette = PaletteHarmony.resolve(
+      anchors: anchors,
+      primary: _themePrimary,
+      brightness: _themeBrightness,
+      mode: widget.mode,
+      reduceMotion: _reduceMotion,
+    );
+
+    final resolved = _resolveConfig(preset);
+    _resolvedConfig = resolved;
+
+    if (preset.isNone) {
+      _ambientSystem = null;
+      _frameNotifier.value += 1;
+      return;
+    }
+
+    _ambientSystem = LayeredParticleSystem(
+      baseConfig: resolved.copyWith(enableFireworks: false),
+      sceneSpec: _sceneSpec,
+      mode: widget.mode,
+      reduceMotion: _reduceMotion,
+      size: _lastSize,
+    );
+    _ambientSystem?.setDensityScale(_densityScale);
+    if (_lastSize != Size.zero) {
+      _ambientSystem?.setBounds(_lastSize);
+    }
+    _applySystemControls();
+    _recalculateActiveParticleCount();
+    _frameNotifier.value += 1;
   }
 
   SeasonalPreset _resolvePreset() {
@@ -312,13 +427,21 @@ class _SeasonalDecorState extends State<SeasonalDecor>
         oldWidget.presetEnableFireworks != widget.presetEnableFireworks;
   }
 
+  DecorConfig _resolveConfig(SeasonalPreset preset) {
+    final base = preset.resolve(widget.intensity);
+    final speedAdjusted = _applySpeedMultiplier(base);
+    if (!widget.adaptColorsToTheme) {
+      return speedAdjusted.copyWith(enableFireworks: false);
+    }
+    return _applyScenePalette(speedAdjusted).copyWith(enableFireworks: false);
+  }
+
   DecorConfig _applySpeedMultiplier(DecorConfig config) {
     final speedMultiplier =
         widget.particleSpeedMultiplier.clamp(0.0, 6.0).toDouble();
     if ((speedMultiplier - 1.0).abs() < 0.0001) {
       return config;
     }
-
     final styles = [
       for (final style in config.styles)
         style.copyWith(
@@ -326,84 +449,58 @@ class _SeasonalDecorState extends State<SeasonalDecor>
           maxSpeed: style.maxSpeed * speedMultiplier,
         ),
     ];
-
-    if (!config.enableFireworks) {
-      return config.copyWith(styles: styles);
-    }
-
-    return config.copyWith(
-      styles: styles,
-      rocketMinSpeed: config.rocketMinSpeed * speedMultiplier,
-      rocketMaxSpeed: config.rocketMaxSpeed * speedMultiplier,
-      sparkMinSpeed: config.sparkMinSpeed * speedMultiplier,
-      sparkMaxSpeed: config.sparkMaxSpeed * speedMultiplier,
-    );
+    return config.copyWith(styles: styles);
   }
 
-  DecorConfig _adaptColorsForTheme(DecorConfig config) {
+  DecorConfig _applyScenePalette(DecorConfig config) {
+    final palette = _scenePalette.particleColors;
     final styles = [
-      for (final style in config.styles)
-        style.copyWith(color: _adaptColorForTheme(style.color)),
+      for (var i = 0; i < config.styles.length; i += 1)
+        config.styles[i].copyWith(
+          color: palette[i % palette.length]
+              .withValues(alpha: config.styles[i].color.a),
+        ),
     ];
 
-    final backdrop = config.backdrop;
-    final adaptedBackdrop =
-        backdrop == null ? null : _adaptBackdropForTheme(backdrop);
-    final adaptedBackdrops = [
-      for (final item in config.backdrops) _adaptBackdropForTheme(item),
+    DecorBackdrop? backdrop = config.backdrop;
+    if (backdrop != null) {
+      backdrop = backdrop.copyWith(
+        color: _scenePalette.glow,
+        opacity: (backdrop.opacity * _sceneSpec.legacyBackdropAlpha)
+            .clamp(0.0, 1.0)
+            .toDouble(),
+      );
+    }
+
+    final backdrops = [
+      for (var i = 0; i < config.backdrops.length; i += 1)
+        config.backdrops[i].copyWith(
+          color: _scenePalette
+              .particleColors[i % _scenePalette.particleColors.length],
+          opacity:
+              (config.backdrops[i].opacity * _sceneSpec.legacyBackdropAlpha)
+                  .clamp(0.0, 1.0)
+                  .toDouble(),
+        ),
     ];
 
     return config.copyWith(
       styles: styles,
-      backdrop: adaptedBackdrop,
-      backdrops: adaptedBackdrops,
-    );
-  }
-
-  Color _adaptColorForTheme(Color color) {
-    final hsl = HSLColor.fromColor(color);
-    final saturationBoost = _themeBrightness == Brightness.light ? 0.18 : 0.06;
-    var lightness = hsl.lightness;
-
-    if (_themeBrightness == Brightness.light) {
-      if (lightness > 0.78) {
-        lightness = (lightness - 0.2).clamp(0.0, 1.0).toDouble();
-      } else if (lightness < 0.18) {
-        lightness = (lightness + 0.15).clamp(0.0, 1.0).toDouble();
-      }
-    } else {
-      lightness = (lightness + 0.04).clamp(0.0, 1.0).toDouble();
-    }
-
-    final adapted = hsl
-        .withSaturation(
-          (hsl.saturation + saturationBoost).clamp(0.0, 1.0).toDouble(),
-        )
-        .withLightness(lightness)
-        .toColor();
-    return adapted.withValues(alpha: color.a);
-  }
-
-  DecorBackdrop _adaptBackdropForTheme(DecorBackdrop backdrop) {
-    var opacity = backdrop.opacity;
-    if (_themeBrightness == Brightness.light) {
-      // Backdrops are subtle by default; boost slightly in light mode.
-      opacity = (opacity * 1.45).clamp(0.0, 1.0).toDouble();
-    }
-    return backdrop.copyWith(
-      color: _adaptColorForTheme(backdrop.color),
-      opacity: opacity,
+      backdrop: backdrop,
+      backdrops: backdrops,
     );
   }
 
   void _startPlayCycle() {
-    if (!widget.enabled) {
+    if (!widget.enabled || widget.preset.isNone) {
       return;
     }
     _playing = true;
+    _transition.enter();
     _applySystemControls();
     _stopTimer?.cancel();
     _repeatTimer?.cancel();
+
     if (widget.playDuration > Duration.zero) {
       _stopTimer = Timer(widget.playDuration, _stopPlaying);
     }
@@ -412,8 +509,10 @@ class _SeasonalDecorState extends State<SeasonalDecor>
 
   void _stopPlaying() {
     _playing = false;
+    _transition.exit();
     _applySystemControls();
     _syncAnimation();
+
     _repeatTimer?.cancel();
     if (widget.enabled && widget.repeatEvery != null) {
       _repeatTimer = Timer(widget.repeatEvery!, _startPlayCycle);
@@ -426,27 +525,194 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   }
 
   void _applySystemControls() {
-    if (_playing) {
-      _controller.system.setSpawningEnabled(true);
-      _controller.system.setWrapEnabled(true);
+    final system = _ambientSystem;
+    if (system == null) {
       return;
     }
-    if (widget.settleOnDisable) {
-      _controller.system.setSpawningEnabled(false);
-      _controller.system.setWrapEnabled(false);
+    if (_playing) {
+      system.setSpawningEnabled(true);
+      system.setWrapEnabled(true);
+      return;
+    }
+    system.setSpawningEnabled(false);
+    system.setWrapEnabled(!widget.settleOnDisable);
+  }
+
+  void _triggerMoment(
+    SeasonalMoment moment, {
+    SeasonalMomentOptions options = const SeasonalMomentOptions(),
+  }) {
+    if (_lastSize == Size.zero) {
+      return;
+    }
+    SeasonalMoment resolved = _sceneSpec.resolveMoment(moment);
+    if (_reduceMotion && resolved == SeasonalMoment.fireworksBurst) {
+      resolved = SeasonalMoment.subtleSparkle;
+    }
+    final spec = _sceneSpec.moments[resolved];
+    if (spec == null) {
+      return;
+    }
+    _momentEngine.trigger(
+      spec: spec,
+      palette: _scenePalette,
+      size: _lastSize,
+      options: options,
+      reduceMotion: _reduceMotion,
+    );
+    _syncAnimation();
+  }
+
+  void _syncAnimation() {
+    if (widget.preset.isNone) {
+      _stopTicker();
+      return;
+    }
+
+    final shouldAnimate = !_appPaused &&
+        (_playing ||
+            _momentEngine.hasActiveMoments ||
+            (_transition.isActive) ||
+            (widget.settleOnDisable &&
+                (_ambientSystem?.hasActiveParticles ?? false)));
+
+    if (shouldAnimate) {
+      _startTicker();
+    } else {
+      _stopTicker();
     }
   }
 
-  void _handleControllerTick() {
-    if (!widget.enabled ||
-        _playing ||
-        !widget.settleOnDisable ||
-        _reduceMotion) {
+  void _startTicker() {
+    if (_tickerRunning) {
       return;
     }
-    if (!_controller.system.hasActiveParticles) {
-      _controller.stop();
+    _tickerRunning = true;
+    _lastTick = Duration.zero;
+    _ticker.start();
+  }
+
+  void _stopTicker() {
+    if (!_tickerRunning) {
+      return;
     }
+    _tickerRunning = false;
+    _lastTick = Duration.zero;
+    _ticker.stop();
+    _frameNotifier.value += 1;
+  }
+
+  void _handleTick(Duration elapsed) {
+    if (!_tickerRunning) {
+      return;
+    }
+    if (_lastTick == Duration.zero) {
+      _lastTick = elapsed;
+      return;
+    }
+
+    final delta = elapsed - _lastTick;
+    _lastTick = elapsed;
+    final dt = delta.inMicroseconds / 1000000.0;
+    if (dt <= 0) {
+      return;
+    }
+
+    _transition.update(dt, _sceneSpec.transition);
+    _backdropAnimator.update(dt, reduceMotion: _reduceMotion);
+    _ambientSystem?.update(dt);
+    _momentEngine.update(dt, reduceMotion: _reduceMotion);
+    _recalculateActiveParticleCount();
+
+    if (!_playing &&
+        !widget.enabled &&
+        !_momentEngine.hasActiveMoments &&
+        !(_ambientSystem?.hasActiveParticles ?? false) &&
+        !_transition.isActive) {
+      _stopTicker();
+      return;
+    }
+
+    if (!_playing &&
+        widget.enabled &&
+        !widget.settleOnDisable &&
+        !_momentEngine.hasActiveMoments &&
+        !_transition.isActive) {
+      _stopTicker();
+      return;
+    }
+
+    _frameNotifier.value += 1;
+  }
+
+  void _recalculateActiveParticleCount() {
+    var count = 0;
+    final layers = _ambientSystem?.layers ?? const <AmbientLayerRuntime>[];
+    for (final layer in layers) {
+      for (final particle in layer.system.particles) {
+        if (particle.active) {
+          count += 1;
+        }
+      }
+    }
+    _activeParticleCount = count;
+  }
+
+  Size _resolveSize(BoxConstraints constraints) {
+    final size = constraints.biggest;
+    if (size.width.isFinite && size.height.isFinite) {
+      return size;
+    }
+    return MediaQuery.sizeOf(context);
+  }
+
+  void _updateBounds(Size size) {
+    if (size.width <= 0 || size.height <= 0) {
+      return;
+    }
+    if (size == _lastSize) {
+      return;
+    }
+
+    _lastSize = size;
+    final area = size.width * size.height;
+    final scale = math.sqrt(area / _baselineArea);
+    _densityScale = scale.clamp(0.6, 1.4).toDouble();
+    _ambientSystem?.setBounds(size);
+    _ambientSystem?.setDensityScale(_densityScale);
+    _frameNotifier.value += 1;
+  }
+
+  bool _layerStaticMode(AmbientLayerRuntime layer) {
+    if (_reduceMotion) {
+      return true;
+    }
+    if (_activeParticleCount > 320 && layer.spec.qualityPriority >= 2) {
+      return true;
+    }
+    if (_activeParticleCount > 230 && layer.spec.qualityPriority >= 3) {
+      return true;
+    }
+    return false;
+  }
+
+  double _layerSway(AmbientLayerRuntime layer) {
+    final amplitude = _reduceMotion
+        ? layer.spec.swayAmplitude * 0.25
+        : layer.spec.swayAmplitude;
+    final t = _backdropAnimator.time;
+    return math.sin(t * layer.spec.swayFrequency * math.pi * 2.0) * amplitude;
+  }
+
+  bool _shouldPaintParticles() {
+    if (_playing) {
+      return true;
+    }
+    if (_momentEngine.hasActiveMoments) {
+      return true;
+    }
+    return widget.settleOnDisable &&
+        (_ambientSystem?.hasActiveParticles ?? false);
   }
 
   @visibleForTesting
@@ -458,35 +724,9 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   @visibleForTesting
   void debugStopPlayingForTest() => _stopPlaying();
 
-  void _syncAnimation() {
-    if (widget.preset.isNone) {
-      _controller.stop();
-      return;
-    }
-    final shouldAnimate = widget.enabled &&
-        !_appPaused &&
-        !_reduceMotion &&
-        (_playing ||
-            (widget.settleOnDisable && _controller.system.hasActiveParticles));
-    if (shouldAnimate) {
-      _controller.start();
-    } else {
-      _controller.stop();
-    }
-  }
-
-  Size _resolveSize(BoxConstraints constraints) {
-    final size = constraints.biggest;
-    if (size.width.isFinite && size.height.isFinite) {
-      return size;
-    }
-    return MediaQuery.sizeOf(context);
-  }
-
   @override
   Widget build(BuildContext context) {
     final overlayOpacity = widget.opacity.clamp(0.0, 1.0).toDouble();
-
     if (widget.preset.isNone) {
       return widget.child;
     }
@@ -494,40 +734,120 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     return LayoutBuilder(
       builder: (context, constraints) {
         final resolvedSize = _resolveSize(constraints);
-        if (resolvedSize != _lastSize &&
-            resolvedSize.width > 0 &&
-            resolvedSize.height > 0) {
-          _lastSize = resolvedSize;
-          _controller.updateBounds(resolvedSize);
+        if (resolvedSize.width > 0 && resolvedSize.height > 0) {
+          _updateBounds(resolvedSize);
         }
 
-        final overlay = RepaintBoundary(
-          child: CustomPaint(
-            painter: DecorPainter(
-              system: _controller.system,
-              config: _controller.config,
-              opacity: overlayOpacity,
-              staticMode: _reduceMotion,
-              paintParticles: widget.enabled,
-              showBackdrop: widget.showBackdrop,
-              repaint: _controller,
-            ),
-            size: Size.infinite,
-          ),
-        );
+        final config = _resolvedConfig;
+        final layers = _ambientSystem?.layers ?? const <AmbientLayerRuntime>[];
 
-        final shouldShowOverlay = widget.enabled ||
-            (widget.showBackdropWhenDisabled && widget.showBackdrop);
+        final sceneAlpha = _playing
+            ? _transition.sceneAlpha(_sceneSpec.transition)
+            : _transition.sceneAlpha(_sceneSpec.transition);
+        final backdropAlpha =
+            (!widget.enabled && widget.showBackdropWhenDisabled)
+                ? 1.0
+                : _transition.backdropAlpha(_sceneSpec.transition);
+
+        final shouldBackdrop = widget.showBackdrop &&
+            (widget.enabled ||
+                widget.showBackdropWhenDisabled ||
+                _transition.isActive);
+
+        final shouldParticles = _shouldPaintParticles();
+        final shouldShowOverlay = shouldBackdrop ||
+            shouldParticles ||
+            _momentEngine.hasActiveMoments ||
+            _transition.isActive;
+
+        if (!shouldShowOverlay) {
+          return widget.child;
+        }
+
+        final overlayChildren = <Widget>[
+          if (shouldBackdrop)
+            RepaintBoundary(
+              child: CustomPaint(
+                painter: SceneBackdropPainter(
+                  scene: _sceneSpec,
+                  palette: _scenePalette,
+                  time: _backdropAnimator.time,
+                  alpha: overlayOpacity * backdropAlpha,
+                  reduceMotion: _reduceMotion,
+                  repaint: _frameNotifier,
+                ),
+                size: Size.infinite,
+              ),
+            ),
+          if (shouldBackdrop && config != null)
+            RepaintBoundary(
+              child: CustomPaint(
+                painter: DecorPainter(
+                  system: layers.isNotEmpty
+                      ? layers.first.system
+                      : MomentEngineFallback.emptySystem,
+                  config: config,
+                  opacity: overlayOpacity * backdropAlpha,
+                  staticMode: _reduceMotion,
+                  paintParticles: false,
+                  showBackdrop: true,
+                  repaint: _frameNotifier,
+                ),
+                size: Size.infinite,
+              ),
+            ),
+        ];
+
+        if (shouldParticles && config != null) {
+          for (final layer in layers) {
+            overlayChildren.add(
+              Transform.translate(
+                offset: Offset(_layerSway(layer), 0),
+                child: RepaintBoundary(
+                  child: CustomPaint(
+                    painter: DecorPainter(
+                      system: layer.system,
+                      config: layer.config,
+                      opacity: overlayOpacity * sceneAlpha,
+                      staticMode: _layerStaticMode(layer),
+                      paintParticles: true,
+                      showBackdrop: false,
+                      repaint: _frameNotifier,
+                    ),
+                    size: Size.infinite,
+                  ),
+                ),
+              ),
+            );
+          }
+        }
+
+        if (_momentEngine.hasActiveMoments) {
+          overlayChildren.add(
+            RepaintBoundary(
+              child: CustomPaint(
+                painter: MomentPainter(
+                  engine: _momentEngine,
+                  opacity: overlayOpacity * math.max(0.5, sceneAlpha),
+                  repaint: _frameNotifier,
+                ),
+                size: Size.infinite,
+              ),
+            ),
+          );
+        }
 
         return Stack(
           fit: StackFit.expand,
           children: [
             widget.child,
-            if (shouldShowOverlay)
-              IgnorePointer(
-                ignoring: widget.ignorePointer,
-                child: overlay,
+            IgnorePointer(
+              ignoring: widget.ignorePointer,
+              child: Stack(
+                fit: StackFit.expand,
+                children: overlayChildren,
               ),
+            ),
           ],
         );
       },
@@ -537,9 +857,45 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   @override
   void dispose() {
     _cancelTimers();
-    _controller.removeListener(_handleControllerTick);
+    _externalController?.removeListener(_handleControllerMoments);
+    _stopTicker();
+    _ticker.dispose();
     _lifecyclePause.dispose();
-    _controller.dispose();
+    _frameNotifier.dispose();
     super.dispose();
   }
+}
+
+/// Lightweight fallback system for backdrop-only rendering.
+class MomentEngineFallback {
+  static final emptySystem = _EmptyParticleSystem();
+}
+
+class _EmptyParticleSystem extends ParticleSystem {
+  _EmptyParticleSystem()
+      : super(
+          config: const DecorConfig(
+            particleCount: 1,
+            speedMultiplier: 0,
+            spawnRate: 0,
+            spawnRateScale: 0,
+            drift: 0,
+            flow: ParticleFlow.falling,
+            wrapMode: DecorWrapMode.respawn,
+            styles: [
+              ParticleStyle(
+                shape: ParticleShape.circle,
+                color: Color(0x00000000),
+                minSize: 1,
+                maxSize: 1,
+                minSpeed: 0,
+                maxSpeed: 0,
+                minRotationSpeed: 0,
+                maxRotationSpeed: 0,
+                opacity: 0,
+              ),
+            ],
+          ),
+          size: Size.zero,
+        );
 }

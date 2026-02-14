@@ -20,7 +20,8 @@ DecorConfig buildSportEventConfig(
   final palette = _resolvePalette(variant, teamColors);
   final hasTeamColors =
       variant == SportEventVariant.teamColors && palette.isNotEmpty;
-  final confettiColors = palette.length > 2 ? palette.take(2).toList() : palette;
+  final confettiColors =
+      palette.length > 2 ? palette.take(2).toList() : palette;
   final ballPalette = hasTeamColors
       ? palette
       : const [

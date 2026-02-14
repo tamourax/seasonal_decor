@@ -1,4 +1,4 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 
@@ -46,8 +46,7 @@ class DecorPainter extends CustomPainter {
   static const Rect _giftLidRect = Rect.fromLTRB(-0.68, -0.45, 0.68, -0.2);
   static const Rect _giftBowLeft = Rect.fromLTRB(-0.38, -0.6, -0.06, -0.3);
   static const Rect _giftBowRight = Rect.fromLTRB(0.06, -0.6, 0.38, -0.3);
-  static const Rect _ornamentCapRect =
-      Rect.fromLTRB(-0.18, -0.78, 0.18, -0.62);
+  static const Rect _ornamentCapRect = Rect.fromLTRB(-0.18, -0.78, 0.18, -0.62);
   static const List<Color> _garlandBulbColors = [
     Color(0xFFF9C74F),
     Color(0xFFF9844A),
@@ -398,7 +397,7 @@ class DecorPainter extends CustomPainter {
               .withValues(alpha: (combinedAlpha * 0.95).clamp(0.0, 1.0));
         canvas.drawLine(const Offset(0, 0.45), const Offset(0, -0.2), _paint);
         canvas.drawArc(
-           Rect.fromCircle(center: Offset(0.2, -0.2), radius: 0.2),
+          Rect.fromCircle(center: Offset(0.2, -0.2), radius: 0.2),
           math.pi,
           math.pi,
           false,
@@ -408,9 +407,12 @@ class DecorPainter extends CustomPainter {
           ..strokeWidth = 0.08
           ..color = const Color(0xFFE63946)
               .withValues(alpha: (combinedAlpha * 0.9).clamp(0.0, 1.0));
-        canvas.drawLine(const Offset(0.06, 0.32), const Offset(-0.06, 0.22), _paint);
-        canvas.drawLine(const Offset(0.06, 0.14), const Offset(-0.06, 0.04), _paint);
-        canvas.drawLine(const Offset(0.06, -0.04), const Offset(-0.06, -0.14), _paint);
+        canvas.drawLine(
+            const Offset(0.06, 0.32), const Offset(-0.06, 0.22), _paint);
+        canvas.drawLine(
+            const Offset(0.06, 0.14), const Offset(-0.06, 0.04), _paint);
+        canvas.drawLine(
+            const Offset(0.06, -0.04), const Offset(-0.06, -0.14), _paint);
         canvas.restore();
       } else {
         // Red ornament ball.
@@ -771,9 +773,8 @@ class DecorPainter extends CustomPainter {
         canvas.rotate(particle.rotation);
         canvas.scale(particle.size, particle.size);
         canvas.drawPath(_unitLanternBodyPath, _paint);
-        final windowColor =
-            Color.lerp(color, const Color(0xFFFFF1C2), 0.6)!
-                .withValues(alpha: (combinedAlpha * 0.7).clamp(0.0, 1.0));
+        final windowColor = Color.lerp(color, const Color(0xFFFFF1C2), 0.6)!
+            .withValues(alpha: (combinedAlpha * 0.7).clamp(0.0, 1.0));
         _paint
           ..color = windowColor
           ..style = PaintingStyle.fill;
@@ -913,9 +914,8 @@ class DecorPainter extends CustomPainter {
         canvas.drawCircle(const Offset(-0.18, 0.35), 0.28, _paint);
         canvas.drawCircle(const Offset(0.18, 0.35), 0.28, _paint);
 
-        final faceColor =
-            Color.lerp(color, const Color(0xFF2B2B2B), 0.6)!
-                .withValues(alpha: combinedAlpha);
+        final faceColor = Color.lerp(color, const Color(0xFF2B2B2B), 0.6)!
+            .withValues(alpha: combinedAlpha);
         _paint.color = faceColor;
         canvas.drawCircle(const Offset(0.72, 0.05), 0.26, _paint);
         canvas.drawCircle(const Offset(0.86, -0.05), 0.07, _paint);
@@ -1069,7 +1069,7 @@ class DecorPainter extends CustomPainter {
       ..lineTo(-0.55, 0.55)
       ..close()
       ..addRect(const Rect.fromLTRB(-0.45, 0.55, 0.45, 0.75))
-      ..addOval( Rect.fromCircle(center: Offset(0, 0.9), radius: 0.09));
+      ..addOval(Rect.fromCircle(center: Offset(0, 0.9), radius: 0.09));
     return path;
   }
 

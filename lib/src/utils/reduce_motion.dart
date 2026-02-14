@@ -1,4 +1,4 @@
-﻿import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart';
 
 /// Utility for reading the platform reduce motion preference.
 class ReduceMotion {

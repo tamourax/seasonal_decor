@@ -1,4 +1,4 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 import 'dart:ui';
 
 import '../config/decor_config.dart';
@@ -244,9 +244,8 @@ class ParticleSystem {
   void _spawnParticle(Particle particle) {
     final style = _config.styles[_random.nextInt(_config.styles.length)];
     final size = _lerp(style.minSize, style.maxSize, _random.nextDouble());
-    final speed =
-        _lerp(style.minSpeed, style.maxSpeed, _random.nextDouble()) *
-            _config.speedMultiplier;
+    final speed = _lerp(style.minSpeed, style.maxSpeed, _random.nextDouble()) *
+        _config.speedMultiplier;
     final rotation = _random.nextDouble() * math.pi * 2;
     final rotationSpeed = _randomSigned(
       _lerp(

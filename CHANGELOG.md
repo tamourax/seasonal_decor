@@ -1,3 +1,20 @@
+## 1.2.0
+
+- Add scene-based atmosphere system with three visual layers:
+  animated backdrop, ambient parallax particles, and triggerable moments.
+- Add new public APIs:
+  `SeasonalMode`, `SeasonalMoment`, `SeasonalMomentOptions`,
+  and `SeasonalDecorController`.
+- Add moment triggers via controller (`controller.trigger(...)`) with
+  reduce-motion safe remapping.
+- Add theme-harmonized palette generation driven by app primary color and mode.
+- Update `SeasonalDecor` to support calm reduce-motion behavior
+  (slower + fewer particles instead of full disable).
+- Refresh advanced demo with experience controls:
+  preset dropdown, mode selector, intensity slider, reduce-motion toggle,
+  and moment trigger buttons.
+- Add Flutter web loading splash in `example/web/index.html` to avoid blank load.
+
 ## 1.1.5
 
 - Improve `example/lib/advanced_main.dart` layout responsiveness for web and narrow screens.

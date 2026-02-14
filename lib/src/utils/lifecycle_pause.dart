@@ -1,4 +1,4 @@
-﻿import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart';
 
 /// Handles app lifecycle changes for pausing animation.
 class LifecyclePause with WidgetsBindingObserver {
