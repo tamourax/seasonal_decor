@@ -12,7 +12,7 @@ class DecorController extends ChangeNotifier {
   static const double _baselineArea = 360.0 * 640.0;
 
   late final Ticker _ticker;
-  ParticleSystem _system;
+  final ParticleSystem _system;
   DecorConfig _config;
   Size _bounds = Size.zero;
   double _densityScale = 1.0;
@@ -76,10 +76,21 @@ class DecorController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Updates the configuration and rebuilds the particle pool.
+  /// Updates the configuration while keeping the existing system instance.
   void updateConfig(DecorConfig config) {
+    final previous = _config;
     _config = config;
-    _system = ParticleSystem(config: config, size: _bounds);
+
+    final requiresRebuild = previous.particleCount != config.particleCount;
+    final requiresRespawn = previous.enableFireworks != config.enableFireworks ||
+        previous.flow != config.flow ||
+        previous.wrapMode != config.wrapMode;
+
+    if (requiresRebuild) {
+      _system.rebuildPool(config);
+    } else {
+      _system.setConfig(config, respawn: requiresRespawn);
+    }
     _system.setDensityScale(_densityScale);
     notifyListeners();
   }

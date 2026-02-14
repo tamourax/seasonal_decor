@@ -111,10 +111,22 @@ enum BackdropType {
   trophy,
 }
 
+/// Visual layer for backdrop artwork.
+enum BackdropLayer {
+  /// Backdrop art behind content emphasis (for example moon or skyline).
+  background,
+
+  /// Decorative overlay art (for example bunting/garland).
+  decorative,
+}
+
 /// Background artwork drawn behind particles.
 class DecorBackdrop {
   /// Backdrop type.
   final BackdropType type;
+
+  /// Backdrop visual layer.
+  final BackdropLayer layer;
 
   /// Color used for the shape.
   final Color color;
@@ -130,6 +142,7 @@ class DecorBackdrop {
 
   const DecorBackdrop({
     required this.type,
+    this.layer = BackdropLayer.decorative,
     required this.color,
     required this.opacity,
     required this.anchor,
@@ -139,6 +152,7 @@ class DecorBackdrop {
   /// Returns a copy with updated values.
   DecorBackdrop copyWith({
     BackdropType? type,
+    BackdropLayer? layer,
     Color? color,
     double? opacity,
     Offset? anchor,
@@ -146,6 +160,7 @@ class DecorBackdrop {
   }) {
     return DecorBackdrop(
       type: type ?? this.type,
+      layer: layer ?? this.layer,
       color: color ?? this.color,
       opacity: opacity ?? this.opacity,
       anchor: anchor ?? this.anchor,
@@ -155,12 +170,14 @@ class DecorBackdrop {
 
   /// Convenience constructor for a crescent backdrop.
   const DecorBackdrop.crescent({
+    BackdropLayer layer = BackdropLayer.background,
     required Color color,
     required double opacity,
     required Offset anchor,
     required double sizeFactor,
   }) : this(
           type: BackdropType.crescent,
+          layer: layer,
           color: color,
           opacity: opacity,
           anchor: anchor,
@@ -169,12 +186,14 @@ class DecorBackdrop {
 
   /// Convenience constructor for a tree backdrop.
   const DecorBackdrop.tree({
+    BackdropLayer layer = BackdropLayer.background,
     required Color color,
     required double opacity,
     required Offset anchor,
     required double sizeFactor,
   }) : this(
           type: BackdropType.tree,
+          layer: layer,
           color: color,
           opacity: opacity,
           anchor: anchor,
@@ -183,12 +202,14 @@ class DecorBackdrop {
 
   /// Convenience constructor for a garland backdrop.
   const DecorBackdrop.garland({
+    BackdropLayer layer = BackdropLayer.decorative,
     required Color color,
     required double opacity,
     required Offset anchor,
     required double sizeFactor,
   }) : this(
           type: BackdropType.garland,
+          layer: layer,
           color: color,
           opacity: opacity,
           anchor: anchor,
@@ -197,12 +218,14 @@ class DecorBackdrop {
 
   /// Convenience constructor for a candy garland backdrop.
   const DecorBackdrop.candyGarland({
+    BackdropLayer layer = BackdropLayer.decorative,
     required Color color,
     required double opacity,
     required Offset anchor,
     required double sizeFactor,
   }) : this(
           type: BackdropType.candyGarland,
+          layer: layer,
           color: color,
           opacity: opacity,
           anchor: anchor,
@@ -211,12 +234,14 @@ class DecorBackdrop {
 
   /// Convenience constructor for a bunting backdrop.
   const DecorBackdrop.bunting({
+    BackdropLayer layer = BackdropLayer.decorative,
     required Color color,
     required double opacity,
     required Offset anchor,
     required double sizeFactor,
   }) : this(
           type: BackdropType.bunting,
+          layer: layer,
           color: color,
           opacity: opacity,
           anchor: anchor,
@@ -225,12 +250,14 @@ class DecorBackdrop {
 
   /// Convenience constructor for a mosque backdrop.
   const DecorBackdrop.mosque({
+    BackdropLayer layer = BackdropLayer.background,
     required Color color,
     required double opacity,
     required Offset anchor,
     required double sizeFactor,
   }) : this(
           type: BackdropType.mosque,
+          layer: layer,
           color: color,
           opacity: opacity,
           anchor: anchor,
@@ -239,12 +266,14 @@ class DecorBackdrop {
 
   /// Convenience constructor for a trophy backdrop.
   const DecorBackdrop.trophy({
+    BackdropLayer layer = BackdropLayer.background,
     required Color color,
     required double opacity,
     required Offset anchor,
     required double sizeFactor,
   }) : this(
           type: BackdropType.trophy,
+          layer: layer,
           color: color,
           opacity: opacity,
           anchor: anchor,

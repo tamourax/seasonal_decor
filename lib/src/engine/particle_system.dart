@@ -7,12 +7,13 @@ import 'particle.dart';
 /// Manages a pool of particles and updates them over time.
 class ParticleSystem {
   final math.Random _random;
-  final DecorConfig _config;
+  DecorConfig _config;
   Size _size;
   double _spawnAccumulator = 0;
   double _rocketSpawnAccumulator = 0;
+  double _densityScale = 1.0;
   int _maxActive;
-  final List<Particle> _particles;
+  List<Particle> _particles;
   bool _spawningEnabled = true;
   bool _wrapEnabled = true;
 
@@ -75,12 +76,61 @@ class ParticleSystem {
     _respawnAll();
   }
 
+  /// Applies a configuration update in-place without reallocating the pool.
+  void setConfig(DecorConfig config, {required bool respawn}) {
+    assert(
+      config.particleCount == _particles.length,
+      'ParticleSystem.setConfig expects matching particleCount. '
+      'Use rebuildPool from DecorController for pool-size changes.',
+    );
+
+    if (config.particleCount != _particles.length) {
+      rebuildPool(config);
+      return;
+    }
+
+    final fireworksToggled = _config.enableFireworks != config.enableFireworks;
+    _config = config;
+    _recomputeMaxActive();
+    if (respawn || fireworksToggled || !_spawningEnabled) {
+      _resetSpawnAccumulators();
+    }
+    if (respawn && _hasBounds) {
+      _respawnAll();
+    }
+    _syncActiveCount();
+  }
+
+  /// Rebuilds the internal particle pool for a new particle count.
+  void rebuildPool(DecorConfig config) {
+    _config = config;
+    _particles = List<Particle>.generate(
+      config.particleCount,
+      (_) => Particle.inactive(),
+    );
+    _resetSpawnAccumulators();
+    _recomputeMaxActive();
+    if (_hasBounds) {
+      _respawnAll();
+    }
+    _syncActiveCount();
+  }
+
   /// Updates adaptive density scaling.
   void setDensityScale(double scale) {
-    final clamped = scale.clamp(0.4, 1.8).toDouble();
-    _maxActive = math.max(1, (_config.particleCount * clamped).round());
-    _maxActive = math.min(_maxActive, _config.particleCount);
+    _densityScale = scale.clamp(0.4, 1.8).toDouble();
+    _recomputeMaxActive();
     _syncActiveCount();
+  }
+
+  void _resetSpawnAccumulators() {
+    _spawnAccumulator = 0;
+    _rocketSpawnAccumulator = 0;
+  }
+
+  void _recomputeMaxActive() {
+    _maxActive = math.max(1, (_config.particleCount * _densityScale).round());
+    _maxActive = math.min(_maxActive, _config.particleCount);
   }
 
   /// Advances the system by [dt] seconds.
@@ -244,9 +294,8 @@ class ParticleSystem {
   void _spawnParticle(Particle particle) {
     final style = _config.styles[_random.nextInt(_config.styles.length)];
     final size = _lerp(style.minSize, style.maxSize, _random.nextDouble());
-    final speed =
-        _lerp(style.minSpeed, style.maxSpeed, _random.nextDouble()) *
-            _config.speedMultiplier;
+    final speed = _lerp(style.minSpeed, style.maxSpeed, _random.nextDouble()) *
+        _config.speedMultiplier;
     final rotation = _random.nextDouble() * math.pi * 2;
     final rotationSpeed = _randomSigned(
       _lerp(

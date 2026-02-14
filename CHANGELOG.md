@@ -1,3 +1,40 @@
+## 1.2.0
+
+- Add emotional seasonal greeting overlay text with animation support:
+  `showText`, `text`, `textStyle`, `textOpacity`, `textAlignment`,
+  `textPadding`, `textDisplayDuration`, `textAnimationDuration`,
+  and `textSlideOffset`.
+- Add layered backdrop customization:
+  `showBackgroundBackdrops`, `showDecorativeBackdrops`,
+  and `backgroundBackdrop` to replace built-in background backdrops
+  with a custom widget.
+- Add visual tuning controls:
+  `particleSizeMultiplier` and `decorativeBackdropDensityMultiplier`.
+- Improve fireworks repeat cycles so `repeatEvery` restarts feel immediate
+  in presets like Eid al-Adha.
+- Expand example apps (`main.dart` and `advanced_main.dart`) with full live
+  controls for greeting text, backdrop layers, density, and size.
+- Add/extend tests for text overlay behavior and backdrop layer composition.
+
+## 1.1.6
+
+- Improve runtime update performance by keeping the particle system instance
+  stable and rebuilding the pool only when `particleCount` changes.
+- Add incremental config application in `ParticleSystem` with
+  soft/respawn/rebuild paths for lower churn during live updates.
+- Add a safety contract in `setConfig`: debug assertion for mismatched pool
+  size and graceful rebuild fallback in release mode.
+- Tighten typed override documentation and add test coverage for typed
+  `withOverrides(...)` inputs (shapes/styles/maps/backdrops).
+
+## 1.1.5
+
+- Improve `example/lib/advanced_main.dart` layout responsiveness for web and narrow screens.
+- Update advanced demo defaults to:
+  `SeasonalPreset.ramadan()`, `DecorIntensity.max`, dark mode, `opacity: 1.0`,
+  `particleSpeedMultiplier: 2.0`, and `playDuration: 10s`.
+- Refresh package docs for the new release metadata and release-notes link.
+
 ## 1.1.4
 
 - Add two new intensity levels: `DecorIntensity.extraHigh` and `DecorIntensity.max`.
