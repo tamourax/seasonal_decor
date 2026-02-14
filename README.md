@@ -75,6 +75,7 @@ In the example app, users can interact with:
 ## 🎨 Available Presets
 
 - `SeasonalPreset.ramadan()`
+- `SeasonalPreset.ramadan(variant: RamadanVariant.hangingLanterns)` (new)
 - `SeasonalPreset.eid()`
 - `SeasonalPreset.christmas()`
 - `SeasonalPreset.newYear()`

@@ -1,3 +1,10 @@
+## Unreleased
+
+- Add `RamadanVariant.hangingLanterns` with a hanging moon/star lights style.
+- Add new backdrop types: `BackdropType.lantern` and `BackdropType.ramadanLights`.
+- Add `BackdropType.ramadanBunting` and use it in `RamadanVariant.classic`.
+- Add built-in lantern background backdrop support via `DecorBackdrop.lantern(...)`.
+
 ## 1.2.1
 
 - Shorten package `description` in `pubspec.yaml` to satisfy pub points validation.

@@ -6,6 +6,7 @@ import 'package:seasonal_decor/src/config/decor_config.dart';
 import 'package:seasonal_decor/src/config/intensity.dart';
 import 'package:seasonal_decor/src/engine/particle.dart';
 import 'package:seasonal_decor/src/engine/particle_system.dart';
+import 'package:seasonal_decor/src/presets/ramadan.dart';
 import 'package:seasonal_decor/src/presets/seasonal_preset.dart';
 import 'package:seasonal_decor/src/presets/sport_event.dart';
 import 'package:seasonal_decor/src/presets/valentine.dart';
@@ -87,6 +88,38 @@ void main() {
     expect(preset.baseConfig.styles.first.maxSpeed, closeTo(30.0, 0.0001));
     expect(preset.baseConfig.backdrops, hasLength(1));
     expect(preset.baseConfig.backdrops.first.type, BackdropType.crescent);
+  });
+
+  test(
+      'ramadan hanging lanterns variant has one decorative and one background backdrop',
+      () {
+    final preset = SeasonalPreset.ramadan(
+      variant: RamadanVariant.hangingLanterns,
+    );
+    final backdrops = preset.baseConfig.backdrops;
+    final decorative = backdrops
+        .where((backdrop) => backdrop.layer == BackdropLayer.decorative)
+        .toList();
+    final background = backdrops
+        .where((backdrop) => backdrop.layer == BackdropLayer.background)
+        .toList();
+
+    expect(preset.variant, RamadanVariant.hangingLanterns.name);
+    expect(backdrops, hasLength(2));
+    expect(decorative, hasLength(1));
+    expect(background, hasLength(1));
+    expect(decorative.single.type, BackdropType.ramadanLights);
+    expect(background.single.type, BackdropType.lantern);
+  });
+
+  test('ramadan classic uses traditional ramadan bunting backdrop', () {
+    final preset = SeasonalPreset.ramadan(variant: RamadanVariant.classic);
+    final decorative = preset.baseConfig.backdrops
+        .where((backdrop) => backdrop.layer == BackdropLayer.decorative)
+        .toList();
+
+    expect(decorative, isNotEmpty);
+    expect(decorative.first.type, BackdropType.ramadanBunting);
   });
 
   test('particle system updates particle positions', () {

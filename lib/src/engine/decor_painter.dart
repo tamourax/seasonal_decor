@@ -29,6 +29,12 @@ class DecorPainter extends CustomPainter {
   /// Density multiplier for decorative backdrop details.
   final double decorativeBackdropDensityMultiplier;
 
+  /// Optional row override for decorative string backdrops.
+  final int? decorativeBackdropRows;
+
+  /// Optional row override for Ramadan bunting backdrop.
+  final int? ramadanBuntingRows;
+
   final Paint _paint = Paint()..isAntiAlias = true;
   final Path _treePath = Path();
   final Path _garlandPath = Path();
@@ -84,6 +90,8 @@ class DecorPainter extends CustomPainter {
     required this.paintParticles,
     required this.showBackdrop,
     required this.decorativeBackdropDensityMultiplier,
+    required this.decorativeBackdropRows,
+    required this.ramadanBuntingRows,
     required Listenable repaint,
   }) : super(repaint: repaint);
 
@@ -153,6 +161,15 @@ class DecorPainter extends CustomPainter {
         break;
       case BackdropType.trophy:
         _paintTrophy(canvas, size, opacity, backdrop);
+        break;
+      case BackdropType.lantern:
+        _paintLanternBackdrop(canvas, size, opacity, backdrop);
+        break;
+      case BackdropType.ramadanLights:
+        _paintRamadanLights(canvas, size, opacity, backdrop);
+        break;
+      case BackdropType.ramadanBunting:
+        _paintRamadanBunting(canvas, size, opacity, backdrop);
         break;
     }
   }
@@ -317,43 +334,63 @@ class DecorPainter extends CustomPainter {
     final width = size.width;
     final y = size.height * backdrop.anchor.dy;
     final amplitude = _resolveDecorativeAmplitude(size, backdrop);
+    final rowCount = decorativeBackdropRows?.clamp(1, 6) ?? 1;
+    final rowGap = (amplitude * 1.55).clamp(12.0, size.height * 0.12);
+    const widthPattern = <double>[1.0, 0.86, 0.93, 0.78, 0.88, 0.74];
+    const offsetPattern = <double>[0.0, -0.04, 0.03, -0.06, 0.04, -0.02];
 
     final baseAlpha = backdrop.color.a;
     final combinedAlpha =
         (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
+    final ropeColor = backdrop.color.withValues(alpha: combinedAlpha);
 
-    _garlandPath
-      ..reset()
-      ..moveTo(0, y)
-      ..quadraticBezierTo(width * 0.5, y + amplitude, width, y);
+    for (var row = 0; row < rowCount; row += 1) {
+      final rowY = y + row * rowGap;
+      final rowSpan = (width * widthPattern[row % widthPattern.length])
+          .clamp(width * 0.6, width * 1.02)
+          .toDouble();
+      final rowCenterX =
+          width * (0.5 + offsetPattern[row % offsetPattern.length]);
+      final leftX = rowCenterX - rowSpan * 0.5;
+      final rightX = rowCenterX + rowSpan * 0.5;
+      final rowAmplitude = (amplitude * (0.84 + (row % 3) * 0.11))
+          .clamp(6.0, size.height * 0.14)
+          .toDouble();
 
-    _paint
-      ..color = backdrop.color.withValues(alpha: combinedAlpha)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = math.max(1.2, amplitude * 0.12)
-      ..strokeCap = StrokeCap.round;
-    canvas.drawPath(_garlandPath, _paint);
+      _garlandPath
+        ..reset()
+        ..moveTo(leftX, rowY)
+        ..quadraticBezierTo(rowCenterX, rowY + rowAmplitude, rightX, rowY);
 
-    final bulbCount = math.max(4, ((width / 72) * density).round());
-    final bulbSpacing = width / bulbCount;
-    final bulbRadius = math.min(
-      math.max(2.0, amplitude * 0.18 + 1.0),
-      bulbSpacing * 0.28,
-    );
-    for (var i = 0; i <= bulbCount; i += 1) {
-      final t = i / bulbCount;
-      final point = _quadraticBezierPoint(
-        Offset(0, y),
-        Offset(width * 0.5, y + amplitude),
-        Offset(width, y),
-        t,
-      );
-      final color = _garlandBulbColors[i % _garlandBulbColors.length]
-          .withValues(alpha: (combinedAlpha * 0.9).clamp(0.0, 1.0).toDouble());
       _paint
-        ..color = color
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(point, bulbRadius, _paint);
+        ..color = ropeColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.2, rowAmplitude * 0.12)
+        ..strokeCap = StrokeCap.round;
+      canvas.drawPath(_garlandPath, _paint);
+
+      final bulbCount = math.max(4, ((rowSpan / 72) * density).round());
+      final bulbSpacing = rowSpan / bulbCount;
+      final bulbRadius = math.min(
+        math.max(2.0, rowAmplitude * 0.18 + 1.0),
+        bulbSpacing * 0.28,
+      );
+      for (var i = 0; i <= bulbCount; i += 1) {
+        final t = i / bulbCount;
+        final point = _quadraticBezierPoint(
+          Offset(leftX, rowY),
+          Offset(rowCenterX, rowY + rowAmplitude),
+          Offset(rightX, rowY),
+          t,
+        );
+        final color = _garlandBulbColors[(i + row) % _garlandBulbColors.length]
+            .withValues(
+                alpha: (combinedAlpha * 0.9).clamp(0.0, 1.0).toDouble());
+        _paint
+          ..color = color
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(point, bulbRadius, _paint);
+      }
     }
   }
 
@@ -368,98 +405,121 @@ class DecorPainter extends CustomPainter {
     final width = size.width;
     final y = size.height * backdrop.anchor.dy;
     final amplitude = _resolveDecorativeAmplitude(size, backdrop);
+    final rowCount = decorativeBackdropRows?.clamp(1, 6) ?? 1;
+    final rowGap = (amplitude * 1.6).clamp(12.0, size.height * 0.12);
+    const widthPattern = <double>[1.0, 0.86, 0.93, 0.78, 0.88, 0.74];
+    const offsetPattern = <double>[0.0, -0.04, 0.03, -0.06, 0.04, -0.02];
 
     final baseAlpha = backdrop.color.a;
     final combinedAlpha =
         (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
+    final ropeColor = backdrop.color.withValues(alpha: combinedAlpha);
 
-    _garlandPath
-      ..reset()
-      ..moveTo(0, y)
-      ..quadraticBezierTo(width * 0.5, y + amplitude, width, y);
+    for (var row = 0; row < rowCount; row += 1) {
+      final rowY = y + row * rowGap;
+      final rowSpan = (width * widthPattern[row % widthPattern.length])
+          .clamp(width * 0.6, width * 1.02)
+          .toDouble();
+      final rowCenterX =
+          width * (0.5 + offsetPattern[row % offsetPattern.length]);
+      final leftX = rowCenterX - rowSpan * 0.5;
+      final rightX = rowCenterX + rowSpan * 0.5;
+      final rowAmplitude = (amplitude * (0.82 + (row % 3) * 0.11))
+          .clamp(6.0, size.height * 0.14)
+          .toDouble();
 
-    _paint
-      ..color = backdrop.color.withValues(alpha: combinedAlpha)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = math.max(1.2, amplitude * 0.1)
-      ..strokeCap = StrokeCap.round;
-    canvas.drawPath(_garlandPath, _paint);
+      _garlandPath
+        ..reset()
+        ..moveTo(leftX, rowY)
+        ..quadraticBezierTo(rowCenterX, rowY + rowAmplitude, rightX, rowY);
 
-    final itemCount = math.max(4, ((width / 70) * density).round());
-    final itemSpacing = width / itemCount;
-    final candySize = math.min(
-      math.max(8.0, amplitude * 0.28),
-      itemSpacing * 0.3,
-    );
-    final ballSize = math.min(
-      math.max(4.0, amplitude * 0.2),
-      itemSpacing * 0.22,
-    );
-    for (var i = 0; i <= itemCount; i += 1) {
-      final t = i / itemCount;
-      final point = _quadraticBezierPoint(
-        Offset(0, y),
-        Offset(width * 0.5, y + amplitude),
-        Offset(width, y),
-        t,
+      _paint
+        ..color = ropeColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.2, rowAmplitude * 0.1)
+        ..strokeCap = StrokeCap.round;
+      canvas.drawPath(_garlandPath, _paint);
+
+      final itemCount = math.max(4, ((rowSpan / 70) * density).round());
+      final itemSpacing = rowSpan / itemCount;
+      final candySize = math.min(
+        math.max(8.0, rowAmplitude * 0.28),
+        itemSpacing * 0.3,
       );
+      final ballSize = math.min(
+        math.max(4.0, rowAmplitude * 0.2),
+        itemSpacing * 0.22,
+      );
+      for (var i = 0; i <= itemCount; i += 1) {
+        final t = i / itemCount;
+        final point = _quadraticBezierPoint(
+          Offset(leftX, rowY),
+          Offset(rowCenterX, rowY + rowAmplitude),
+          Offset(rightX, rowY),
+          t,
+        );
 
-      if (i.isEven) {
-        // Candy cane.
-        canvas.save();
-        canvas.translate(point.dx, point.dy + ballSize * 0.35);
-        canvas.scale(candySize, candySize);
-        _paint
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 0.12
-          ..strokeCap = StrokeCap.round
-          ..color = const Color(0xFFFFFFFF)
-              .withValues(alpha: (combinedAlpha * 0.95).clamp(0.0, 1.0));
-        canvas.drawLine(const Offset(0, 0.45), const Offset(0, -0.2), _paint);
-        canvas.drawArc(
-          Rect.fromCircle(center: Offset(0.2, -0.2), radius: 0.2),
-          math.pi,
-          math.pi,
-          false,
-          _paint,
-        );
-        _paint
-          ..strokeWidth = 0.08
-          ..color = const Color(0xFFE63946)
-              .withValues(alpha: (combinedAlpha * 0.9).clamp(0.0, 1.0));
-        canvas.drawLine(
-          const Offset(0.06, 0.32),
-          const Offset(-0.06, 0.22),
-          _paint,
-        );
-        canvas.drawLine(
-          const Offset(0.06, 0.14),
-          const Offset(-0.06, 0.04),
-          _paint,
-        );
-        canvas.drawLine(
-          const Offset(0.06, -0.04),
-          const Offset(-0.06, -0.14),
-          _paint,
-        );
-        canvas.restore();
-      } else {
-        // Red ornament ball.
-        _paint
-          ..color = const Color(0xFFD72638)
-              .withValues(alpha: (combinedAlpha * 0.95).clamp(0.0, 1.0))
-          ..style = PaintingStyle.fill;
-        canvas.drawCircle(point, ballSize * 0.55, _paint);
-        _paint
-          ..color = const Color(0xFFFFFFFF).withValues(
-            alpha: (combinedAlpha * 0.35).clamp(0.0, 1.0),
-          )
-          ..style = PaintingStyle.fill;
-        canvas.drawCircle(
-          point.translate(-ballSize * 0.15, -ballSize * 0.15),
-          ballSize * 0.18,
-          _paint,
-        );
+        if ((i + row).isEven) {
+          // Candy cane.
+          canvas.save();
+          canvas.translate(point.dx, point.dy + ballSize * 0.35);
+          canvas.scale(candySize, candySize);
+          _paint
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 0.12
+            ..strokeCap = StrokeCap.round
+            ..color = const Color(0xFFFFFFFF)
+                .withValues(alpha: (combinedAlpha * 0.95).clamp(0.0, 1.0));
+          canvas.drawLine(
+            const Offset(0, 0.45),
+            const Offset(0, -0.2),
+            _paint,
+          );
+          canvas.drawArc(
+            Rect.fromCircle(center: Offset(0.2, -0.2), radius: 0.2),
+            math.pi,
+            math.pi,
+            false,
+            _paint,
+          );
+          _paint
+            ..strokeWidth = 0.08
+            ..color = const Color(0xFFE63946)
+                .withValues(alpha: (combinedAlpha * 0.9).clamp(0.0, 1.0));
+          canvas.drawLine(
+            const Offset(0.06, 0.32),
+            const Offset(-0.06, 0.22),
+            _paint,
+          );
+          canvas.drawLine(
+            const Offset(0.06, 0.14),
+            const Offset(-0.06, 0.04),
+            _paint,
+          );
+          canvas.drawLine(
+            const Offset(0.06, -0.04),
+            const Offset(-0.06, -0.14),
+            _paint,
+          );
+          canvas.restore();
+        } else {
+          // Red ornament ball.
+          _paint
+            ..color = const Color(0xFFD72638)
+                .withValues(alpha: (combinedAlpha * 0.95).clamp(0.0, 1.0))
+            ..style = PaintingStyle.fill;
+          canvas.drawCircle(point, ballSize * 0.55, _paint);
+          _paint
+            ..color = const Color(0xFFFFFFFF).withValues(
+              alpha: (combinedAlpha * 0.35).clamp(0.0, 1.0),
+            )
+            ..style = PaintingStyle.fill;
+          canvas.drawCircle(
+            point.translate(-ballSize * 0.15, -ballSize * 0.15),
+            ballSize * 0.18,
+            _paint,
+          );
+        }
       }
     }
   }
@@ -475,50 +535,279 @@ class DecorPainter extends CustomPainter {
     final width = size.width;
     final y = size.height * backdrop.anchor.dy;
     final amplitude = _resolveDecorativeAmplitude(size, backdrop);
+    final rowCount = decorativeBackdropRows?.clamp(1, 6) ?? 1;
+    final rowGap = (amplitude * 1.6).clamp(12.0, size.height * 0.12);
+    const widthPattern = <double>[1.0, 0.86, 0.93, 0.78, 0.88, 0.74];
+    const offsetPattern = <double>[0.0, -0.04, 0.03, -0.06, 0.04, -0.02];
 
     final baseAlpha = backdrop.color.a;
     final combinedAlpha =
         (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
+    final ropeColor = backdrop.color.withValues(alpha: combinedAlpha);
 
-    _buntingPath
-      ..reset()
-      ..moveTo(0, y)
-      ..quadraticBezierTo(width * 0.5, y + amplitude, width, y);
+    for (var row = 0; row < rowCount; row += 1) {
+      final rowY = y + row * rowGap;
+      final rowSpan = (width * widthPattern[row % widthPattern.length])
+          .clamp(width * 0.6, width * 1.02)
+          .toDouble();
+      final rowCenterX =
+          width * (0.5 + offsetPattern[row % offsetPattern.length]);
+      final leftX = rowCenterX - rowSpan * 0.5;
+      final rightX = rowCenterX + rowSpan * 0.5;
+      final rowAmplitude = (amplitude * (0.86 + (row % 3) * 0.1))
+          .clamp(6.0, size.height * 0.14)
+          .toDouble();
 
-    _paint
-      ..color = backdrop.color.withValues(alpha: combinedAlpha)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = math.max(1.2, amplitude * 0.08)
-      ..strokeCap = StrokeCap.round;
-    canvas.drawPath(_buntingPath, _paint);
-
-    final flagCount = math.max(4, ((width / 88) * density).round());
-    final flagSpacing = width / flagCount;
-    final flagHeight = math.min(
-      math.max(9.0, amplitude * 1.15),
-      flagSpacing * 0.9,
-    );
-    final flagWidth = math.min(flagHeight * 0.86, flagSpacing * 0.82);
-    for (var i = 0; i < flagCount; i += 1) {
-      final t = (i + 0.5) / flagCount;
-      final point = _quadraticBezierPoint(
-        Offset(0, y),
-        Offset(width * 0.5, y + amplitude),
-        Offset(width, y),
-        t,
-      );
-      _trianglePath
+      _buntingPath
         ..reset()
-        ..moveTo(point.dx - flagWidth * 0.5, point.dy)
-        ..lineTo(point.dx + flagWidth * 0.5, point.dy)
-        ..lineTo(point.dx, point.dy + flagHeight)
-        ..close();
-      final color = _buntingColors[i % _buntingColors.length]
-          .withValues(alpha: (combinedAlpha * 0.95).clamp(0.0, 1.0).toDouble());
+        ..moveTo(leftX, rowY)
+        ..quadraticBezierTo(rowCenterX, rowY + rowAmplitude, rightX, rowY);
+
       _paint
-        ..color = color
-        ..style = PaintingStyle.fill;
-      canvas.drawPath(_trianglePath, _paint);
+        ..color = ropeColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.2, rowAmplitude * 0.08)
+        ..strokeCap = StrokeCap.round;
+      canvas.drawPath(_buntingPath, _paint);
+
+      final flagCount = math.max(4, ((rowSpan / 88) * density).round());
+      final flagSpacing = rowSpan / flagCount;
+      final flagHeight = math.min(
+        math.max(9.0, rowAmplitude * 1.15),
+        flagSpacing * 0.9,
+      );
+      final flagWidth = math.min(flagHeight * 0.86, flagSpacing * 0.82);
+      for (var i = 0; i < flagCount; i += 1) {
+        final t = (i + 0.5) / flagCount;
+        final point = _quadraticBezierPoint(
+          Offset(leftX, rowY),
+          Offset(rowCenterX, rowY + rowAmplitude),
+          Offset(rightX, rowY),
+          t,
+        );
+        _trianglePath
+          ..reset()
+          ..moveTo(point.dx - flagWidth * 0.5, point.dy)
+          ..lineTo(point.dx + flagWidth * 0.5, point.dy)
+          ..lineTo(point.dx, point.dy + flagHeight)
+          ..close();
+        final color = _buntingColors[(i + row) % _buntingColors.length]
+            .withValues(
+                alpha: (combinedAlpha * 0.95).clamp(0.0, 1.0).toDouble());
+        _paint
+          ..color = color
+          ..style = PaintingStyle.fill;
+        canvas.drawPath(_trianglePath, _paint);
+      }
+    }
+  }
+
+  void _paintRamadanBunting(
+    Canvas canvas,
+    Size size,
+    double opacity,
+    DecorBackdrop backdrop,
+  ) {
+    const fabricColors = <Color>[
+      Color(0xFFD63A2E),
+      Color(0xFFE65A2D),
+      Color(0xFF1C4FA3),
+      Color(0xFFF2E7D1),
+      Color(0xFF2E7D5A),
+    ];
+    const accentColors = <Color>[
+      Color(0xFFF4D03F),
+      Color(0xFFFFFFFF),
+      Color(0xFFCF2F24),
+      Color(0xFF2E5EB8),
+    ];
+    const tasselColors = <Color>[
+      Color(0xFF0F172A),
+      Color(0xFFD63A2E),
+      Color(0xFF1D4ED8),
+      Color(0xFF10B981),
+      Color(0xFFF59E0B),
+    ];
+
+    final density =
+        decorativeBackdropDensityMultiplier.clamp(0.45, 2.5).toDouble();
+    final width = size.width;
+    final shortest = math.min(size.width, size.height);
+    final startY = size.height * backdrop.anchor.dy;
+    final baseAmplitude = _resolveDecorativeAmplitude(size, backdrop);
+    final autoStrandCount = density > 2.0
+        ? 5
+        : density > 1.35
+            ? 4
+            : 3;
+    final strandCount = ramadanBuntingRows?.clamp(1, 6) ??
+        decorativeBackdropRows?.clamp(1, 6) ??
+        autoStrandCount;
+    final baseStrandGap =
+        (shortest * backdrop.sizeFactor * 1.65).clamp(14.0, 36.0).toDouble();
+    var strandGap = baseStrandGap;
+    if (strandCount > 1) {
+      final maxGapByViewport =
+          ((size.height * 0.62) - startY) / (strandCount - 1);
+      strandGap = math.min(
+        baseStrandGap,
+        maxGapByViewport.clamp(12.0, 38.0).toDouble(),
+      );
+    }
+
+    const widthPattern = <double>[1.06, 0.82, 0.94, 0.72, 0.86, 0.68];
+    const offsetPattern = <double>[0.0, -0.05, 0.04, -0.08, 0.06, -0.03];
+    const sagPattern = <double>[0.92, 1.18, 0.86, 1.12, 0.95, 1.04];
+
+    final baseAlpha = backdrop.color.a;
+    final combinedAlpha =
+        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
+    final ropeColor = Color.lerp(backdrop.color, const Color(0xFFECD9A0), 0.55)!
+        .withValues(alpha: (combinedAlpha * 0.9).clamp(0.0, 1.0));
+
+    for (var strand = 0; strand < strandCount; strand += 1) {
+      final y =
+          startY + strand * strandGap + (strand.isOdd ? shortest * 0.004 : 0);
+      final amplitude = (baseAmplitude * sagPattern[strand % sagPattern.length])
+          .clamp(8.0, size.height * 0.16)
+          .toDouble();
+      final span = (width * widthPattern[strand % widthPattern.length])
+          .clamp(width * 0.56, width * 1.12)
+          .toDouble();
+      final centerX =
+          width * (0.5 + offsetPattern[strand % offsetPattern.length]);
+      final leftX = centerX - span * 0.5;
+      final rightX = centerX + span * 0.5;
+      final controlY = y + amplitude;
+
+      _buntingPath
+        ..reset()
+        ..moveTo(leftX, y)
+        ..quadraticBezierTo(centerX, controlY, rightX, y);
+      _paint
+        ..color = ropeColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.2, shortest * 0.003)
+        ..strokeCap = StrokeCap.round;
+      canvas.drawPath(_buntingPath, _paint);
+
+      final flagCount =
+          math.max(3, ((span / (108 - strand * 7)) * density).round());
+      final flagHeightBase =
+          (shortest * backdrop.sizeFactor * 1.6).clamp(13.0, 32.0).toDouble();
+
+      for (var i = 0; i < flagCount; i += 1) {
+        final t = (i + 0.5) / flagCount;
+        final top = _quadraticBezierPoint(
+          Offset(leftX, y),
+          Offset(centerX, controlY),
+          Offset(rightX, y),
+          t,
+        ).translate(
+          0,
+          ((i % 3) - 1) * shortest * 0.0022,
+        );
+        final flagHeight = flagHeightBase * (0.88 + ((i + strand) % 3) * 0.1);
+        final slotWidth = span / flagCount;
+        final flagWidth = math.min(
+          flagHeight * 0.82,
+          slotWidth * 0.92,
+        );
+
+        final fabric = fabricColors[(i + strand) % fabricColors.length]
+            .withValues(alpha: (combinedAlpha * 0.97).clamp(0.0, 1.0));
+        final accent = accentColors[(i * 2 + strand) % accentColors.length]
+            .withValues(alpha: (combinedAlpha * 0.9).clamp(0.0, 1.0));
+        final outline = Color.lerp(fabric, const Color(0xFF4C2B1A), 0.42)!
+            .withValues(alpha: (combinedAlpha * 0.9).clamp(0.0, 1.0));
+
+        _trianglePath
+          ..reset()
+          ..moveTo(top.dx - flagWidth * 0.5, top.dy)
+          ..lineTo(top.dx + flagWidth * 0.5, top.dy)
+          ..lineTo(top.dx, top.dy + flagHeight)
+          ..close();
+        _paint
+          ..color = fabric
+          ..style = PaintingStyle.fill;
+        canvas.drawPath(_trianglePath, _paint);
+
+        final diamond = Path()
+          ..moveTo(top.dx, top.dy + flagHeight * 0.18)
+          ..lineTo(top.dx + flagWidth * 0.18, top.dy + flagHeight * 0.36)
+          ..lineTo(top.dx, top.dy + flagHeight * 0.54)
+          ..lineTo(top.dx - flagWidth * 0.18, top.dy + flagHeight * 0.36)
+          ..close();
+        _paint.color = accent;
+        canvas.drawPath(diamond, _paint);
+
+        _paint
+          ..color = accent.withValues(
+            alpha: (combinedAlpha * 0.76).clamp(0.0, 1.0),
+          )
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(0.9, flagWidth * 0.035)
+          ..strokeCap = StrokeCap.round;
+        canvas.drawLine(
+          Offset(top.dx - flagWidth * 0.35, top.dy + flagHeight * 0.22),
+          Offset(top.dx + flagWidth * 0.35, top.dy + flagHeight * 0.5),
+          _paint,
+        );
+        canvas.drawLine(
+          Offset(top.dx + flagWidth * 0.35, top.dy + flagHeight * 0.22),
+          Offset(top.dx - flagWidth * 0.35, top.dy + flagHeight * 0.5),
+          _paint,
+        );
+        canvas.drawLine(
+          Offset(top.dx - flagWidth * 0.28, top.dy + flagHeight * 0.12),
+          Offset(top.dx + flagWidth * 0.28, top.dy + flagHeight * 0.12),
+          _paint,
+        );
+
+        _paint
+          ..color = outline
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(0.8, flagWidth * 0.03);
+        canvas.drawPath(_trianglePath, _paint);
+
+        _paint
+          ..color =
+              accent.withValues(alpha: (combinedAlpha * 0.9).clamp(0.0, 1.0))
+          ..style = PaintingStyle.fill;
+        canvas.save();
+        canvas.translate(top.dx, top.dy + flagHeight * 0.36);
+        canvas.scale(flagWidth * 0.08, flagWidth * 0.08);
+        canvas.drawPath(_unitStarPath, _paint);
+        canvas.restore();
+
+        final tasselCount = 3;
+        for (var tIdx = 0; tIdx < tasselCount; tIdx += 1) {
+          final tt = tasselCount == 1 ? 0.5 : tIdx / (tasselCount - 1);
+          final tasselX = top.dx - flagWidth * 0.36 + tt * flagWidth * 0.72;
+          final tasselTopY = top.dy + flagHeight * 0.88;
+          final tasselEndY = tasselTopY + flagHeight * (0.08 + tIdx * 0.018);
+          _paint
+            ..color = outline.withValues(
+                alpha: (combinedAlpha * 0.82).clamp(0.0, 1.0))
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = math.max(0.8, flagWidth * 0.02)
+            ..strokeCap = StrokeCap.round;
+          canvas.drawLine(
+            Offset(tasselX, tasselTopY),
+            Offset(tasselX, tasselEndY),
+            _paint,
+          );
+          _paint
+            ..color = tasselColors[(i + tIdx + strand) % tasselColors.length]
+                .withValues(alpha: (combinedAlpha * 0.95).clamp(0.0, 1.0))
+            ..style = PaintingStyle.fill;
+          canvas.drawCircle(
+            Offset(tasselX, tasselEndY + flagHeight * 0.03),
+            (flagWidth * 0.05).clamp(1.2, 2.4).toDouble(),
+            _paint,
+          );
+        }
+      }
     }
   }
 
@@ -726,6 +1015,256 @@ class DecorPainter extends CustomPainter {
     canvas.restore();
   }
 
+  void _paintLanternBackdrop(
+    Canvas canvas,
+    Size size,
+    double opacity,
+    DecorBackdrop backdrop,
+  ) {
+    final shortest = math.min(size.width, size.height);
+    final scale = shortest * backdrop.sizeFactor;
+    final center = Offset(
+      size.width * backdrop.anchor.dx,
+      size.height * backdrop.anchor.dy,
+    );
+    final baseAlpha = backdrop.color.a;
+    final combinedAlpha =
+        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
+    final bodyColor = backdrop.color.withValues(alpha: combinedAlpha);
+    final frameColor = Color.lerp(bodyColor, const Color(0xFF0D121C), 0.36)!
+        .withValues(alpha: combinedAlpha);
+    final rimColor = Color.lerp(bodyColor, const Color(0xFF3A455A), 0.55)!
+        .withValues(alpha: (combinedAlpha * 0.95).clamp(0.0, 1.0));
+    final glowAlpha = (combinedAlpha * 0.5).clamp(0.0, 1.0).toDouble();
+
+    _paint
+      ..color = const Color(0xFFFF8A4C).withValues(alpha: glowAlpha)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, scale * 0.95, _paint);
+    _paint.color = const Color(0xFFFFC06A)
+        .withValues(alpha: (glowAlpha * 0.66).clamp(0.0, 1.0));
+    canvas.drawCircle(center, scale * 0.62, _paint);
+
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.scale(scale, scale);
+
+    _paint
+      ..color = frameColor
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(_unitLanternBodyPath, _paint);
+
+    final windowColor = const Color(0xFFFF8A4C)
+        .withValues(alpha: (combinedAlpha * 0.9).clamp(0.0, 1.0));
+    final innerGlow = const Color(0xFFFFC977).withValues(
+      alpha: (combinedAlpha * 0.82).clamp(0.0, 1.0),
+    );
+    _paint
+      ..color = windowColor
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(_unitLanternWindowPath, _paint);
+    _paint.color = innerGlow;
+    canvas.save();
+    canvas.translate(0, 0.06);
+    canvas.scale(0.62, 0.62);
+    canvas.drawPath(_unitLanternWindowPath, _paint);
+    canvas.restore();
+
+    final frameStroke = Color.lerp(bodyColor, const Color(0xFF0B1017), 0.5)!
+        .withValues(alpha: (combinedAlpha * 0.9).clamp(0.0, 1.0));
+    _paint
+      ..color = frameStroke
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.07
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      const Offset(-0.22, -0.34),
+      const Offset(-0.16, 0.42),
+      _paint,
+    );
+    canvas.drawLine(const Offset(0, -0.36), const Offset(0, 0.44), _paint);
+    canvas.drawLine(
+      const Offset(0.22, -0.34),
+      const Offset(0.16, 0.42),
+      _paint,
+    );
+
+    _paint
+      ..color = rimColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.06
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      const Offset(-0.42, -0.9),
+      const Offset(0.42, -0.9),
+      _paint,
+    );
+    for (var i = 0; i < 8; i += 1) {
+      final x = -0.34 + i * 0.097;
+      canvas.drawLine(
+        Offset(x, -0.9),
+        Offset(x, -0.78),
+        _paint,
+      );
+    }
+
+    // Perforated dome effect.
+    _paint
+      ..color = const Color(0xFFFFA86D).withValues(
+        alpha: (combinedAlpha * 0.56).clamp(0.0, 1.0),
+      )
+      ..style = PaintingStyle.fill;
+    for (var i = 0; i < 7; i += 1) {
+      final theta = math.pi + (i / 6) * math.pi;
+      final p = Offset(math.cos(theta) * 0.28, -0.98 + math.sin(theta) * 0.18);
+      canvas.drawCircle(p, 0.035, _paint);
+    }
+
+    _paint
+      ..color = rimColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.055;
+    canvas.drawPath(_unitLanternBodyPath, _paint);
+
+    canvas.restore();
+  }
+
+  void _paintRamadanLights(
+    Canvas canvas,
+    Size size,
+    double opacity,
+    DecorBackdrop backdrop,
+  ) {
+    final density =
+        decorativeBackdropDensityMultiplier.clamp(0.35, 2.5).toDouble();
+    final shortest = math.min(size.width, size.height);
+    final topY = size.height * backdrop.anchor.dy;
+    final dropBase =
+        (shortest * backdrop.sizeFactor * 2.3).clamp(56.0, size.height * 0.48);
+    final rowCount = decorativeBackdropRows?.clamp(1, 4) ?? 1;
+    final rowGap = (shortest * backdrop.sizeFactor * 0.9).clamp(22.0, 52.0);
+    const widthPattern = <double>[1.06, 0.88, 0.76, 0.66];
+    const offsetPattern = <double>[0.0, -0.05, 0.05, -0.02];
+    final baseAlpha = backdrop.color.a;
+    final combinedAlpha =
+        (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
+
+    final wireColor = Color.lerp(backdrop.color, const Color(0xFFFFFFFF), 0.18)!
+        .withValues(alpha: (combinedAlpha * 0.84).clamp(0.0, 1.0));
+    final bulbCore = const Color(0xFFFFE6A3).withValues(
+      alpha: (combinedAlpha * 0.88).clamp(0.0, 1.0),
+    );
+    final bulbGlow = const Color(0xFFFFF3CF).withValues(
+      alpha: (combinedAlpha * 0.42).clamp(0.0, 1.0),
+    );
+    final ornamentColor =
+        Color.lerp(backdrop.color, const Color(0xFFFFD166), 0.45)!
+            .withValues(alpha: (combinedAlpha * 0.96).clamp(0.0, 1.0));
+
+    final bulbSpacing = (16.0 / density).clamp(9.0, 22.0);
+
+    for (var row = 0; row < rowCount; row += 1) {
+      final rowY = topY + row * rowGap;
+      final rowSpan = (size.width * widthPattern[row % widthPattern.length])
+          .clamp(size.width * 0.55, size.width * 1.08)
+          .toDouble();
+      final rowCenterX =
+          size.width * (0.5 + offsetPattern[row % offsetPattern.length]);
+      final leftX = rowCenterX - rowSpan * 0.5;
+      final rightX = rowCenterX + rowSpan * 0.5;
+      final rowDropBase = (dropBase * (1.0 - row * 0.15))
+          .clamp(30.0, size.height * 0.46)
+          .toDouble();
+      final strandCount =
+          math.max(3, ((rowSpan / 84) * density * (1.0 - row * 0.08)).round());
+      final strandSpacing = strandCount > 1 ? rowSpan / (strandCount - 1) : 0.0;
+
+      _paint
+        ..color = wireColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.0, shortest * 0.0032)
+        ..strokeCap = StrokeCap.round;
+      canvas.drawLine(Offset(leftX, rowY), Offset(rightX, rowY), _paint);
+
+      for (var i = 0; i < strandCount; i += 1) {
+        final x = leftX + i * strandSpacing;
+        final sway = math.sin((i + row * 2) * 0.95) * strandSpacing * 0.14;
+        final start = Offset(x + sway * 0.2, rowY);
+        final drop = rowDropBase * (0.56 + ((i + row) % 5) * 0.09);
+        final end = Offset(x + sway, rowY + drop);
+
+        _paint
+          ..color = wireColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(1.0, shortest * 0.0028)
+          ..strokeCap = StrokeCap.round;
+        canvas.drawLine(start, end, _paint);
+
+        final bulbCount = math.max(2, (drop / bulbSpacing).floor() - 1);
+        for (var j = 1; j <= bulbCount; j += 1) {
+          final t = j / (bulbCount + 1);
+          final bulbPosition = Offset(
+            start.dx + (end.dx - start.dx) * t,
+            start.dy + (end.dy - start.dy) * t,
+          );
+          final bulbRadius = (shortest * 0.0062).clamp(1.3, 2.8).toDouble();
+          _paint
+            ..color = bulbGlow
+            ..style = PaintingStyle.fill;
+          canvas.drawCircle(bulbPosition, bulbRadius * 2.2, _paint);
+          _paint.color = bulbCore;
+          canvas.drawCircle(bulbPosition, bulbRadius, _paint);
+        }
+
+        final ornamentScale =
+            (shortest * (0.032 + ((i + row) % 3) * 0.006)).clamp(10.0, 26.0);
+        _paint
+          ..color = ornamentColor
+          ..style = PaintingStyle.fill;
+
+        switch ((i + row) % 3) {
+          case 0:
+            canvas.save();
+            canvas.translate(end.dx, end.dy);
+            canvas.scale(ornamentScale, ornamentScale);
+            canvas.drawPath(_unitStarPath, _paint);
+            canvas.restore();
+            break;
+          case 1:
+            canvas.save();
+            canvas.translate(end.dx, end.dy);
+            canvas.scale(ornamentScale, ornamentScale);
+            canvas.drawPath(_unitCrescentPath, _paint);
+            canvas.restore();
+            break;
+          default:
+            final lanternTint = const Color(0xFF1F2534).withValues(
+              alpha: ornamentColor.a,
+            );
+            canvas.save();
+            canvas.translate(end.dx, end.dy + ornamentScale * 0.06);
+            canvas.scale(ornamentScale, ornamentScale);
+            _paint.color = lanternTint;
+            canvas.drawPath(_unitLanternBodyPath, _paint);
+            _paint.color = const Color(0xFFFF8A4C).withValues(
+              alpha: (combinedAlpha * 0.88).clamp(0.0, 1.0),
+            );
+            canvas.drawPath(_unitLanternWindowPath, _paint);
+            _paint
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 0.06
+              ..strokeCap = StrokeCap.round
+              ..color = const Color(0xFF0F131B).withValues(
+                alpha: (combinedAlpha * 0.85).clamp(0.0, 1.0),
+              );
+            canvas.drawPath(_unitLanternBodyPath, _paint);
+            canvas.restore();
+            break;
+        }
+      }
+    }
+  }
+
   void _paintTrophy(
     Canvas canvas,
     Size size,
@@ -821,18 +1360,33 @@ class DecorPainter extends CustomPainter {
           ..color = windowColor
           ..style = PaintingStyle.fill;
         canvas.drawPath(_unitLanternWindowPath, _paint);
+        final frameStroke = Color.lerp(color, const Color(0xFF8C6B1F), 0.46)!
+            .withValues(alpha: (combinedAlpha * 0.85).clamp(0.0, 1.0));
         _paint
-          ..color = windowColor.withValues(
-            alpha: (combinedAlpha * 0.5).clamp(0.0, 1.0),
-          )
+          ..color = frameStroke
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 0.08;
-        canvas.drawLine(const Offset(0, -0.32), const Offset(0, 0.32), _paint);
+          ..strokeWidth = 0.07
+          ..strokeCap = StrokeCap.round;
         canvas.drawLine(
-          const Offset(-0.22, 0.02),
-          const Offset(0.22, 0.02),
+          const Offset(-0.22, -0.34),
+          const Offset(-0.16, 0.42),
           _paint,
         );
+        canvas.drawLine(const Offset(0, -0.36), const Offset(0, 0.44), _paint);
+        canvas.drawLine(
+          const Offset(0.22, -0.34),
+          const Offset(0.16, 0.42),
+          _paint,
+        );
+        _paint
+          ..color = const Color(0xFFF8E7A7)
+              .withValues(alpha: (combinedAlpha * 0.82).clamp(0.0, 1.0))
+          ..style = PaintingStyle.fill;
+        canvas.save();
+        canvas.translate(0, 0.06);
+        canvas.scale(0.18, 0.18);
+        canvas.drawPath(_unitCrescentPath, _paint);
+        canvas.restore();
         canvas.restore();
         break;
       case ParticleShape.balloon:
@@ -1099,28 +1653,53 @@ class DecorPainter extends CustomPainter {
 
   static Path _buildUnitLanternBodyPath() {
     final path = Path()
-      ..addRect(const Rect.fromLTRB(-0.2, -1.0, 0.2, -0.86))
-      ..moveTo(-0.45, -0.86)
-      ..lineTo(0.45, -0.86)
-      ..lineTo(0.3, -0.65)
-      ..lineTo(-0.3, -0.65)
+      ..addRect(const Rect.fromLTRB(-0.05, -1.18, 0.05, -1.04))
+      ..addOval(Rect.fromCircle(center: Offset(0, -1.2), radius: 0.08))
+      ..moveTo(-0.32, -1.04)
+      ..lineTo(0.32, -1.04)
+      ..lineTo(0.24, -0.94)
+      ..lineTo(-0.24, -0.94)
       ..close()
-      ..moveTo(-0.7, -0.65)
-      ..lineTo(0.7, -0.65)
-      ..lineTo(0.55, 0.55)
-      ..lineTo(-0.55, 0.55)
+      ..moveTo(-0.46, -0.94)
+      ..lineTo(0.46, -0.94)
+      ..lineTo(0.38, -0.84)
+      ..lineTo(-0.38, -0.84)
       ..close()
-      ..addRect(const Rect.fromLTRB(-0.45, 0.55, 0.45, 0.75))
-      ..addOval(Rect.fromCircle(center: Offset(0, 0.9), radius: 0.09));
+      ..moveTo(-0.62, -0.84)
+      ..lineTo(0.62, -0.84)
+      ..lineTo(0.5, -0.68)
+      ..lineTo(-0.5, -0.68)
+      ..close()
+      ..moveTo(-0.75, -0.68)
+      ..lineTo(0.75, -0.68)
+      ..lineTo(0.62, -0.54)
+      ..lineTo(-0.62, -0.54)
+      ..close()
+      ..moveTo(-0.62, -0.54)
+      ..lineTo(0.62, -0.54)
+      ..lineTo(0.52, 0.56)
+      ..lineTo(-0.52, 0.56)
+      ..close()
+      ..moveTo(-0.7, 0.56)
+      ..lineTo(0.7, 0.56)
+      ..lineTo(0.84, 0.78)
+      ..lineTo(-0.84, 0.78)
+      ..close()
+      ..moveTo(-0.58, 0.78)
+      ..lineTo(0.58, 0.78)
+      ..lineTo(0.72, 1.0)
+      ..lineTo(-0.72, 1.0)
+      ..close()
+      ..addOval(Rect.fromCircle(center: Offset(0, 1.1), radius: 0.09));
     return path;
   }
 
   static Path _buildUnitLanternWindowPath() {
     final path = Path()
-      ..moveTo(-0.38, -0.45)
-      ..lineTo(0.38, -0.45)
-      ..lineTo(0.3, 0.35)
-      ..lineTo(-0.3, 0.35)
+      ..moveTo(-0.4, -0.42)
+      ..quadraticBezierTo(0, -0.56, 0.4, -0.42)
+      ..lineTo(0.28, 0.46)
+      ..lineTo(-0.28, 0.46)
       ..close();
     return path;
   }
@@ -1213,6 +1792,8 @@ class DecorPainter extends CustomPainter {
         oldDelegate.staticMode != staticMode ||
         oldDelegate.paintParticles != paintParticles ||
         oldDelegate.showBackdrop != showBackdrop ||
+        oldDelegate.decorativeBackdropRows != decorativeBackdropRows ||
+        oldDelegate.ramadanBuntingRows != ramadanBuntingRows ||
         oldDelegate.decorativeBackdropDensityMultiplier !=
             decorativeBackdropDensityMultiplier;
   }
