@@ -91,4 +91,31 @@ void main() {
     expect(painter.config.backdrops.first.layer, BackdropLayer.background);
     expect(painter.config.backdrops.first.type, BackdropType.crescent);
   });
+
+  testWidgets('particleSizeMultiplier scales particle style sizes',
+      (tester) async {
+    final preset = SeasonalPreset.ramadan();
+    final baseConfig = preset.resolve(DecorIntensity.medium);
+    final baseStyle = baseConfig.styles.first;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SeasonalDecor(
+          preset: preset,
+          intensity: DecorIntensity.medium,
+          particleSizeMultiplier: 1.5,
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    final customPaint = tester
+        .widgetList<CustomPaint>(find.byType(CustomPaint))
+        .firstWhere((widget) => widget.painter is DecorPainter);
+    final painter = customPaint.painter! as DecorPainter;
+    final scaledStyle = painter.config.styles.first;
+
+    expect(scaledStyle.minSize, closeTo(baseStyle.minSize * 1.5, 0.0001));
+    expect(scaledStyle.maxSize, closeTo(baseStyle.maxSize * 1.5, 0.0001));
+  });
 }

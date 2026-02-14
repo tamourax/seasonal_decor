@@ -64,6 +64,11 @@ class SeasonalDecor extends StatefulWidget {
   /// `1.0` keeps preset speeds. Higher values make the animation faster.
   final double particleSpeedMultiplier;
 
+  /// Additional size multiplier for particle visuals.
+  ///
+  /// `1.0` keeps preset sizes. Higher values make particles larger.
+  final double particleSizeMultiplier;
+
   /// Whether to adapt particle/backdrop colors to platform brightness.
   ///
   /// In light theme, colors are boosted for better visibility.
@@ -124,6 +129,7 @@ class SeasonalDecor extends StatefulWidget {
     this.showBackgroundBackdrops = true,
     this.showDecorativeBackdrops = true,
     this.particleSpeedMultiplier = 1.0,
+    this.particleSizeMultiplier = 1.0,
     this.adaptColorsToTheme = true,
     this.presetShapes,
     this.presetStyles,
@@ -198,6 +204,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
         oldWidget.showBackgroundBackdrops != widget.showBackgroundBackdrops ||
         oldWidget.showDecorativeBackdrops != widget.showDecorativeBackdrops ||
         oldWidget.particleSpeedMultiplier != widget.particleSpeedMultiplier ||
+        oldWidget.particleSizeMultiplier != widget.particleSizeMultiplier ||
         oldWidget.adaptColorsToTheme != widget.adaptColorsToTheme ||
         _presetOverridesChanged(oldWidget)) {
       _controller.updateConfig(_resolveConfig());
@@ -271,9 +278,10 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     final resolvedPreset = _resolvePreset();
     final baseConfig = resolvedPreset.resolve(widget.intensity);
     final speedAdjusted = _applySpeedMultiplier(baseConfig);
+    final sizeAdjusted = _applySizeMultiplier(speedAdjusted);
     final themed = widget.adaptColorsToTheme
-        ? _adaptColorsForTheme(speedAdjusted)
-        : speedAdjusted;
+        ? _adaptColorsForTheme(sizeAdjusted)
+        : sizeAdjusted;
     return _applyBackdropLayerVisibility(themed);
   }
 
@@ -381,6 +389,32 @@ class _SeasonalDecorState extends State<SeasonalDecor>
       rocketMaxSpeed: config.rocketMaxSpeed * speedMultiplier,
       sparkMinSpeed: config.sparkMinSpeed * speedMultiplier,
       sparkMaxSpeed: config.sparkMaxSpeed * speedMultiplier,
+    );
+  }
+
+  DecorConfig _applySizeMultiplier(DecorConfig config) {
+    final sizeMultiplier = widget.particleSizeMultiplier.clamp(0.2, 4.0).toDouble();
+    if ((sizeMultiplier - 1.0).abs() < 0.0001) {
+      return config;
+    }
+
+    final styles = [
+      for (final style in config.styles)
+        style.copyWith(
+          minSize: style.minSize * sizeMultiplier,
+          maxSize: style.maxSize * sizeMultiplier,
+        ),
+    ];
+
+    if (!config.enableFireworks) {
+      return config.copyWith(styles: styles);
+    }
+
+    return config.copyWith(
+      styles: styles,
+      rocketSize: config.rocketSize * sizeMultiplier,
+      sparkMinSize: config.sparkMinSize * sizeMultiplier,
+      sparkMaxSize: config.sparkMaxSize * sizeMultiplier,
     );
   }
 
