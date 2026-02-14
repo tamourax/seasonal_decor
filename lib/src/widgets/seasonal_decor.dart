@@ -65,6 +65,37 @@ class SeasonalDecor extends StatefulWidget {
   /// Whether to paint backdrops in the [BackdropLayer.decorative] layer.
   final bool showDecorativeBackdrops;
 
+  /// Whether to render seasonal greeting text overlay.
+  final bool showText;
+
+  /// Optional custom greeting text.
+  ///
+  /// When null or empty, a preset-based default greeting is used.
+  final String? text;
+
+  /// Optional style override for greeting text.
+  final TextStyle? textStyle;
+
+  /// Opacity multiplier for greeting text.
+  ///
+  /// Defaults to `0.5`.
+  final double textOpacity;
+
+  /// Alignment for greeting text overlay.
+  final Alignment textAlignment;
+
+  /// Padding around greeting text overlay.
+  final EdgeInsets textPadding;
+
+  /// How long the text stays visible before exiting.
+  final Duration textDisplayDuration;
+
+  /// Duration of the text enter/exit animation.
+  final Duration textAnimationDuration;
+
+  /// Slide offset used when the text is hidden.
+  final Offset textSlideOffset;
+
   /// Additional speed multiplier for particle motion.
   ///
   /// `1.0` keeps preset speeds. Higher values make the animation faster.
@@ -141,6 +172,15 @@ class SeasonalDecor extends StatefulWidget {
     this.showBackgroundBackdrops = true,
     this.backgroundBackdrop,
     this.showDecorativeBackdrops = true,
+    this.showText = false,
+    this.text,
+    this.textStyle,
+    this.textOpacity = 0.5,
+    this.textAlignment = Alignment.topCenter,
+    this.textPadding = const EdgeInsets.fromLTRB(20, 56, 20, 0),
+    this.textDisplayDuration = const Duration(milliseconds: 1800),
+    this.textAnimationDuration = const Duration(milliseconds: 550),
+    this.textSlideOffset = const Offset(0, -0.2),
     this.particleSpeedMultiplier = 1.0,
     this.particleSizeMultiplier = 1.0,
     this.decorativeBackdropDensityMultiplier = 1.0,
@@ -170,10 +210,12 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   bool _appPaused = false;
   bool _reduceMotion = false;
   bool _playing = true;
+  bool _textVisible = false;
   Brightness _themeBrightness =
       WidgetsBinding.instance.platformDispatcher.platformBrightness;
   Timer? _stopTimer;
   Timer? _repeatTimer;
+  Timer? _textHideTimer;
 
   @override
   void initState() {
@@ -227,6 +269,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     }
     if (widget.preset.isNone) {
       _cancelTimers();
+      _hideText();
       _playing = false;
       _syncAnimation();
       return;
@@ -247,11 +290,28 @@ class _SeasonalDecorState extends State<SeasonalDecor>
         _startPlayCycle();
       } else {
         _cancelTimers();
+        _hideText();
         _playing = false;
         _applySystemControls();
         _syncAnimation();
       }
       return;
+    }
+    final textSettingsChanged = oldWidget.showText != widget.showText ||
+        oldWidget.text != widget.text ||
+        oldWidget.textStyle != widget.textStyle ||
+        oldWidget.textOpacity != widget.textOpacity ||
+        oldWidget.textAlignment != widget.textAlignment ||
+        oldWidget.textPadding != widget.textPadding ||
+        oldWidget.textDisplayDuration != widget.textDisplayDuration ||
+        oldWidget.textAnimationDuration != widget.textAnimationDuration ||
+        oldWidget.textSlideOffset != widget.textSlideOffset;
+    if (textSettingsChanged || oldWidget.preset != widget.preset) {
+      if (widget.enabled) {
+        _startTextCycle();
+      } else {
+        _hideText();
+      }
     }
     if (oldWidget.playDuration != widget.playDuration ||
         oldWidget.repeatEvery != widget.repeatEvery) {
@@ -496,10 +556,18 @@ class _SeasonalDecorState extends State<SeasonalDecor>
 
   void _startPlayCycle() {
     if (!widget.enabled) {
+      _hideText();
       return;
     }
+    final wasPlaying = _playing;
     _playing = true;
     _applySystemControls();
+    if (!wasPlaying && _controller.config.enableFireworks) {
+      // Fireworks presets can look delayed on restart because rocket spawning
+      // is accumulator-based. Force an immediate cycle respawn on restart.
+      _controller.system.setConfig(_controller.config, respawn: true);
+    }
+    _startTextCycle();
     _stopTimer?.cancel();
     _repeatTimer?.cancel();
     if (widget.playDuration > Duration.zero) {
@@ -521,6 +589,79 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   void _cancelTimers() {
     _stopTimer?.cancel();
     _repeatTimer?.cancel();
+    _textHideTimer?.cancel();
+  }
+
+  void _hideText() {
+    _textHideTimer?.cancel();
+    _setTextVisible(false);
+  }
+
+  void _startTextCycle() {
+    _textHideTimer?.cancel();
+    final resolvedText = _resolveOverlayText();
+    if (resolvedText == null ||
+        resolvedText.isEmpty ||
+        !widget.showText ||
+        !widget.enabled) {
+      _setTextVisible(false);
+      return;
+    }
+
+    _setTextVisible(true);
+    if (widget.textDisplayDuration <= Duration.zero) {
+      return;
+    }
+    _textHideTimer = Timer(widget.textDisplayDuration, () {
+      if (!mounted) {
+        return;
+      }
+      _setTextVisible(false);
+    });
+  }
+
+  void _setTextVisible(bool visible) {
+    if (_textVisible == visible) {
+      return;
+    }
+    if (!mounted) {
+      _textVisible = visible;
+      return;
+    }
+    setState(() => _textVisible = visible);
+  }
+
+  String? _resolveOverlayText() {
+    if (!widget.showText || widget.preset.isNone) {
+      return null;
+    }
+    final custom = widget.text?.trim();
+    if (custom != null && custom.isNotEmpty) {
+      return custom;
+    }
+    return _defaultTextForPreset(widget.preset);
+  }
+
+  String _defaultTextForPreset(SeasonalPreset preset) {
+    switch (preset.name) {
+      case 'Ramadan':
+        return 'Ramadan Kareem';
+      case 'Eid al-Fitr':
+      case 'Eid al-Adha':
+        return 'Eid Mubarak';
+      case 'Christmas':
+        return 'Merry Christmas';
+      case 'New Year':
+        return 'Happy New Year';
+      case 'Valentine':
+        return "Happy Valentine's Day";
+      case 'Halloween':
+        return 'Happy Halloween';
+      case 'Sport Event':
+        return 'Let the game begin';
+      default:
+        return preset.name;
+    }
   }
 
   void _applySystemControls() {
@@ -555,6 +696,9 @@ class _SeasonalDecorState extends State<SeasonalDecor>
 
   @visibleForTesting
   void debugStopPlayingForTest() => _stopPlaying();
+
+  @visibleForTesting
+  bool debugIsTextVisible() => _textVisible;
 
   void _syncAnimation() {
     if (widget.preset.isNone) {
@@ -622,6 +766,36 @@ class _SeasonalDecorState extends State<SeasonalDecor>
             widget.backgroundBackdrop != null &&
                 widget.showBackdrop &&
                 (widget.enabled || widget.showBackdropWhenDisabled);
+        final shouldShowText = widget.enabled && widget.showText;
+        final overlayText = _resolveOverlayText();
+        final clampedTextOpacity =
+            widget.textOpacity.clamp(0.0, 1.0).toDouble();
+        final defaultTextStyle = DefaultTextStyle.of(context).style.copyWith(
+          fontSize: 34,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.6,
+          color: const Color(0xFFFFFFFF),
+          shadows: const [
+            Shadow(
+              color: Color(0x55000000),
+              blurRadius: 12,
+              offset: Offset(0, 2),
+            ),
+          ],
+        );
+        final mergedTextStyle = defaultTextStyle.merge(widget.textStyle);
+        final textColor = mergedTextStyle.color ?? const Color(0xFFFFFFFF);
+        final textStyle = mergedTextStyle.copyWith(
+          color: textColor.withValues(
+            alpha:
+                (textColor.a * clampedTextOpacity).clamp(0.0, 1.0).toDouble(),
+          ),
+        );
+        final textAnimationDuration = _reduceMotion
+            ? const Duration(milliseconds: 240)
+            : widget.textAnimationDuration;
+        final hiddenTextOffset =
+            _reduceMotion ? Offset.zero : widget.textSlideOffset;
 
         return Stack(
           fit: StackFit.expand,
@@ -636,6 +810,35 @@ class _SeasonalDecorState extends State<SeasonalDecor>
               IgnorePointer(
                 ignoring: widget.ignorePointer,
                 child: overlay,
+              ),
+            if (shouldShowText && overlayText != null && overlayText.isNotEmpty)
+              IgnorePointer(
+                ignoring: true,
+                child: Padding(
+                  padding: widget.textPadding,
+                  child: Align(
+                    alignment: widget.textAlignment,
+                    child: AnimatedSlide(
+                      duration: textAnimationDuration,
+                      curve: Curves.easeOutCubic,
+                      offset: _textVisible ? Offset.zero : hiddenTextOffset,
+                      child: AnimatedOpacity(
+                        duration: textAnimationDuration,
+                        curve: Curves.easeOutCubic,
+                        opacity: _textVisible ? 1.0 : 0.0,
+                        child: RepaintBoundary(
+                          child: Text(
+                            overlayText,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: textStyle,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
           ],
         );

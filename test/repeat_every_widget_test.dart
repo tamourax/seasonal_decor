@@ -119,6 +119,44 @@ void main() {
     expect(scaledStyle.maxSize, closeTo(baseStyle.maxSize * 1.5, 0.0001));
   });
 
+  testWidgets('showText renders default seasonal greeting for preset',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SeasonalDecor(
+          preset: SeasonalPreset.ramadan(),
+          showText: true,
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    expect(find.text('Ramadan Kareem'), findsOneWidget);
+  });
+
+  testWidgets('custom text is shown and auto-hides after display duration',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SeasonalDecor(
+          preset: SeasonalPreset.eid(variant: EidVariant.fitr),
+          showText: true,
+          text: 'Eid Celebration',
+          textDisplayDuration: const Duration(milliseconds: 80),
+          textAnimationDuration: const Duration(milliseconds: 1),
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    final dynamic state = tester.state(find.byType(SeasonalDecor));
+    expect(state.debugIsTextVisible() as bool, isTrue);
+    expect(find.text('Eid Celebration'), findsOneWidget);
+
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(state.debugIsTextVisible() as bool, isFalse);
+  });
+
   testWidgets('custom background backdrop replaces built-in background layer',
       (tester) async {
     const customBackdropKey = Key('custom-background-backdrop');
