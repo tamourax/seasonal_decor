@@ -223,6 +223,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildCustomBackgroundBackdrop(Brightness brightness) {
     final icon = switch (_presetOption) {
       PresetOption.ramadan ||
+      PresetOption.ramadanHangingLanterns ||
       PresetOption.eidFitr ||
       PresetOption.eidAdha =>
         Icons.nightlight_round,
@@ -230,7 +231,7 @@ class _HomePageState extends State<HomePage> {
       PresetOption.newYear => Icons.celebration,
       PresetOption.valentine => Icons.favorite,
       PresetOption.halloween => Icons.auto_awesome,
-      PresetOption.sportEvent => Icons.emoji_events,
+      PresetOption.football => Icons.emoji_events,
       PresetOption.none => Icons.auto_awesome,
     };
 
