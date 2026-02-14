@@ -27,7 +27,6 @@ migrate_working_dir/
 **/doc/api/
 .dart_tool/
 .flutter-plugins-dependencies
-/build/
 /coverage/
 
 # Example app (keep example/lib and pubspec, ignore platforms)
@@ -40,7 +39,6 @@ example/linux/
 example/.dart_tool/
 example/.flutter-plugins
 example/.flutter-plugins-dependencies
-example/build/
 example/coverage/
 
 # JS package workspace

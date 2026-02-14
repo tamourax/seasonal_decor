@@ -141,6 +141,17 @@ class _HomePageState extends State<HomePage> {
   double _textSize = 34.0;
   double _textDisplaySeconds = 1.8;
   double _textAnimationMilliseconds = 550.0;
+  double _textAlignX = 0.0;
+  double _textAlignY = -1.0;
+  double _textPaddingHorizontal = 20.0;
+  double _textPaddingTop = 56.0;
+  double _textSlideX = 0.0;
+  double _textSlideY = -0.2;
+  bool _useCustomBackgroundBackdrop = false;
+  double _customBackgroundX = 0.85;
+  double _customBackgroundY = -0.7;
+  double _customBackgroundSize = 180.0;
+  double _customBackgroundOpacity = 0.35;
   bool _adaptColorsToTheme = true;
   double _playDurationSeconds = 10.0;
   bool _settleOnDisable = true;
@@ -207,6 +218,40 @@ class _HomePageState extends State<HomePage> {
       backdropType: _backdropType,
       backdropAnchor: Offset(_backdropAnchorX, _backdropAnchorY),
       backdropSizeFactor: _backdropSizeFactor,
+    );
+  }
+
+  Widget _buildCustomBackgroundBackdrop(Brightness brightness) {
+    final icon = switch (_presetOption) {
+      PresetOption.ramadan ||
+      PresetOption.eidFitr ||
+      PresetOption.eidAdha =>
+        Icons.nightlight_round,
+      PresetOption.christmas => Icons.park,
+      PresetOption.newYear => Icons.celebration,
+      PresetOption.valentine => Icons.favorite,
+      PresetOption.halloween => Icons.auto_awesome,
+      PresetOption.sportEvent => Icons.emoji_events,
+      PresetOption.none => Icons.auto_awesome,
+    };
+
+    final baseColor = brightness == Brightness.dark
+        ? const Color(0xFFFFE2A6)
+        : const Color(0xFF3D5A80);
+    final color = baseColor.withValues(
+      alpha: _customBackgroundOpacity.clamp(0.05, 1.0).toDouble(),
+    );
+
+    return Align(
+      alignment: Alignment(
+        _customBackgroundX.clamp(-1.0, 1.0).toDouble(),
+        _customBackgroundY.clamp(-1.0, 1.0).toDouble(),
+      ),
+      child: Icon(
+        icon,
+        size: _customBackgroundSize.clamp(64.0, 360.0).toDouble(),
+        color: color,
+      ),
     );
   }
 
@@ -361,6 +406,9 @@ class _HomePageState extends State<HomePage> {
                 showBackdrop: _showBackdrop,
                 showBackdropWhenDisabled: _showBackdropWhenDisabled,
                 showBackgroundBackdrops: _showBackgroundBackdrops,
+                backgroundBackdrop: _useCustomBackgroundBackdrop
+                    ? _buildCustomBackgroundBackdrop(brightness)
+                    : null,
                 showDecorativeBackdrops: _showDecorativeBackdrops,
                 showText: _showText,
                 text: _customOverlayText.trim().isEmpty
@@ -372,12 +420,20 @@ class _HomePageState extends State<HomePage> {
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.6,
                 ),
+                textAlignment: Alignment(_textAlignX, _textAlignY),
+                textPadding: EdgeInsets.fromLTRB(
+                  _textPaddingHorizontal,
+                  _textPaddingTop,
+                  _textPaddingHorizontal,
+                  0,
+                ),
                 textDisplayDuration: Duration(
                   milliseconds: (_textDisplaySeconds * 1000).round(),
                 ),
                 textAnimationDuration: Duration(
                   milliseconds: _textAnimationMilliseconds.round(),
                 ),
+                textSlideOffset: Offset(_textSlideX, _textSlideY),
                 particleSpeedMultiplier: _particleSpeedMultiplier,
                 particleSizeMultiplier: _particleSizeMultiplier,
                 decorativeBackdropDensityMultiplier:
@@ -407,6 +463,11 @@ class _HomePageState extends State<HomePage> {
               showBackdrop: _showBackdrop,
               showBackdropWhenDisabled: _showBackdropWhenDisabled,
               showBackgroundBackdrops: _showBackgroundBackdrops,
+              useCustomBackgroundBackdrop: _useCustomBackgroundBackdrop,
+              customBackgroundX: _customBackgroundX,
+              customBackgroundY: _customBackgroundY,
+              customBackgroundSize: _customBackgroundSize,
+              customBackgroundOpacity: _customBackgroundOpacity,
               showDecorativeBackdrops: _showDecorativeBackdrops,
               showText: _showText,
               customOverlayText: _customOverlayText,
@@ -414,6 +475,12 @@ class _HomePageState extends State<HomePage> {
               textSize: _textSize,
               textDisplaySeconds: _textDisplaySeconds,
               textAnimationMilliseconds: _textAnimationMilliseconds,
+              textAlignX: _textAlignX,
+              textAlignY: _textAlignY,
+              textPaddingHorizontal: _textPaddingHorizontal,
+              textPaddingTop: _textPaddingTop,
+              textSlideX: _textSlideX,
+              textSlideY: _textSlideY,
               particleSpeedMultiplier: _particleSpeedMultiplier,
               particleSizeMultiplier: _particleSizeMultiplier,
               decorativeBackdropDensityMultiplier:
@@ -447,6 +514,16 @@ class _HomePageState extends State<HomePage> {
                   setState(() => _showBackdropWhenDisabled = value),
               onShowBackgroundBackdropsChanged: (value) =>
                   setState(() => _showBackgroundBackdrops = value),
+              onUseCustomBackgroundBackdropChanged: (value) =>
+                  setState(() => _useCustomBackgroundBackdrop = value),
+              onCustomBackgroundXChanged: (value) =>
+                  setState(() => _customBackgroundX = value),
+              onCustomBackgroundYChanged: (value) =>
+                  setState(() => _customBackgroundY = value),
+              onCustomBackgroundSizeChanged: (value) =>
+                  setState(() => _customBackgroundSize = value),
+              onCustomBackgroundOpacityChanged: (value) =>
+                  setState(() => _customBackgroundOpacity = value),
               onShowDecorativeBackdropsChanged: (value) =>
                   setState(() => _showDecorativeBackdrops = value),
               onShowTextChanged: (value) => setState(() => _showText = value),
@@ -459,6 +536,18 @@ class _HomePageState extends State<HomePage> {
                   setState(() => _textDisplaySeconds = value),
               onTextAnimationMillisecondsChanged: (value) =>
                   setState(() => _textAnimationMilliseconds = value),
+              onTextAlignXChanged: (value) =>
+                  setState(() => _textAlignX = value),
+              onTextAlignYChanged: (value) =>
+                  setState(() => _textAlignY = value),
+              onTextPaddingHorizontalChanged: (value) =>
+                  setState(() => _textPaddingHorizontal = value),
+              onTextPaddingTopChanged: (value) =>
+                  setState(() => _textPaddingTop = value),
+              onTextSlideXChanged: (value) =>
+                  setState(() => _textSlideX = value),
+              onTextSlideYChanged: (value) =>
+                  setState(() => _textSlideY = value),
               onParticleSpeedMultiplierChanged: (value) =>
                   setState(() => _particleSpeedMultiplier = value),
               onParticleSizeMultiplierChanged: (value) =>
@@ -628,6 +717,11 @@ class _ControlSheet extends StatelessWidget {
   final bool showBackdrop;
   final bool showBackdropWhenDisabled;
   final bool showBackgroundBackdrops;
+  final bool useCustomBackgroundBackdrop;
+  final double customBackgroundX;
+  final double customBackgroundY;
+  final double customBackgroundSize;
+  final double customBackgroundOpacity;
   final bool showDecorativeBackdrops;
   final bool showText;
   final String customOverlayText;
@@ -635,6 +729,12 @@ class _ControlSheet extends StatelessWidget {
   final double textSize;
   final double textDisplaySeconds;
   final double textAnimationMilliseconds;
+  final double textAlignX;
+  final double textAlignY;
+  final double textPaddingHorizontal;
+  final double textPaddingTop;
+  final double textSlideX;
+  final double textSlideY;
   final double particleSpeedMultiplier;
   final double particleSizeMultiplier;
   final double decorativeBackdropDensityMultiplier;
@@ -660,6 +760,11 @@ class _ControlSheet extends StatelessWidget {
   final ValueChanged<bool> onShowBackdropChanged;
   final ValueChanged<bool> onShowBackdropWhenDisabledChanged;
   final ValueChanged<bool> onShowBackgroundBackdropsChanged;
+  final ValueChanged<bool> onUseCustomBackgroundBackdropChanged;
+  final ValueChanged<double> onCustomBackgroundXChanged;
+  final ValueChanged<double> onCustomBackgroundYChanged;
+  final ValueChanged<double> onCustomBackgroundSizeChanged;
+  final ValueChanged<double> onCustomBackgroundOpacityChanged;
   final ValueChanged<bool> onShowDecorativeBackdropsChanged;
   final ValueChanged<bool> onShowTextChanged;
   final ValueChanged<String> onCustomOverlayTextChanged;
@@ -667,6 +772,12 @@ class _ControlSheet extends StatelessWidget {
   final ValueChanged<double> onTextSizeChanged;
   final ValueChanged<double> onTextDisplaySecondsChanged;
   final ValueChanged<double> onTextAnimationMillisecondsChanged;
+  final ValueChanged<double> onTextAlignXChanged;
+  final ValueChanged<double> onTextAlignYChanged;
+  final ValueChanged<double> onTextPaddingHorizontalChanged;
+  final ValueChanged<double> onTextPaddingTopChanged;
+  final ValueChanged<double> onTextSlideXChanged;
+  final ValueChanged<double> onTextSlideYChanged;
   final ValueChanged<double> onParticleSpeedMultiplierChanged;
   final ValueChanged<double> onParticleSizeMultiplierChanged;
   final ValueChanged<double> onDecorativeBackdropDensityMultiplierChanged;
@@ -694,6 +805,11 @@ class _ControlSheet extends StatelessWidget {
     required this.showBackdrop,
     required this.showBackdropWhenDisabled,
     required this.showBackgroundBackdrops,
+    required this.useCustomBackgroundBackdrop,
+    required this.customBackgroundX,
+    required this.customBackgroundY,
+    required this.customBackgroundSize,
+    required this.customBackgroundOpacity,
     required this.showDecorativeBackdrops,
     required this.showText,
     required this.customOverlayText,
@@ -701,6 +817,12 @@ class _ControlSheet extends StatelessWidget {
     required this.textSize,
     required this.textDisplaySeconds,
     required this.textAnimationMilliseconds,
+    required this.textAlignX,
+    required this.textAlignY,
+    required this.textPaddingHorizontal,
+    required this.textPaddingTop,
+    required this.textSlideX,
+    required this.textSlideY,
     required this.particleSpeedMultiplier,
     required this.particleSizeMultiplier,
     required this.decorativeBackdropDensityMultiplier,
@@ -726,6 +848,11 @@ class _ControlSheet extends StatelessWidget {
     required this.onShowBackdropChanged,
     required this.onShowBackdropWhenDisabledChanged,
     required this.onShowBackgroundBackdropsChanged,
+    required this.onUseCustomBackgroundBackdropChanged,
+    required this.onCustomBackgroundXChanged,
+    required this.onCustomBackgroundYChanged,
+    required this.onCustomBackgroundSizeChanged,
+    required this.onCustomBackgroundOpacityChanged,
     required this.onShowDecorativeBackdropsChanged,
     required this.onShowTextChanged,
     required this.onCustomOverlayTextChanged,
@@ -733,6 +860,12 @@ class _ControlSheet extends StatelessWidget {
     required this.onTextSizeChanged,
     required this.onTextDisplaySecondsChanged,
     required this.onTextAnimationMillisecondsChanged,
+    required this.onTextAlignXChanged,
+    required this.onTextAlignYChanged,
+    required this.onTextPaddingHorizontalChanged,
+    required this.onTextPaddingTopChanged,
+    required this.onTextSlideXChanged,
+    required this.onTextSlideYChanged,
     required this.onParticleSpeedMultiplierChanged,
     required this.onParticleSizeMultiplierChanged,
     required this.onDecorativeBackdropDensityMultiplierChanged,
@@ -1033,6 +1166,59 @@ class _ControlSheet extends StatelessWidget {
                         ),
                         SwitchListTile(
                           contentPadding: EdgeInsets.zero,
+                          title: const Text('Custom Background Widget'),
+                          subtitle: const Text(
+                            'Replace built-in background backdrops',
+                          ),
+                          value: useCustomBackgroundBackdrop,
+                          onChanged: showBackdrop
+                              ? onUseCustomBackgroundBackdropChanged
+                              : null,
+                        ),
+                        if (showBackdrop && useCustomBackgroundBackdrop) ...[
+                          Text(
+                            'Background X (${customBackgroundX.toStringAsFixed(2)})',
+                          ),
+                          Slider(
+                            value: customBackgroundX,
+                            min: -1.0,
+                            max: 1.0,
+                            divisions: 40,
+                            onChanged: onCustomBackgroundXChanged,
+                          ),
+                          Text(
+                            'Background Y (${customBackgroundY.toStringAsFixed(2)})',
+                          ),
+                          Slider(
+                            value: customBackgroundY,
+                            min: -1.0,
+                            max: 1.0,
+                            divisions: 40,
+                            onChanged: onCustomBackgroundYChanged,
+                          ),
+                          Text(
+                            'Background Size (${customBackgroundSize.toStringAsFixed(0)})',
+                          ),
+                          Slider(
+                            value: customBackgroundSize,
+                            min: 64,
+                            max: 360,
+                            divisions: 37,
+                            onChanged: onCustomBackgroundSizeChanged,
+                          ),
+                          Text(
+                            'Background Opacity (${customBackgroundOpacity.toStringAsFixed(2)})',
+                          ),
+                          Slider(
+                            value: customBackgroundOpacity,
+                            min: 0.05,
+                            max: 1.0,
+                            divisions: 19,
+                            onChanged: onCustomBackgroundOpacityChanged,
+                          ),
+                        ],
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
                           title: const Text('Decorative Backdrops'),
                           subtitle: const Text('Zina elements like bunting'),
                           value: showDecorativeBackdrops,
@@ -1103,6 +1289,58 @@ class _ControlSheet extends StatelessWidget {
                           onChanged: showText
                               ? onTextAnimationMillisecondsChanged
                               : null,
+                        ),
+                        Text('Text Align X (${textAlignX.toStringAsFixed(2)})'),
+                        Slider(
+                          value: textAlignX,
+                          min: -1.0,
+                          max: 1.0,
+                          divisions: 40,
+                          onChanged: showText ? onTextAlignXChanged : null,
+                        ),
+                        Text('Text Align Y (${textAlignY.toStringAsFixed(2)})'),
+                        Slider(
+                          value: textAlignY,
+                          min: -1.0,
+                          max: 1.0,
+                          divisions: 40,
+                          onChanged: showText ? onTextAlignYChanged : null,
+                        ),
+                        Text(
+                          'Text Horizontal Padding (${textPaddingHorizontal.toStringAsFixed(0)})',
+                        ),
+                        Slider(
+                          value: textPaddingHorizontal,
+                          min: 0,
+                          max: 80,
+                          divisions: 20,
+                          onChanged:
+                              showText ? onTextPaddingHorizontalChanged : null,
+                        ),
+                        Text(
+                            'Text Top Padding (${textPaddingTop.toStringAsFixed(0)})'),
+                        Slider(
+                          value: textPaddingTop,
+                          min: 0,
+                          max: 180,
+                          divisions: 18,
+                          onChanged: showText ? onTextPaddingTopChanged : null,
+                        ),
+                        Text('Text Slide X (${textSlideX.toStringAsFixed(2)})'),
+                        Slider(
+                          value: textSlideX,
+                          min: -1.0,
+                          max: 1.0,
+                          divisions: 40,
+                          onChanged: showText ? onTextSlideXChanged : null,
+                        ),
+                        Text('Text Slide Y (${textSlideY.toStringAsFixed(2)})'),
+                        Slider(
+                          value: textSlideY,
+                          min: -1.0,
+                          max: 1.0,
+                          divisions: 40,
+                          onChanged: showText ? onTextSlideYChanged : null,
                         ),
                         Text(
                           'Decorative Density '
