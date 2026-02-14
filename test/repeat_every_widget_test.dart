@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:seasonal_decor/seasonal_decor.dart';
+import 'package:seasonal_decor/src/engine/decor_painter.dart';
 
 void main() {
   testWidgets('widget-level preset overrides are accepted', (tester) async {
@@ -47,5 +48,47 @@ void main() {
     state.debugStopPlayingForTest();
     expect(state.debugIsPlaying() as bool, isFalse);
     expect(state.debugIsRepeatTimerActive() as bool, isTrue);
+  });
+
+  testWidgets('backdrop layer toggles can hide decorative but keep background',
+      (tester) async {
+    final preset = SeasonalPreset.ramadan().withOverrides(
+      backdrops: const [
+        DecorBackdrop.crescent(
+          layer: BackdropLayer.background,
+          color: Color(0x66FFE2A6),
+          opacity: 0.3,
+          anchor: Offset(0.84, 0.2),
+          sizeFactor: 0.2,
+        ),
+        DecorBackdrop.bunting(
+          layer: BackdropLayer.decorative,
+          color: Color(0x55F2D8A5),
+          opacity: 0.22,
+          anchor: Offset(0.5, 0.11),
+          sizeFactor: 0.04,
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SeasonalDecor(
+          preset: preset,
+          showBackgroundBackdrops: true,
+          showDecorativeBackdrops: false,
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    final customPaint = tester
+        .widgetList<CustomPaint>(find.byType(CustomPaint))
+        .firstWhere((widget) => widget.painter is DecorPainter);
+    final painter = customPaint.painter! as DecorPainter;
+
+    expect(painter.config.backdrops, hasLength(1));
+    expect(painter.config.backdrops.first.layer, BackdropLayer.background);
+    expect(painter.config.backdrops.first.type, BackdropType.crescent);
   });
 }

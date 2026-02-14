@@ -53,6 +53,12 @@ class SeasonalDecor extends StatefulWidget {
   /// Whether to keep drawing backdrops when [enabled] is false.
   final bool showBackdropWhenDisabled;
 
+  /// Whether to paint backdrops in the [BackdropLayer.background] layer.
+  final bool showBackgroundBackdrops;
+
+  /// Whether to paint backdrops in the [BackdropLayer.decorative] layer.
+  final bool showDecorativeBackdrops;
+
   /// Additional speed multiplier for particle motion.
   ///
   /// `1.0` keeps preset speeds. Higher values make the animation faster.
@@ -115,6 +121,8 @@ class SeasonalDecor extends StatefulWidget {
     this.repeatEvery,
     this.showBackdrop = true,
     this.showBackdropWhenDisabled = true,
+    this.showBackgroundBackdrops = true,
+    this.showDecorativeBackdrops = true,
     this.particleSpeedMultiplier = 1.0,
     this.adaptColorsToTheme = true,
     this.presetShapes,
@@ -187,6 +195,8 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.preset != widget.preset ||
         oldWidget.intensity != widget.intensity ||
+        oldWidget.showBackgroundBackdrops != widget.showBackgroundBackdrops ||
+        oldWidget.showDecorativeBackdrops != widget.showDecorativeBackdrops ||
         oldWidget.particleSpeedMultiplier != widget.particleSpeedMultiplier ||
         oldWidget.adaptColorsToTheme != widget.adaptColorsToTheme ||
         _presetOverridesChanged(oldWidget)) {
@@ -261,10 +271,40 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     final resolvedPreset = _resolvePreset();
     final baseConfig = resolvedPreset.resolve(widget.intensity);
     final speedAdjusted = _applySpeedMultiplier(baseConfig);
-    if (!widget.adaptColorsToTheme) {
-      return speedAdjusted;
+    final themed = widget.adaptColorsToTheme
+        ? _adaptColorsForTheme(speedAdjusted)
+        : speedAdjusted;
+    return _applyBackdropLayerVisibility(themed);
+  }
+
+  DecorConfig _applyBackdropLayerVisibility(DecorConfig config) {
+    if (widget.showBackgroundBackdrops && widget.showDecorativeBackdrops) {
+      return config;
     }
-    return _adaptColorsForTheme(speedAdjusted);
+
+    bool shouldKeep(DecorBackdrop backdrop) {
+      switch (backdrop.layer) {
+        case BackdropLayer.background:
+          return widget.showBackgroundBackdrops;
+        case BackdropLayer.decorative:
+          return widget.showDecorativeBackdrops;
+      }
+    }
+
+    final filteredBackdrops = [
+      for (final backdrop in config.backdrops)
+        if (shouldKeep(backdrop)) backdrop,
+    ];
+
+    final singleBackdrop = config.backdrop;
+    final filteredBackdrop = singleBackdrop != null && shouldKeep(singleBackdrop)
+        ? singleBackdrop
+        : null;
+
+    return config.copyWith(
+      backdrop: filteredBackdrop,
+      backdrops: filteredBackdrops,
+    );
   }
 
   SeasonalPreset _resolvePreset() {
