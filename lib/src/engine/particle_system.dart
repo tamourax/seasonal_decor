@@ -1,4 +1,4 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 import 'dart:ui';
 
 import '../config/decor_config.dart';
@@ -13,6 +13,7 @@ class ParticleSystem {
   double _rocketSpawnAccumulator = 0;
   double _densityScale = 1.0;
   int _maxActive;
+  int _activeCount = 0;
   List<Particle> _particles;
   bool _spawningEnabled = true;
   bool _wrapEnabled = true;
@@ -45,7 +46,7 @@ class ParticleSystem {
   List<Particle> get particles => _particles;
 
   /// Returns true when there are active particles in the pool.
-  bool get hasActiveParticles => _particles.any((particle) => particle.active);
+  bool get hasActiveParticles => _activeCount > 0;
 
   /// Enables or disables spawning new particles.
   void setSpawningEnabled(bool enabled) {
@@ -129,6 +130,10 @@ class ParticleSystem {
   }
 
   void _recomputeMaxActive() {
+    if (_config.particleCount <= 0 || _config.styles.isEmpty) {
+      _maxActive = 0;
+      return;
+    }
     _maxActive = math.max(1, (_config.particleCount * _densityScale).round());
     _maxActive = math.min(_maxActive, _config.particleCount);
   }
@@ -141,6 +146,9 @@ class ParticleSystem {
     if (dt <= 0) {
       return;
     }
+    if (!_spawningEnabled) {
+      _activeCount = _countActive();
+    }
     final double delta = dt.clamp(0.0, 0.05).toDouble();
     if (_config.enableFireworks) {
       _updateFireworks(delta);
@@ -151,12 +159,19 @@ class ParticleSystem {
       if (!particle.active) {
         continue;
       }
+      final wasActive = particle.active;
       particle.update(delta);
+      if (wasActive && !particle.active) {
+        if (_activeCount > 0) {
+          _activeCount -= 1;
+        }
+        continue;
+      }
       if (_isOutOfBounds(particle)) {
         if (_wrapEnabled && _config.wrapMode == DecorWrapMode.wrap) {
           _wrapParticle(particle);
         } else {
-          particle.active = false;
+          _deactivate(particle);
         }
       }
     }
@@ -173,14 +188,13 @@ class ParticleSystem {
       return;
     }
 
-    final activeCount = _countActive();
-    if (activeCount > _maxActive) {
-      var remainingToDisable = activeCount - _maxActive;
+    if (_activeCount > _maxActive) {
+      var remainingToDisable = _activeCount - _maxActive;
       for (final particle in _particles.reversed) {
         if (!particle.active) {
           continue;
         }
-        particle.active = false;
+        _deactivate(particle);
         remainingToDisable -= 1;
         if (remainingToDisable <= 0) {
           break;
@@ -189,27 +203,37 @@ class ParticleSystem {
       return;
     }
 
-    if (activeCount < _maxActive) {
-      _spawnInactive(_maxActive - activeCount);
+    if (_activeCount < _maxActive) {
+      _spawnInactive(_maxActive - _activeCount);
     }
   }
 
   void _enforceMaxActive() {
-    final activeCount = _countActive();
-    if (activeCount <= _maxActive) {
+    if (_activeCount <= _maxActive) {
       return;
     }
-    var remainingToDisable = activeCount - _maxActive;
+    var remainingToDisable = _activeCount - _maxActive;
     for (final particle in _particles.reversed) {
       if (!particle.active) {
         continue;
       }
-      particle.active = false;
+      _deactivate(particle);
       remainingToDisable -= 1;
       if (remainingToDisable <= 0) {
         break;
       }
     }
+  }
+
+  bool _deactivate(Particle particle) {
+    if (!particle.active) {
+      return false;
+    }
+    particle.active = false;
+    if (_activeCount > 0) {
+      _activeCount -= 1;
+    }
+    return true;
   }
 
   int _countActive() {
@@ -223,6 +247,10 @@ class ParticleSystem {
   }
 
   void _respawnAll() {
+    for (final particle in _particles) {
+      particle.active = false;
+    }
+    _activeCount = 0;
     if (_config.enableFireworks) {
       _respawnFireworks();
       return;
@@ -255,7 +283,7 @@ class ParticleSystem {
         sparksSpawned += 1;
         continue;
       }
-      if (_config.spawnRate > 0) {
+      if (_config.spawnRate > 0 && _config.styles.isNotEmpty) {
         _spawnParticle(particle);
       } else {
         particle.active = false;
@@ -264,8 +292,10 @@ class ParticleSystem {
   }
 
   void _spawnWithBudget() {
-    final activeCount = _countActive();
-    final available = _maxActive - activeCount;
+    if (_config.styles.isEmpty) {
+      return;
+    }
+    final available = _maxActive - _activeCount;
     if (available <= 0) {
       return;
     }
@@ -277,6 +307,9 @@ class ParticleSystem {
   }
 
   int _spawnInactive(int count) {
+    if (_config.styles.isEmpty || count <= 0) {
+      return 0;
+    }
     var spawned = 0;
     for (final particle in _particles) {
       if (particle.active) {
@@ -292,6 +325,10 @@ class ParticleSystem {
   }
 
   void _spawnParticle(Particle particle) {
+    if (_config.styles.isEmpty) {
+      _deactivate(particle);
+      return;
+    }
     final style = _config.styles[_random.nextInt(_config.styles.length)];
     final size = _lerp(style.minSize, style.maxSize, _random.nextDouble());
     final speed = _lerp(style.minSpeed, style.maxSpeed, _random.nextDouble()) *
@@ -308,6 +345,9 @@ class ParticleSystem {
     final position = _spawnPosition(size);
     final velocity = _spawnVelocity(speed);
 
+    if (!particle.active) {
+      _activeCount += 1;
+    }
     particle.reset(
       position: position,
       velocity: velocity,
@@ -379,15 +419,13 @@ class ParticleSystem {
 
   void _updateFireworks(double dt) {
     final burstHeight = _size.height * _config.burstHeightFactor;
-    var activeCount = 0;
     var activeRockets = 0;
 
     for (final particle in _particles) {
       if (!particle.active) {
         continue;
       }
-
-      activeCount += 1;
+      final wasActive = particle.active;
 
       if (particle.kind == ParticleKind.spark) {
         particle.velocity = Offset(
@@ -398,7 +436,10 @@ class ParticleSystem {
 
       particle.update(dt);
 
-      if (!particle.active) {
+      if (wasActive && !particle.active) {
+        if (_activeCount > 0) {
+          _activeCount -= 1;
+        }
         if (particle.kind == ParticleKind.rocket) {
           if (_spawningEnabled) {
             _burst(particle.position);
@@ -410,20 +451,21 @@ class ParticleSystem {
       if (particle.kind == ParticleKind.rocket) {
         activeRockets += 1;
         if (particle.position.dy <= burstHeight) {
-          particle.active = false;
-          if (_spawningEnabled) {
-            _burst(particle.position);
+          final burstOrigin = particle.position;
+          final deactivated = _deactivate(particle);
+          if (deactivated && _spawningEnabled) {
+            _burst(burstOrigin);
           }
         }
       } else if (particle.kind == ParticleKind.spark) {
         if (_isOutOfBounds(particle)) {
-          particle.active = false;
+          _deactivate(particle);
         }
       } else if (_isOutOfBounds(particle)) {
         if (_wrapEnabled && _config.wrapMode == DecorWrapMode.wrap) {
           _wrapParticle(particle);
         } else {
-          particle.active = false;
+          _deactivate(particle);
         }
       }
     }
@@ -432,7 +474,7 @@ class ParticleSystem {
       _rocketSpawnAccumulator += _config.rocketSpawnRate * dt;
       final maxRockets = math.min(_config.rocketsMax, _maxActive);
       final availableRockets = maxRockets - activeRockets;
-      final availableSlots = _maxActive - activeCount;
+      final availableSlots = _maxActive - _activeCount;
       if (availableRockets <= 0 || availableSlots <= 0) {
         return;
       }
@@ -445,7 +487,6 @@ class ParticleSystem {
         return;
       }
       final spawned = _spawnRockets(toSpawn);
-      activeCount += spawned;
       _rocketSpawnAccumulator -= spawned;
 
       if (_config.spawnRate <= 0 || _config.wrapMode != DecorWrapMode.respawn) {
@@ -453,7 +494,7 @@ class ParticleSystem {
       }
 
       _spawnAccumulator += _config.spawnRate * dt;
-      final ambientSlots = _maxActive - activeCount;
+      final ambientSlots = _maxActive - _activeCount;
       if (ambientSlots <= 0) {
         return;
       }
@@ -482,6 +523,10 @@ class ParticleSystem {
   }
 
   void _spawnRocket(Particle particle) {
+    if (_config.styles.isEmpty) {
+      _deactivate(particle);
+      return;
+    }
     final style = _config.styles[_random.nextInt(_config.styles.length)];
     final speed = _lerp(
           _config.rocketMinSpeed,
@@ -499,6 +544,9 @@ class ParticleSystem {
     final y = _size.height + size + _randomInRange(0, _size.height * 0.15);
     final dx = _randomInRange(-_config.rocketDrift, _config.rocketDrift);
 
+    if (!particle.active) {
+      _activeCount += 1;
+    }
     particle.reset(
       position: Offset(x, y),
       velocity: Offset(dx, -speed),
@@ -515,9 +563,13 @@ class ParticleSystem {
   }
 
   void _burst(Offset origin) {
+    final availableSlots = _maxActive - _activeCount;
+    if (availableSlots <= 0) {
+      return;
+    }
     final min = _config.sparksPerBurstMin;
     final max = _config.sparksPerBurstMax;
-    final count = _randomInRangeInt(min, max);
+    final count = math.min(availableSlots, _randomInRangeInt(min, max));
     var spawned = 0;
 
     for (final particle in _particles) {
@@ -533,6 +585,10 @@ class ParticleSystem {
   }
 
   void _spawnSpark(Particle particle, Offset origin) {
+    if (_config.styles.isEmpty) {
+      _deactivate(particle);
+      return;
+    }
     final style = _config.styles[_random.nextInt(_config.styles.length)];
     final speed = _lerp(
           _config.sparkMinSpeed,
@@ -552,6 +608,9 @@ class ParticleSystem {
       _random.nextDouble(),
     );
 
+    if (!particle.active) {
+      _activeCount += 1;
+    }
     particle.reset(
       position: origin,
       velocity: Offset(math.cos(angle) * speed, math.sin(angle) * speed),

@@ -171,8 +171,11 @@ Backdrop only:
 ```dart
 SeasonalDecor(
   preset: SeasonalPreset.ramadan(),
-  presetShapes: const <ParticleShape>[],
   showBackdrop: true,
+  presetShapes: const <ParticleShape>[], // disable particle styles
+  // Optional (best performance): keep backdrop static without animation ticks.
+  // enabled: false,
+  // showBackdropWhenDisabled: true,
   child: const HomeScreen(),
 );
 ```

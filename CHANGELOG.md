@@ -1,6 +1,19 @@
 ## Unreleased
 
-- No pending changes.
+- Performance optimization pass:
+  split overlay painting into separate backdrop and particle layers to avoid
+  repainting static backdrops on every animation tick.
+- Add backdrop picture caching in `DecorPainter` for static backdrop-only
+  passes (bounded cache with quantized size/opacity key).
+- Improve `ParticleSystem` hot paths by tracking active particle count
+  incrementally and avoiding repeated full-pool scans.
+- Add a lightweight fast soccer-ball particle renderer while keeping the
+  detailed football backdrop renderer.
+- Reduce paint-time allocations by reusing temporary paths and precomputed
+  tinted palettes in decorative backdrop loops.
+- Support explicit backdrop-only override via
+  `SeasonalPreset.withOverrides(shapes: const <ParticleShape>[])`.
+- Add performance-focused tests in `test/performance_optimizations_test.dart`.
 
 ## 1.3.2
 

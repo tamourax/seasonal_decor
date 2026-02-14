@@ -144,6 +144,9 @@ class _HomePageState extends State<HomePage> {
   double _textSize = 34.0;
   double _textDisplaySeconds = 1.8;
   double _textAnimationMilliseconds = 550.0;
+  double _textAlignX = 0.0;
+  double _textAlignY = -1.0;
+  double _textTopPadding = 56.0;
   bool _adaptColorsToTheme = true;
   double _playDurationSeconds = 10.0;
   bool _settleOnDisable = true;
@@ -381,6 +384,8 @@ class _HomePageState extends State<HomePage> {
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.6,
                 ),
+                textAlignment: Alignment(_textAlignX, _textAlignY),
+                textPadding: EdgeInsets.fromLTRB(20, _textTopPadding, 20, 0),
                 textDisplayDuration: Duration(
                   milliseconds: (_textDisplaySeconds * 1000).round(),
                 ),
@@ -423,6 +428,9 @@ class _HomePageState extends State<HomePage> {
               customOverlayText: _customOverlayText,
               textOpacity: _textOpacity,
               textSize: _textSize,
+              textAlignX: _textAlignX,
+              textAlignY: _textAlignY,
+              textTopPadding: _textTopPadding,
               textDisplaySeconds: _textDisplaySeconds,
               textAnimationMilliseconds: _textAnimationMilliseconds,
               particleSpeedMultiplier: _particleSpeedMultiplier,
@@ -466,6 +474,12 @@ class _HomePageState extends State<HomePage> {
               onTextOpacityChanged: (value) =>
                   setState(() => _textOpacity = value),
               onTextSizeChanged: (value) => setState(() => _textSize = value),
+              onTextAlignXChanged: (value) =>
+                  setState(() => _textAlignX = value),
+              onTextAlignYChanged: (value) =>
+                  setState(() => _textAlignY = value),
+              onTextTopPaddingChanged: (value) =>
+                  setState(() => _textTopPadding = value),
               onTextDisplaySecondsChanged: (value) =>
                   setState(() => _textDisplaySeconds = value),
               onTextAnimationMillisecondsChanged: (value) =>
@@ -645,6 +659,9 @@ class _ControlSheet extends StatelessWidget {
   final String customOverlayText;
   final double textOpacity;
   final double textSize;
+  final double textAlignX;
+  final double textAlignY;
+  final double textTopPadding;
   final double textDisplaySeconds;
   final double textAnimationMilliseconds;
   final double particleSpeedMultiplier;
@@ -677,6 +694,9 @@ class _ControlSheet extends StatelessWidget {
   final ValueChanged<String> onCustomOverlayTextChanged;
   final ValueChanged<double> onTextOpacityChanged;
   final ValueChanged<double> onTextSizeChanged;
+  final ValueChanged<double> onTextAlignXChanged;
+  final ValueChanged<double> onTextAlignYChanged;
+  final ValueChanged<double> onTextTopPaddingChanged;
   final ValueChanged<double> onTextDisplaySecondsChanged;
   final ValueChanged<double> onTextAnimationMillisecondsChanged;
   final ValueChanged<double> onParticleSpeedMultiplierChanged;
@@ -711,6 +731,9 @@ class _ControlSheet extends StatelessWidget {
     required this.customOverlayText,
     required this.textOpacity,
     required this.textSize,
+    required this.textAlignX,
+    required this.textAlignY,
+    required this.textTopPadding,
     required this.textDisplaySeconds,
     required this.textAnimationMilliseconds,
     required this.particleSpeedMultiplier,
@@ -743,6 +766,9 @@ class _ControlSheet extends StatelessWidget {
     required this.onCustomOverlayTextChanged,
     required this.onTextOpacityChanged,
     required this.onTextSizeChanged,
+    required this.onTextAlignXChanged,
+    required this.onTextAlignYChanged,
+    required this.onTextTopPaddingChanged,
     required this.onTextDisplaySecondsChanged,
     required this.onTextAnimationMillisecondsChanged,
     required this.onParticleSpeedMultiplierChanged,
@@ -1093,6 +1119,32 @@ class _ControlSheet extends StatelessWidget {
                           max: 56,
                           divisions: 19,
                           onChanged: showText ? onTextSizeChanged : null,
+                        ),
+                        Text('Text Align X (${textAlignX.toStringAsFixed(2)})'),
+                        Slider(
+                          value: textAlignX,
+                          min: -1.0,
+                          max: 1.0,
+                          divisions: 20,
+                          onChanged: showText ? onTextAlignXChanged : null,
+                        ),
+                        Text('Text Align Y (${textAlignY.toStringAsFixed(2)})'),
+                        Slider(
+                          value: textAlignY,
+                          min: -1.0,
+                          max: 1.0,
+                          divisions: 20,
+                          onChanged: showText ? onTextAlignYChanged : null,
+                        ),
+                        Text(
+                          'Text Top Padding (${textTopPadding.toStringAsFixed(0)})',
+                        ),
+                        Slider(
+                          value: textTopPadding,
+                          min: 0,
+                          max: 140,
+                          divisions: 14,
+                          onChanged: showText ? onTextTopPaddingChanged : null,
                         ),
                         Text(
                           'Text Display (${textDisplaySeconds.toStringAsFixed(1)}s)',
