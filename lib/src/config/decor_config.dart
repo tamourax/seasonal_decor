@@ -1,4 +1,4 @@
-﻿import 'dart:ui';
+import 'dart:ui';
 
 import '../engine/particle.dart';
 
@@ -109,6 +109,21 @@ enum BackdropType {
 
   /// A trophy silhouette.
   trophy,
+
+  /// A soccer/football silhouette.
+  football,
+
+  /// A glowing lantern silhouette.
+  lantern,
+
+  /// A Halloween jack-o-lantern silhouette.
+  pumpkin,
+
+  /// Hanging Ramadan light strings with moon/star ornaments.
+  ramadanLights,
+
+  /// Traditional Ramadan khayamiya-style bunting strings.
+  ramadanBunting,
 }
 
 /// Visual layer for backdrop artwork.
@@ -273,6 +288,86 @@ class DecorBackdrop {
     required double sizeFactor,
   }) : this(
           type: BackdropType.trophy,
+          layer: layer,
+          color: color,
+          opacity: opacity,
+          anchor: anchor,
+          sizeFactor: sizeFactor,
+        );
+
+  /// Convenience constructor for a football backdrop.
+  const DecorBackdrop.football({
+    BackdropLayer layer = BackdropLayer.background,
+    required Color color,
+    required double opacity,
+    required Offset anchor,
+    required double sizeFactor,
+  }) : this(
+          type: BackdropType.football,
+          layer: layer,
+          color: color,
+          opacity: opacity,
+          anchor: anchor,
+          sizeFactor: sizeFactor,
+        );
+
+  /// Convenience constructor for a lantern backdrop.
+  const DecorBackdrop.lantern({
+    BackdropLayer layer = BackdropLayer.background,
+    required Color color,
+    required double opacity,
+    required Offset anchor,
+    required double sizeFactor,
+  }) : this(
+          type: BackdropType.lantern,
+          layer: layer,
+          color: color,
+          opacity: opacity,
+          anchor: anchor,
+          sizeFactor: sizeFactor,
+        );
+
+  /// Convenience constructor for a pumpkin backdrop.
+  const DecorBackdrop.pumpkin({
+    BackdropLayer layer = BackdropLayer.background,
+    required Color color,
+    required double opacity,
+    required Offset anchor,
+    required double sizeFactor,
+  }) : this(
+          type: BackdropType.pumpkin,
+          layer: layer,
+          color: color,
+          opacity: opacity,
+          anchor: anchor,
+          sizeFactor: sizeFactor,
+        );
+
+  /// Convenience constructor for hanging Ramadan lights.
+  const DecorBackdrop.ramadanLights({
+    BackdropLayer layer = BackdropLayer.decorative,
+    required Color color,
+    required double opacity,
+    required Offset anchor,
+    required double sizeFactor,
+  }) : this(
+          type: BackdropType.ramadanLights,
+          layer: layer,
+          color: color,
+          opacity: opacity,
+          anchor: anchor,
+          sizeFactor: sizeFactor,
+        );
+
+  /// Convenience constructor for traditional Ramadan bunting.
+  const DecorBackdrop.ramadanBunting({
+    BackdropLayer layer = BackdropLayer.decorative,
+    required Color color,
+    required double opacity,
+    required Offset anchor,
+    required double sizeFactor,
+  }) : this(
+          type: BackdropType.ramadanBunting,
           layer: layer,
           color: color,
           opacity: opacity,

@@ -223,4 +223,42 @@ void main() {
 
     expect(painter.decorativeBackdropDensityMultiplier, closeTo(0.6, 0.0001));
   });
+
+  testWidgets('ramadanBuntingRows is forwarded to painter', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SeasonalDecor(
+          preset: SeasonalPreset.ramadan(),
+          ramadanBuntingRows: 5,
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    final customPaint = tester
+        .widgetList<CustomPaint>(find.byType(CustomPaint))
+        .firstWhere((widget) => widget.painter is DecorPainter);
+    final painter = customPaint.painter! as DecorPainter;
+
+    expect(painter.ramadanBuntingRows, 5);
+  });
+
+  testWidgets('decorativeBackdropRows is forwarded to painter', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SeasonalDecor(
+          preset: SeasonalPreset.christmas(),
+          decorativeBackdropRows: 4,
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    final customPaint = tester
+        .widgetList<CustomPaint>(find.byType(CustomPaint))
+        .firstWhere((widget) => widget.painter is DecorPainter);
+    final painter = customPaint.painter! as DecorPainter;
+
+    expect(painter.decorativeBackdropRows, 4);
+  });
 }

@@ -1,4 +1,4 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -82,9 +82,11 @@ class DecorController extends ChangeNotifier {
     _config = config;
 
     final requiresRebuild = previous.particleCount != config.particleCount;
-    final requiresRespawn = previous.enableFireworks != config.enableFireworks ||
-        previous.flow != config.flow ||
-        previous.wrapMode != config.wrapMode;
+    final requiresRespawn =
+        previous.enableFireworks != config.enableFireworks ||
+            previous.flow != config.flow ||
+            previous.wrapMode != config.wrapMode ||
+            _styleShapesChanged(previous.styles, config.styles);
 
     if (requiresRebuild) {
       _system.rebuildPool(config);
@@ -93,6 +95,21 @@ class DecorController extends ChangeNotifier {
     }
     _system.setDensityScale(_densityScale);
     notifyListeners();
+  }
+
+  bool _styleShapesChanged(
+    List<ParticleStyle> previousStyles,
+    List<ParticleStyle> nextStyles,
+  ) {
+    if (previousStyles.length != nextStyles.length) {
+      return true;
+    }
+    for (var i = 0; i < previousStyles.length; i += 1) {
+      if (previousStyles[i].shape != nextStyles[i].shape) {
+        return true;
+      }
+    }
+    return false;
   }
 
   void _handleTick(Duration elapsed) {

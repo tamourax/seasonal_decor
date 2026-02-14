@@ -6,8 +6,9 @@ import 'package:seasonal_decor/src/config/decor_config.dart';
 import 'package:seasonal_decor/src/config/intensity.dart';
 import 'package:seasonal_decor/src/engine/particle.dart';
 import 'package:seasonal_decor/src/engine/particle_system.dart';
+import 'package:seasonal_decor/src/presets/ramadan.dart';
 import 'package:seasonal_decor/src/presets/seasonal_preset.dart';
-import 'package:seasonal_decor/src/presets/sport_event.dart';
+import 'package:seasonal_decor/src/presets/football.dart';
 import 'package:seasonal_decor/src/presets/valentine.dart';
 
 void main() {
@@ -87,6 +88,58 @@ void main() {
     expect(preset.baseConfig.styles.first.maxSpeed, closeTo(30.0, 0.0001));
     expect(preset.baseConfig.backdrops, hasLength(1));
     expect(preset.baseConfig.backdrops.first.type, BackdropType.crescent);
+  });
+
+  test(
+      'ramadan hanging lanterns variant has one decorative and one background backdrop',
+      () {
+    final preset = SeasonalPreset.ramadan(
+      variant: RamadanVariant.hangingLanterns,
+    );
+    final backdrops = preset.baseConfig.backdrops;
+    final decorative = backdrops
+        .where((backdrop) => backdrop.layer == BackdropLayer.decorative)
+        .toList();
+    final background = backdrops
+        .where((backdrop) => backdrop.layer == BackdropLayer.background)
+        .toList();
+
+    expect(preset.variant, RamadanVariant.hangingLanterns.name);
+    expect(backdrops, hasLength(2));
+    expect(decorative, hasLength(1));
+    expect(background, hasLength(1));
+    expect(decorative.single.type, BackdropType.ramadanLights);
+    expect(background.single.type, BackdropType.lantern);
+  });
+
+  test('ramadan classic uses traditional ramadan bunting backdrop', () {
+    final preset = SeasonalPreset.ramadan(variant: RamadanVariant.classic);
+    final decorative = preset.baseConfig.backdrops
+        .where((backdrop) => backdrop.layer == BackdropLayer.decorative)
+        .toList();
+
+    expect(decorative, isNotEmpty);
+    expect(decorative.first.type, BackdropType.ramadanBunting);
+  });
+
+  test('halloween preset uses pumpkin backdrop instead of crescent', () {
+    final preset = SeasonalPreset.halloween();
+
+    expect(preset.baseConfig.backdrops, isNotEmpty);
+    expect(preset.baseConfig.backdrops.first.type, BackdropType.pumpkin);
+  });
+
+  test('sport event preset uses football backdrop', () {
+    final preset = SeasonalPreset.football();
+
+    expect(preset.baseConfig.backdrops, isNotEmpty);
+    expect(preset.baseConfig.backdrops.first.type, BackdropType.football);
+  });
+
+  test('football preset has fireworks disabled', () {
+    final preset = SeasonalPreset.football();
+
+    expect(preset.baseConfig.enableFireworks, isFalse);
   });
 
   test('particle system updates particle positions', () {
@@ -270,14 +323,13 @@ void main() {
     }
   });
 
-  test('sport event team colors are used in particles', () {
-    const teamPalette = [
-      Color(0xFF123456),
-      Color(0xFF654321),
+  test('football preset particles use classic black and white palette', () {
+    const classicPalette = [
+      Color(0xFFFFFFFF),
+      Color(0xFF111827),
     ];
     final config = buildSportEventConfig(
-      SportEventVariant.teamColors,
-      teamColors: teamPalette,
+      SportEventVariant.worldCup,
     ).copyWith(particleCount: 10);
     final system = ParticleSystem(
       config: config,
@@ -286,7 +338,7 @@ void main() {
     );
 
     for (final particle in system.particles.where((p) => p.active)) {
-      expect(teamPalette.contains(particle.color), isTrue);
+      expect(classicPalette.contains(particle.color), isTrue);
     }
   });
 

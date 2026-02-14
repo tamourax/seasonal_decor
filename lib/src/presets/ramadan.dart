@@ -1,4 +1,4 @@
-﻿import 'dart:ui';
+import 'dart:ui';
 
 import '../config/decor_config.dart';
 import '../engine/particle.dart';
@@ -10,11 +10,97 @@ enum RamadanVariant {
 
   /// Cooler night palette with softer motion.
   night,
+
+  /// Hanging moon/star lights with a lantern background accent.
+  hangingLanterns,
 }
 
 /// Builds the base configuration for Ramadan overlays.
 DecorConfig buildRamadanConfig(RamadanVariant variant) {
   switch (variant) {
+    case RamadanVariant.hangingLanterns:
+      return DecorConfig(
+        particleCount: 62,
+        speedMultiplier: 0.76,
+        spawnRate: 23,
+        spawnRateScale: 0.9,
+        drift: 6.5,
+        flow: ParticleFlow.falling,
+        wrapMode: DecorWrapMode.respawn,
+        styles: const [
+          ParticleStyle(
+            shape: ParticleShape.lantern,
+            color: Color(0xFFD4AF37),
+            minSize: 4.8,
+            maxSize: 9.2,
+            minSpeed: 9,
+            maxSpeed: 19,
+            minRotationSpeed: -0.35,
+            maxRotationSpeed: 0.35,
+            opacity: 0.88,
+          ),
+          ParticleStyle(
+            shape: ParticleShape.lantern,
+            color: Color(0xFFC62828),
+            minSize: 4.1,
+            maxSize: 8.1,
+            minSpeed: 8,
+            maxSpeed: 18,
+            minRotationSpeed: -0.35,
+            maxRotationSpeed: 0.35,
+            opacity: 0.78,
+          ),
+          ParticleStyle(
+            shape: ParticleShape.crescent,
+            color: Color(0xFFFFE39B),
+            minSize: 2.5,
+            maxSize: 4.1,
+            minSpeed: 7,
+            maxSpeed: 13,
+            minRotationSpeed: -0.35,
+            maxRotationSpeed: 0.35,
+            opacity: 0.64,
+          ),
+          ParticleStyle(
+            shape: ParticleShape.star,
+            color: Color(0xFF1E4FA3),
+            minSize: 1.8,
+            maxSize: 3.1,
+            minSpeed: 5,
+            maxSpeed: 10,
+            minRotationSpeed: -0.24,
+            maxRotationSpeed: 0.24,
+            opacity: 0.5,
+          ),
+          ParticleStyle(
+            shape: ParticleShape.sparkle,
+            color: Color(0xFFE53935),
+            minSize: 1.4,
+            maxSize: 2.8,
+            minSpeed: 4,
+            maxSpeed: 8,
+            minRotationSpeed: -0.25,
+            maxRotationSpeed: 0.25,
+            opacity: 0.48,
+          ),
+        ],
+        backdrops: const [
+          DecorBackdrop.ramadanLights(
+            layer: BackdropLayer.decorative,
+            color: Color(0xFFF7DFAE),
+            opacity: 0.34,
+            anchor: Offset(0.5, 0.05),
+            sizeFactor: 0.055,
+          ),
+          DecorBackdrop.lantern(
+            layer: BackdropLayer.background,
+            color: Color(0xFF1D2433),
+            opacity: 0.26,
+            anchor: Offset(0.86, 0.3),
+            sizeFactor: 0.15,
+          ),
+        ],
+      );
     case RamadanVariant.night:
       return DecorConfig(
         particleCount: 46,
@@ -150,12 +236,12 @@ DecorConfig buildRamadanConfig(RamadanVariant variant) {
           ),
         ],
         backdrops: const [
-          DecorBackdrop.bunting(
+          DecorBackdrop.ramadanBunting(
             layer: BackdropLayer.decorative,
-            color: Color(0xFFF2D8A5),
-            opacity: 0.22,
-            anchor: Offset(0.5, 0.11),
-            sizeFactor: 0.04,
+            color: Color(0xFFD8B46A),
+            opacity: 0.3,
+            anchor: Offset(0.5, 0.1),
+            sizeFactor: 0.045,
           ),
           DecorBackdrop.crescent(
             layer: BackdropLayer.background,
