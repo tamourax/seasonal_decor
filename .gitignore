@@ -29,10 +29,9 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 /coverage/
 
-# Example app (keep example/lib and pubspec, ignore platforms)
+# Example app (keep example/lib, example/web, and pubspec; ignore native platforms)
 example/android/
 example/ios/
-example/web/
 example/windows/
 example/macos/
 example/linux/
