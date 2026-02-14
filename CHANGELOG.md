@@ -2,7 +2,7 @@
 
 - No pending changes.
 
-## 1.3.1
+## 1.3.0
 
 - Add `SeasonalPreset.football()` and keep `sportEvent()` as a deprecated alias.
 - Replace sports visuals with football-first rendering:
@@ -16,7 +16,7 @@
   `football.gif`, `halloween.gif`, and `ramadanLights.gif`.
 - Move demo media to `assets/gif/demo.gif`, add `assets/images/logo.png`,
   and include the None preset preview image (`assets/images/none.png`).
-- Update README preview media and installation snippet to `1.3.1`.
+- Update README preview media and installation snippet to `1.3.0`.
 
 ## 1.2.1
 

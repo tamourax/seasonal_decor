@@ -139,7 +139,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  seasonal_decor: ^1.3.1
+  seasonal_decor: ^1.3.0
 ```
 
 Then run:
