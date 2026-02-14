@@ -1,3 +1,14 @@
+## 1.1.6
+
+- Improve runtime update performance by keeping the particle system instance
+  stable and rebuilding the pool only when `particleCount` changes.
+- Add incremental config application in `ParticleSystem` with
+  soft/respawn/rebuild paths for lower churn during live updates.
+- Add a safety contract in `setConfig`: debug assertion for mismatched pool
+  size and graceful rebuild fallback in release mode.
+- Tighten typed override documentation and add test coverage for typed
+  `withOverrides(...)` inputs (shapes/styles/maps/backdrops).
+
 ## 1.1.5
 
 - Improve `example/lib/advanced_main.dart` layout responsiveness for web and narrow screens.
