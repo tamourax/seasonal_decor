@@ -6,11 +6,16 @@
 [![Pub Version](https://img.shields.io/pub/v/seasonal_decor?logo=dart&logoColor=white)](https://pub.dev/packages/seasonal_decor)
 ![Production Ready](https://img.shields.io/badge/Production-Ready-16a34a)
 
-2️⃣ One line of code… and your Flutter app celebrates. 🎉
+⭐ One line of code… and your Flutter app celebrates. 🎉
 
 Bring Ramadan vibes, Christmas magic, Valentine effects, New Year celebrations, and more instantly.
 
 **Install with one command: `flutter pub add seasonal_decor`**
+
+## 🌍 Live Demo
+
+Try it now:
+[https://tamourax.github.io/seasonal_decor/](https://tamourax.github.io/seasonal_decor/)
 
 ## ✨ Features
 
@@ -128,10 +133,6 @@ SeasonalDecor(
 | Theme adaptive               | Yes              | No                       |
 | Greeting text overlay        | Yes              | No                       |
 | Layer-level backdrop control | Yes              | No                       |
-
-## 🌍 Live Demo
-
-[Live Demo](https://tamourax.github.io/seasonal_decor/)
 
 ## 📦 Installation
 
