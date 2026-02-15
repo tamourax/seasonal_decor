@@ -7,24 +7,6 @@ issue_tracker: https://github.com/tamourax/seasonal_decor/issues
 screenshots:
   - description: Package logo
     path: assets/images/logo.png
-  - description: None preset preview
-    path: assets/images/none.png
-  - description: Demo preview
-    path: assets/gif/demo.gif
-  - description: Ramadan preset preview
-    path: assets/gif/ramadan.gif
-  - description: Ramadan lights preset preview
-    path: assets/gif/ramadanLights.gif
-  - description: Eid al-Fitr preset preview
-    path: assets/gif/eid_fitr.gif
-  - description: Eid al-Adha preset preview
-    path: assets/gif/eid-adha.gif
-  - description: Christmas preset preview
-    path: assets/gif/christmas.gif
-  - description: Halloween preset preview
-    path: assets/gif/halloween.gif
-  - description: New Year preset preview
-    path: assets/gif/new-year.gif
 topics:
   - flutter
   - animation
