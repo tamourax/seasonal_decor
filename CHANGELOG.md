@@ -1,5 +1,6 @@
-## Unreleased
+## 1.3.3
 
+- Bump package version to `1.3.3`.
 - Performance optimization pass:
   split overlay painting into separate backdrop and particle layers to avoid
   repainting static backdrops on every animation tick.
@@ -14,6 +15,9 @@
 - Support explicit backdrop-only override via
   `SeasonalPreset.withOverrides(shapes: const <ParticleShape>[])`.
 - Add performance-focused tests in `test/performance_optimizations_test.dart`.
+- Add text-position controls in the advanced example
+  (`textAlignX`, `textAlignY`, `textTopPadding`).
+- Refresh `example/pubspec.lock` path dependency version to `1.3.3`.
 
 ## 1.3.2
 
