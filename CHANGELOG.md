@@ -1,3 +1,24 @@
+## 1.3.5
+
+- Bump package version to `1.3.5`.
+- Add value equality and `hashCode` support for `ParticleStyle`,
+  `DecorBackdrop`, and `DecorConfig` to avoid unnecessary runtime updates.
+- Optimize `DecorController.updateConfig(...)` with early return when config is
+  unchanged, reducing redundant notifications/rebuild triggers.
+- Fix spawn accumulator reset path for style transitions from empty to
+  non-empty to prevent bursty first-frame spawning.
+- Add focused regression coverage:
+  `test/decor_config_equality_test.dart`,
+  `test/spawn_accumulator_reset_test.dart`, and
+  `test/decor_controller_update_config_test.dart`.
+- Add golden validation suite (7 scenes) in `test/golden_test.dart`.
+- Add transition and runtime stress coverage in
+  `test/transition_stress_test.dart`.
+- Add opt-in CI workflow `.github/workflows/perf_gate.yml` for analyze +
+  unit/widget + golden + performance test gates.
+- Add `RELEASE_CHECKLIST.md` and update `.gitignore` to keep golden failure
+  screenshots out of git.
+
 ## 1.3.4
 
 - Bump package version to `1.3.4`.

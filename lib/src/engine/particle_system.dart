@@ -90,10 +90,14 @@ class ParticleSystem {
       return;
     }
 
+    final stylesWereEmpty = _config.styles.isEmpty;
     final fireworksToggled = _config.enableFireworks != config.enableFireworks;
     _config = config;
     _recomputeMaxActive();
-    if (respawn || fireworksToggled || !_spawningEnabled) {
+    if (respawn ||
+        fireworksToggled ||
+        !_spawningEnabled ||
+        (stylesWereEmpty && config.styles.isNotEmpty)) {
       _resetSpawnAccumulators();
     }
     if (respawn && _hasBounds) {
