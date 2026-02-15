@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
 
@@ -40,6 +41,12 @@ class DecorPainter extends CustomPainter {
   final Path _garlandPath = Path();
   final Path _buntingPath = Path();
   final Path _trianglePath = Path();
+  final Path _diamondPath = Path();
+  final Path _seamPath = Path();
+
+  static const int _maxBackdropCacheEntries = 24;
+  static final Map<_BackdropCacheKey, ui.Picture> _backdropPictureCache = {};
+  static final List<_BackdropCacheKey> _backdropCacheOrder = [];
 
   static final Path _unitStarPath = _buildUnitStarPath();
   static final Path _unitCrescentPath = _buildUnitCrescentPath();
@@ -93,16 +100,38 @@ class DecorPainter extends CustomPainter {
     required this.decorativeBackdropDensityMultiplier,
     required this.decorativeBackdropRows,
     required this.ramadanBuntingRows,
-    required Listenable repaint,
-  }) : super(repaint: repaint);
+    super.repaint,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    system.setBounds(size);
-
     final clampedOpacity = opacity.clamp(0.0, 1.0).toDouble();
     if (showBackdrop) {
-      _paintBackdrop(canvas, size, clampedOpacity);
+      if (!paintParticles) {
+        final key = _BackdropCacheKey(
+          width: size.width,
+          height: size.height,
+          opacity: clampedOpacity,
+          density: decorativeBackdropDensityMultiplier,
+          rows: decorativeBackdropRows ?? -1,
+          ramadanRows: ramadanBuntingRows ?? -1,
+          staticMode: staticMode,
+          configHash: _backdropConfigHash(config),
+        );
+        final cached = _backdropPictureCache[key];
+        if (cached != null) {
+          canvas.drawPicture(cached);
+        } else {
+          final recorder = ui.PictureRecorder();
+          final backdropCanvas = Canvas(recorder);
+          _paintBackdrop(backdropCanvas, size, clampedOpacity);
+          final picture = recorder.endRecording();
+          _storeBackdropCache(key, picture);
+          canvas.drawPicture(picture);
+        }
+      } else {
+        _paintBackdrop(canvas, size, clampedOpacity);
+      }
     }
 
     if (paintParticles) {
@@ -350,6 +379,11 @@ class DecorPainter extends CustomPainter {
     final combinedAlpha =
         (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
     final ropeColor = backdrop.color.withValues(alpha: combinedAlpha);
+    final bulbPalette = [
+      for (final color in _garlandBulbColors)
+        color.withValues(
+            alpha: (combinedAlpha * 0.9).clamp(0.0, 1.0).toDouble()),
+    ];
 
     for (var row = 0; row < rowCount; row += 1) {
       final rowY = y + row * rowGap;
@@ -390,9 +424,7 @@ class DecorPainter extends CustomPainter {
           Offset(rightX, rowY),
           t,
         );
-        final color = _garlandBulbColors[(i + row) % _garlandBulbColors.length]
-            .withValues(
-                alpha: (combinedAlpha * 0.9).clamp(0.0, 1.0).toDouble());
+        final color = bulbPalette[(i + row) % bulbPalette.length];
         _paint
           ..color = color
           ..style = PaintingStyle.fill;
@@ -551,6 +583,11 @@ class DecorPainter extends CustomPainter {
     final combinedAlpha =
         (baseAlpha * backdrop.opacity * opacity).clamp(0.0, 1.0).toDouble();
     final ropeColor = backdrop.color.withValues(alpha: combinedAlpha);
+    final buntingPalette = [
+      for (final color in _buntingColors)
+        color.withValues(
+            alpha: (combinedAlpha * 0.95).clamp(0.0, 1.0).toDouble()),
+    ];
 
     for (var row = 0; row < rowCount; row += 1) {
       final rowY = y + row * rowGap;
@@ -598,9 +635,7 @@ class DecorPainter extends CustomPainter {
           ..lineTo(point.dx + flagWidth * 0.5, point.dy)
           ..lineTo(point.dx, point.dy + flagHeight)
           ..close();
-        final color = _buntingColors[(i + row) % _buntingColors.length]
-            .withValues(
-                alpha: (combinedAlpha * 0.95).clamp(0.0, 1.0).toDouble());
+        final color = buntingPalette[(i + row) % buntingPalette.length];
         _paint
           ..color = color
           ..style = PaintingStyle.fill;
@@ -739,14 +774,15 @@ class DecorPainter extends CustomPainter {
           ..style = PaintingStyle.fill;
         canvas.drawPath(_trianglePath, _paint);
 
-        final diamond = Path()
+        _diamondPath
+          ..reset()
           ..moveTo(top.dx, top.dy + flagHeight * 0.18)
           ..lineTo(top.dx + flagWidth * 0.18, top.dy + flagHeight * 0.36)
           ..lineTo(top.dx, top.dy + flagHeight * 0.54)
           ..lineTo(top.dx - flagWidth * 0.18, top.dy + flagHeight * 0.36)
           ..close();
         _paint.color = accent;
-        canvas.drawPath(diamond, _paint);
+        canvas.drawPath(_diamondPath, _paint);
 
         _paint
           ..color = accent.withValues(
@@ -1558,7 +1594,8 @@ class DecorPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
     for (var i = 1; i < patchCenters.length; i += 1) {
       final target = patchCenters[i];
-      final seamPath = Path()
+      _seamPath
+        ..reset()
         ..moveTo(0, 0)
         ..quadraticBezierTo(
           target.dx * radius * 0.36,
@@ -1566,7 +1603,7 @@ class DecorPainter extends CustomPainter {
           target.dx * radius * 0.72,
           target.dy * radius * 0.72,
         );
-      canvas.drawPath(seamPath, _paint);
+      canvas.drawPath(_seamPath, _paint);
     }
 
     _paint
@@ -1614,6 +1651,79 @@ class DecorPainter extends CustomPainter {
       radius * 0.24,
       _paint,
     );
+  }
+
+  void _paintSoccerBallFast(
+    Canvas canvas, {
+    required Offset center,
+    required double radius,
+    required double alpha,
+    required double rotation,
+  }) {
+    if (radius <= 0 || alpha <= 0) {
+      return;
+    }
+    final combinedAlpha = alpha.clamp(0.0, 1.0).toDouble();
+    final shellColor = const Color(0xFFFFFFFF).withValues(alpha: combinedAlpha);
+    final seamColor = const Color(0xFF111111).withValues(
+      alpha: (combinedAlpha * 0.86).clamp(0.0, 1.0),
+    );
+    final patchColor = const Color(0xFF050505).withValues(
+      alpha: (combinedAlpha * 0.94).clamp(0.0, 1.0),
+    );
+
+    _paint
+      ..shader = null
+      ..style = PaintingStyle.fill
+      ..color = shellColor;
+    canvas.drawCircle(center, radius, _paint);
+
+    _paint
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(0.9, radius * 0.16)
+      ..strokeCap = StrokeCap.round
+      ..color = seamColor;
+    canvas.drawCircle(center, radius, _paint);
+
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(rotation);
+
+    _paint
+      ..style = PaintingStyle.fill
+      ..color = patchColor;
+    canvas.save();
+    canvas.scale(radius * 0.4, radius * 0.4);
+    canvas.drawPath(_unitPentagonPath, _paint);
+    canvas.restore();
+
+    const patchCount = 5;
+    final ringRadius = radius * 0.56;
+    for (var i = 0; i < patchCount; i += 1) {
+      final angle = (math.pi * 2 * i) / patchCount - math.pi / 2;
+      final dx = math.cos(angle) * ringRadius;
+      final dy = math.sin(angle) * ringRadius;
+      canvas.save();
+      canvas.translate(dx, dy);
+      canvas.rotate(angle * 0.5);
+      canvas.scale(radius * 0.24, radius * 0.24);
+      canvas.drawPath(_unitPentagonPath, _paint);
+      canvas.restore();
+    }
+
+    _paint
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(0.7, radius * 0.08)
+      ..strokeCap = StrokeCap.round
+      ..color = seamColor;
+    for (var i = 0; i < patchCount; i += 1) {
+      final angle = (math.pi * 2 * i) / patchCount - math.pi / 2;
+      final dx = math.cos(angle) * ringRadius * 0.74;
+      final dy = math.sin(angle) * ringRadius * 0.74;
+      canvas.drawLine(Offset.zero, Offset(dx, dy), _paint);
+    }
+
+    canvas.restore();
   }
 
   void _paintParticle(Canvas canvas, Particle particle, double opacity) {
@@ -1923,13 +2033,12 @@ class DecorPainter extends CustomPainter {
         canvas.restore();
         break;
       case ParticleShape.ball:
-        _paintSoccerBall(
+        _paintSoccerBallFast(
           canvas,
           center: particle.position,
           radius: particle.size,
           alpha: combinedAlpha,
           rotation: particle.rotation,
-          withBackdropShadow: false,
         );
         break;
     }
@@ -2117,6 +2226,44 @@ class DecorPainter extends CustomPainter {
     return Offset(x, y);
   }
 
+  static int _backdropConfigHash(DecorConfig config) {
+    final backdrops = config.backdrops.isNotEmpty
+        ? config.backdrops
+        : (config.backdrop == null
+            ? const <DecorBackdrop>[]
+            : [config.backdrop!]);
+    return Object.hash(
+      backdrops.length,
+      Object.hashAll(
+        backdrops.map(
+          (item) => Object.hash(
+            item.type,
+            item.layer,
+            item.color.toARGB32(),
+            item.opacity,
+            item.anchor.dx,
+            item.anchor.dy,
+            item.sizeFactor,
+          ),
+        ),
+      ),
+    );
+  }
+
+  static void _storeBackdropCache(_BackdropCacheKey key, ui.Picture picture) {
+    if (_backdropPictureCache.containsKey(key)) {
+      _backdropPictureCache[key] = picture;
+      return;
+    }
+    _backdropPictureCache[key] = picture;
+    _backdropCacheOrder.add(key);
+    if (_backdropCacheOrder.length <= _maxBackdropCacheEntries) {
+      return;
+    }
+    final evictedKey = _backdropCacheOrder.removeAt(0);
+    _backdropPictureCache.remove(evictedKey);
+  }
+
   @override
   bool shouldRepaint(covariant DecorPainter oldDelegate) {
     return oldDelegate.system != system ||
@@ -2130,4 +2277,56 @@ class DecorPainter extends CustomPainter {
         oldDelegate.decorativeBackdropDensityMultiplier !=
             decorativeBackdropDensityMultiplier;
   }
+}
+
+@immutable
+class _BackdropCacheKey {
+  final int widthBucket;
+  final int heightBucket;
+  final int opacityBucket;
+  final int densityBucket;
+  final int configHash;
+  final int rows;
+  final int ramadanRows;
+  final bool staticMode;
+
+  _BackdropCacheKey({
+    required double width,
+    required double height,
+    required double opacity,
+    required double density,
+    required this.rows,
+    required this.ramadanRows,
+    required this.staticMode,
+    required this.configHash,
+  })  : widthBucket = (width * 10).round(),
+        heightBucket = (height * 10).round(),
+        opacityBucket = (opacity * 1000).round(),
+        densityBucket = (density * 1000).round();
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is _BackdropCacheKey &&
+            other.widthBucket == widthBucket &&
+            other.heightBucket == heightBucket &&
+            other.opacityBucket == opacityBucket &&
+            other.densityBucket == densityBucket &&
+            other.configHash == configHash &&
+            other.rows == rows &&
+            other.ramadanRows == ramadanRows &&
+            other.staticMode == staticMode;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        widthBucket,
+        heightBucket,
+        opacityBucket,
+        densityBucket,
+        configHash,
+        rows,
+        ramadanRows,
+        staticMode,
+      );
 }

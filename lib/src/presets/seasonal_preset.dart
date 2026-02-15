@@ -53,13 +53,17 @@ class SeasonalPreset {
     bool? enableFireworks,
   }) {
     var resolvedStyles = styles ?? baseConfig.styles;
-    if (styles == null && shapes != null && shapes.isNotEmpty) {
-      final nextStyles = <ParticleStyle>[];
-      for (var i = 0; i < baseConfig.styles.length; i += 1) {
-        final shape = shapes[i % shapes.length];
-        nextStyles.add(baseConfig.styles[i].copyWith(shape: shape));
+    if (styles == null && shapes != null) {
+      if (shapes.isEmpty) {
+        resolvedStyles = const <ParticleStyle>[];
+      } else {
+        final nextStyles = <ParticleStyle>[];
+        for (var i = 0; i < baseConfig.styles.length; i += 1) {
+          final shape = shapes[i % shapes.length];
+          nextStyles.add(baseConfig.styles[i].copyWith(shape: shape));
+        }
+        resolvedStyles = nextStyles;
       }
-      resolvedStyles = nextStyles;
     }
 
     if (shapeSpeedMultipliers != null && shapeSpeedMultipliers.isNotEmpty) {
