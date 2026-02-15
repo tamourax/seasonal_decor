@@ -8,6 +8,12 @@
   restarts playback cycles.
 - Improve Arabic/web greeting rendering with explicit direction handling,
   `letterSpacing: 0` for Arabic text, and `TextDecoration.none`.
+- Make greeting text animation more stable under jank:
+  enter completes first, then hold for `textDisplayDuration`, then exit.
+- Start the first greeting text cycle after the first rendered frame for a
+  smoother startup.
+- Keep text-hide timing consistent across app pause/resume to prevent
+  bounce/reverse artifacts.
 - Remove `BackdropType.mosque` from Ramadan `classic` and `night` variants.
 - Performance optimization pass:
   split overlay painting into separate backdrop and particle layers to avoid

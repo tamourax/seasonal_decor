@@ -163,6 +163,7 @@ void main() {
       ),
     );
 
+    await tester.pump();
     final dynamic state = tester.state(find.byType(SeasonalDecor));
     expect(state.debugIsTextVisible() as bool, isTrue);
     expect(find.text('Eid Celebration'), findsOneWidget);
@@ -182,6 +183,7 @@ void main() {
       ),
     );
 
+    await tester.pump();
     final dynamic state = tester.state(find.byType(SeasonalDecor));
     expect(state.debugIsTextVisible() as bool, isTrue);
     expect(find.text('Eid Celebration'), findsOneWidget);
@@ -223,6 +225,7 @@ void main() {
       ),
     );
 
+    await tester.pump();
     final dynamic state = tester.state(find.byType(SeasonalDecor));
     expect(state.debugIsTextVisible() as bool, isTrue);
 
@@ -230,6 +233,126 @@ void main() {
     expect(state.debugIsTextVisible() as bool, isFalse);
 
     await tester.pump(const Duration(milliseconds: 115));
+    expect(state.debugIsTextVisible() as bool, isFalse);
+  });
+
+  testWidgets(
+      'text exit starts only after enter animation plus display duration',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SeasonalDecor(
+          preset: SeasonalPreset.ramadan(),
+          showText: true,
+          text: 'Enter Hold',
+          textDisplayDuration: const Duration(milliseconds: 100),
+          textAnimationDuration: const Duration(milliseconds: 600),
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    final dynamic state = tester.state(find.byType(SeasonalDecor));
+    expect(state.debugIsTextVisible() as bool, isTrue);
+
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(state.debugIsTextVisible() as bool, isTrue);
+
+    await tester.pump(const Duration(milliseconds: 410));
+    expect(state.debugIsTextVisible() as bool, isFalse);
+  });
+
+  testWidgets('startup defers first text cycle until next frame',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SeasonalDecor(
+          preset: SeasonalPreset.ramadan(),
+          showText: true,
+          text: 'Startup',
+          textAnimationDuration: const Duration(milliseconds: 300),
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    final firstFrameOpacity =
+        tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity)).opacity;
+    expect(firstFrameOpacity, 0.0);
+
+    await tester.pump();
+
+    final secondFrameOpacity =
+        tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity)).opacity;
+    expect(secondFrameOpacity, 1.0);
+  });
+
+  testWidgets('pause and resume keeps text cycle stable without oscillation',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SeasonalDecor(
+          preset: SeasonalPreset.eid(variant: EidVariant.fitr),
+          showText: true,
+          text: 'Pause Resume',
+          textDisplayDuration: const Duration(milliseconds: 200),
+          textAnimationDuration: const Duration(milliseconds: 1),
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    final dynamic state = tester.state(find.byType(SeasonalDecor));
+    expect(state.debugIsTextVisible() as bool, isTrue);
+
+    await tester.pump(const Duration(milliseconds: 100));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump();
+
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(state.debugIsTextVisible() as bool, isTrue);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+
+    await tester.pump(const Duration(milliseconds: 120));
+    expect(state.debugIsTextVisible() as bool, isTrue);
+
+    await tester.pump(const Duration(milliseconds: 120));
+    expect(state.debugIsTextVisible() as bool, isFalse);
+
+    await tester.pump(const Duration(milliseconds: 120));
+    expect(state.debugIsTextVisible() as bool, isFalse);
+  });
+
+  testWidgets('large frame jump does not cause text oscillation',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SeasonalDecor(
+          preset: SeasonalPreset.ramadan(),
+          showText: true,
+          text: 'Jank',
+          textDisplayDuration: const Duration(milliseconds: 120),
+          textAnimationDuration: const Duration(milliseconds: 600),
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    final dynamic state = tester.state(find.byType(SeasonalDecor));
+    expect(state.debugIsTextVisible() as bool, isTrue);
+
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(state.debugIsTextVisible() as bool, isTrue);
+
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(state.debugIsTextVisible() as bool, isFalse);
+
+    await tester.pump(const Duration(milliseconds: 200));
     expect(state.debugIsTextVisible() as bool, isFalse);
   });
 

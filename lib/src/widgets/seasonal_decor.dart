@@ -239,11 +239,15 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   bool _playing = true;
   bool _textVisible = false;
   bool _textShownInCurrentSeries = false;
+  bool _didRunFirstTextCycle = false;
   Brightness _themeBrightness =
       WidgetsBinding.instance.platformDispatcher.platformBrightness;
   Timer? _stopTimer;
   Timer? _repeatTimer;
   Timer? _textHideTimer;
+  DateTime? _textHideDeadline;
+  Duration? _textHideRemaining;
+  int _textCycleToken = 0;
 
   @override
   void initState() {
@@ -363,6 +367,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
       return;
     }
     _appPaused = true;
+    _pausePendingTextHideIfAny();
     _syncAnimation();
   }
 
@@ -371,6 +376,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
       return;
     }
     _appPaused = false;
+    _resumePendingTextHideIfAny();
     _syncAnimation();
   }
 
@@ -597,6 +603,91 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     _textShownInCurrentSeries = false;
   }
 
+  Duration _effectiveTextAnimationDuration() {
+    final duration = _reduceMotion
+        ? const Duration(milliseconds: 240)
+        : widget.textAnimationDuration;
+    if (duration <= Duration.zero) {
+      return Duration.zero;
+    }
+    return duration;
+  }
+
+  void _clearTextHideSchedule({bool bumpToken = true}) {
+    _textHideTimer?.cancel();
+    _textHideTimer = null;
+    _textHideDeadline = null;
+    _textHideRemaining = null;
+    if (bumpToken) {
+      _textCycleToken += 1;
+    }
+  }
+
+  void _scheduleTextHide({required Duration delay}) {
+    if (delay <= Duration.zero) {
+      _clearTextHideSchedule();
+      _setTextVisible(false);
+      return;
+    }
+    _clearTextHideSchedule(bumpToken: false);
+    _textCycleToken += 1;
+    final token = _textCycleToken;
+    _textHideDeadline = DateTime.now().add(delay);
+    _textHideTimer = Timer(delay, () {
+      if (!mounted || token != _textCycleToken) {
+        return;
+      }
+      _textHideTimer = null;
+      _textHideDeadline = null;
+      _textHideRemaining = null;
+      _setTextVisible(false);
+    });
+  }
+
+  void _pausePendingTextHideIfAny() {
+    if (_textHideDeadline == null && _textHideTimer == null) {
+      return;
+    }
+    final deadline = _textHideDeadline;
+    if (deadline == null) {
+      _clearTextHideSchedule(bumpToken: false);
+      return;
+    }
+    final remaining = deadline.difference(DateTime.now());
+    _textHideRemaining = remaining > Duration.zero ? remaining : Duration.zero;
+    _textHideTimer?.cancel();
+    _textHideTimer = null;
+    _textHideDeadline = null;
+  }
+
+  void _resumePendingTextHideIfAny() {
+    final remaining = _textHideRemaining;
+    if (remaining == null) {
+      return;
+    }
+    _textHideRemaining = null;
+    if (remaining <= Duration.zero) {
+      _clearTextHideSchedule();
+      _setTextVisible(false);
+      return;
+    }
+    _scheduleTextHide(delay: remaining);
+  }
+
+  void _startTextCycleAfterFirstFrameIfNeeded() {
+    if (_didRunFirstTextCycle) {
+      _startTextCycle();
+      return;
+    }
+    _didRunFirstTextCycle = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !widget.enabled || widget.preset.isNone) {
+        return;
+      }
+      _startTextCycle();
+    });
+  }
+
   void _startPlayCycle({bool fromRepeat = false}) {
     if (!widget.enabled) {
       _hideText();
@@ -613,7 +704,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
       // is accumulator-based. Force an immediate cycle respawn on restart.
       _controller.system.setConfig(_controller.config, respawn: true);
     }
-    _startTextCycle();
+    _startTextCycleAfterFirstFrameIfNeeded();
     _stopTimer?.cancel();
     _repeatTimer?.cancel();
     if (widget.playDuration > Duration.zero) {
@@ -636,16 +727,16 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   void _cancelTimers() {
     _stopTimer?.cancel();
     _repeatTimer?.cancel();
-    _textHideTimer?.cancel();
+    _clearTextHideSchedule();
   }
 
   void _hideText() {
-    _textHideTimer?.cancel();
+    _clearTextHideSchedule();
     _setTextVisible(false);
   }
 
   void _startTextCycle({bool force = false}) {
-    _textHideTimer?.cancel();
+    _clearTextHideSchedule();
     final resolvedText = _resolveOverlayText();
     if (resolvedText == null || resolvedText.isEmpty || !widget.enabled) {
       _setTextVisible(false);
@@ -663,12 +754,9 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     if (widget.textDisplayDuration <= Duration.zero) {
       return;
     }
-    _textHideTimer = Timer(widget.textDisplayDuration, () {
-      if (!mounted) {
-        return;
-      }
-      _setTextVisible(false);
-    });
+    final hideDelay =
+        _effectiveTextAnimationDuration() + widget.textDisplayDuration;
+    _scheduleTextHide(delay: hideDelay);
   }
 
   void _setTextVisible(bool visible) {
@@ -872,10 +960,9 @@ class _SeasonalDecorState extends State<SeasonalDecor>
         final mergedTextStyle = defaultTextStyle.merge(widget.textStyle);
         final isArabicText =
             overlayText != null && _containsArabic(overlayText);
-        final inferredDirection =
-            isArabicText ? TextDirection.rtl : TextDirection.ltr;
-        final resolvedTextDirection =
-            Directionality.maybeOf(context) ?? inferredDirection;
+        final resolvedTextDirection = isArabicText
+            ? TextDirection.rtl
+            : (Directionality.maybeOf(context) ?? TextDirection.ltr);
         final textColor = mergedTextStyle.color ?? const Color(0xFFFFFFFF);
         final textStyle = mergedTextStyle.copyWith(
           letterSpacing: isArabicText ? 0.0 : mergedTextStyle.letterSpacing,
@@ -885,9 +972,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
                 (textColor.a * clampedTextOpacity).clamp(0.0, 1.0).toDouble(),
           ),
         );
-        final textAnimationDuration = _reduceMotion
-            ? const Duration(milliseconds: 240)
-            : widget.textAnimationDuration;
+        final textAnimationDuration = _effectiveTextAnimationDuration();
         final hiddenTextOffset =
             _reduceMotion ? Offset.zero : widget.textSlideOffset;
 

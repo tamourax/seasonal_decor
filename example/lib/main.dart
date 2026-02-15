@@ -26,9 +26,9 @@ class CommerceLandingApp extends StatelessWidget {
       ),
     home:  Scaffold(
       body: SeasonalDecor(
-          text: "sssssssssssssssssssssssssssssssssss",
-  showText: false,
-          textAnimationDuration: const Duration(milliseconds: 1200),
+          text: "ssssssssssssssssssssssss",
+
+          // textAnimationDuration: const Duration(milliseconds: 1200),
           textStyle: const TextStyle(
             fontSize: 48,
             fontWeight: FontWeight.w900,
