@@ -53,13 +53,17 @@ class SeasonalPreset {
     bool? enableFireworks,
   }) {
     var resolvedStyles = styles ?? baseConfig.styles;
-    if (styles == null && shapes != null && shapes.isNotEmpty) {
-      final nextStyles = <ParticleStyle>[];
-      for (var i = 0; i < baseConfig.styles.length; i += 1) {
-        final shape = shapes[i % shapes.length];
-        nextStyles.add(baseConfig.styles[i].copyWith(shape: shape));
+    if (styles == null && shapes != null) {
+      if (shapes.isEmpty) {
+        resolvedStyles = const <ParticleStyle>[];
+      } else {
+        final nextStyles = <ParticleStyle>[];
+        for (var i = 0; i < baseConfig.styles.length; i += 1) {
+          final shape = shapes[i % shapes.length];
+          nextStyles.add(baseConfig.styles[i].copyWith(shape: shape));
+        }
+        resolvedStyles = nextStyles;
       }
-      resolvedStyles = nextStyles;
     }
 
     if (shapeSpeedMultipliers != null && shapeSpeedMultipliers.isNotEmpty) {
@@ -225,25 +229,15 @@ class SeasonalPreset {
 
   /// Football celebration preset.
   factory SeasonalPreset.football({
-    SportEventVariant? variant,
+    FootballVariant? variant,
   }) {
-    final resolvedVariant = variant ?? SportEventVariant.worldCup;
+    final resolvedVariant = variant ?? FootballVariant.worldCup;
     return SeasonalPreset._(
       name: 'Football Celebration',
       variant: resolvedVariant.name,
-      baseConfig: buildSportEventConfig(
+      baseConfig: buildFootballConfig(
         resolvedVariant,
       ),
-    );
-  }
-
-  /// Alias for [SeasonalPreset.football].
-  @Deprecated('Use SeasonalPreset.football() instead.')
-  factory SeasonalPreset.sportEvent({
-    SportEventVariant? variant,
-  }) {
-    return SeasonalPreset.football(
-      variant: variant,
     );
   }
 }

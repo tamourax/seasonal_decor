@@ -6,7 +6,7 @@
 [![Pub Version](https://img.shields.io/pub/v/seasonal_decor?logo=dart&logoColor=white)](https://pub.dev/packages/seasonal_decor)
 ![Production Ready](https://img.shields.io/badge/Production-Ready-16a34a)
 
-Add beautiful seasonal animations and festive overlays to your Flutter app with one line of code.
+2️⃣ One line of code… and your Flutter app celebrates. 🎉
 
 Bring Ramadan vibes, Christmas magic, Valentine effects, New Year celebrations, and more instantly.
 
@@ -81,7 +81,7 @@ In the advanced example app (`example/lib/advanced_main.dart`), users can intera
 - `SeasonalPreset.newYear()`
 - `SeasonalPreset.valentine()`
 - `SeasonalPreset.halloween()`
-- `SeasonalPreset.football()` (`sportEvent()` still works as alias)
+- `SeasonalPreset.football()`
 - `SeasonalPreset.none()`
 
 ## 🎬 Preset GIF Previews
@@ -139,7 +139,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  seasonal_decor: ^1.3.0
+  seasonal_decor: ^1.3.3
 ```
 
 Then run:
@@ -171,8 +171,11 @@ Backdrop only:
 ```dart
 SeasonalDecor(
   preset: SeasonalPreset.ramadan(),
-  presetShapes: const <ParticleShape>[],
   showBackdrop: true,
+  presetShapes: const <ParticleShape>[], // disable particle styles
+  // Optional (best performance): keep backdrop static without animation ticks.
+  // enabled: false,
+  // showBackdropWhenDisabled: true,
   child: const HomeScreen(),
 );
 ```

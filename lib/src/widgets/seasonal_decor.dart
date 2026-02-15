@@ -670,7 +670,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
         return "Happy Valentine's Day";
       case 'Halloween':
         return 'Happy Halloween';
-      case 'Sport Event':
+      case 'Football Celebration':
         return 'Let the game begin';
       default:
         return preset.name;
@@ -756,15 +756,32 @@ class _SeasonalDecorState extends State<SeasonalDecor>
           _controller.updateBounds(resolvedSize);
         }
 
-        final overlay = RepaintBoundary(
+        final backdropOverlay = RepaintBoundary(
           child: CustomPaint(
             painter: DecorPainter(
               system: _controller.system,
               config: _controller.config,
               opacity: overlayOpacity,
               staticMode: _reduceMotion,
-              paintParticles: widget.enabled,
-              showBackdrop: widget.showBackdrop,
+              paintParticles: false,
+              showBackdrop: true,
+              decorativeBackdropDensityMultiplier:
+                  widget.decorativeBackdropDensityMultiplier,
+              decorativeBackdropRows: widget.decorativeBackdropRows,
+              ramadanBuntingRows: widget.ramadanBuntingRows,
+            ),
+            size: Size.infinite,
+          ),
+        );
+        final particlesOverlay = RepaintBoundary(
+          child: CustomPaint(
+            painter: DecorPainter(
+              system: _controller.system,
+              config: _controller.config,
+              opacity: overlayOpacity,
+              staticMode: _reduceMotion,
+              paintParticles: true,
+              showBackdrop: false,
               decorativeBackdropDensityMultiplier:
                   widget.decorativeBackdropDensityMultiplier,
               decorativeBackdropRows: widget.decorativeBackdropRows,
@@ -775,8 +792,9 @@ class _SeasonalDecorState extends State<SeasonalDecor>
           ),
         );
 
-        final shouldShowOverlay = widget.enabled ||
-            (widget.showBackdropWhenDisabled && widget.showBackdrop);
+        final shouldShowBackdropLayer = widget.showBackdrop &&
+            (widget.enabled || widget.showBackdropWhenDisabled);
+        final shouldShowParticleLayer = widget.enabled;
         final shouldShowCustomBackgroundBackdrop =
             widget.backgroundBackdrop != null &&
                 widget.showBackdrop &&
@@ -821,10 +839,15 @@ class _SeasonalDecorState extends State<SeasonalDecor>
                 ignoring: true,
                 child: RepaintBoundary(child: widget.backgroundBackdrop!),
               ),
-            if (shouldShowOverlay)
+            if (shouldShowBackdropLayer)
               IgnorePointer(
                 ignoring: widget.ignorePointer,
-                child: overlay,
+                child: backdropOverlay,
+              ),
+            if (shouldShowParticleLayer)
+              IgnorePointer(
+                ignoring: widget.ignorePointer,
+                child: particlesOverlay,
               ),
             if (shouldShowText && overlayText != null && overlayText.isNotEmpty)
               IgnorePointer(

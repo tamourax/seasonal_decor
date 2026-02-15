@@ -1,6 +1,42 @@
-## Unreleased
+## 1.3.3
 
-- No pending changes.
+- Bump package version to `1.3.3`.
+- Performance optimization pass:
+  split overlay painting into separate backdrop and particle layers to avoid
+  repainting static backdrops on every animation tick.
+- Add backdrop picture caching in `DecorPainter` for static backdrop-only
+  passes (bounded cache with quantized size/opacity key).
+- Improve `ParticleSystem` hot paths by tracking active particle count
+  incrementally and avoiding repeated full-pool scans.
+- Add a lightweight fast soccer-ball particle renderer while keeping the
+  detailed football backdrop renderer.
+- Reduce paint-time allocations by reusing temporary paths and precomputed
+  tinted palettes in decorative backdrop loops.
+- Support explicit backdrop-only override via
+  `SeasonalPreset.withOverrides(shapes: const <ParticleShape>[])`.
+- Add performance-focused tests in `test/performance_optimizations_test.dart`.
+- Add text-position controls in the advanced example
+  (`textAlignX`, `textAlignY`, `textTopPadding`).
+- Refresh `example/pubspec.lock` path dependency version to `1.3.3`.
+
+## 1.3.2
+
+- Bump package version to `1.3.2`.
+- Keep football naming only across the public API:
+  remove `SeasonalPreset.sportEvent()`,
+  rename `SportEventVariant` to `FootballVariant`,
+  and rename `buildSportEventConfig(...)` to `buildFootballConfig(...)`.
+- Align football preset labels/default text and tests with football-only naming.
+- Update README install snippet to `1.3.2`.
+
+## 1.3.1
+
+- Bump package version to `1.3.1`.
+- Keep pub.dev screenshots within the 10-image limit
+  (remove `valentine.gif` and `football.gif` from `pubspec.yaml` screenshots).
+- Add missing public API dartdoc comments for library/config constructors
+  and fireworks rocket limits.
+- Update README install snippet to `1.3.1`.
 
 ## 1.3.0
 
