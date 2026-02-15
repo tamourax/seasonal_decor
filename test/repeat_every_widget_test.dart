@@ -157,6 +157,107 @@ void main() {
     expect(state.debugIsTextVisible() as bool, isFalse);
   });
 
+  testWidgets('custom text does not show when showText is false',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SeasonalDecor(
+          preset: SeasonalPreset.eid(variant: EidVariant.fitr),
+          showText: false,
+          text: 'Eid Celebration',
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    final dynamic state = tester.state(find.byType(SeasonalDecor));
+    expect(state.debugIsTextVisible() as bool, isFalse);
+    expect(find.text('Eid Celebration'), findsNothing);
+  });
+
+  testWidgets('custom text shows when showText is omitted', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SeasonalDecor(
+          preset: SeasonalPreset.eid(variant: EidVariant.fitr),
+          text: 'Eid Celebration',
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    final dynamic state = tester.state(find.byType(SeasonalDecor));
+    expect(state.debugIsTextVisible() as bool, isTrue);
+    expect(find.text('Eid Celebration'), findsOneWidget);
+  });
+
+  testWidgets('default text does not show when showText is omitted',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SeasonalDecor(
+          preset: SeasonalPreset.ramadan(),
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    final dynamic state = tester.state(find.byType(SeasonalDecor));
+    expect(state.debugIsTextVisible() as bool, isFalse);
+    expect(find.text('Ramadan Kareem'), findsNothing);
+  });
+
+  testWidgets('text is shown once per repeat series when repeatEvery is set',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SeasonalDecor(
+          preset: SeasonalPreset.ramadan(),
+          showText: true,
+          text: 'Ramadan Kareem',
+          playDuration: const Duration(milliseconds: 60),
+          repeatEvery: const Duration(milliseconds: 100),
+          textDisplayDuration: const Duration(milliseconds: 25),
+          textAnimationDuration: const Duration(milliseconds: 1),
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    final dynamic state = tester.state(find.byType(SeasonalDecor));
+    expect(state.debugIsTextVisible() as bool, isTrue);
+
+    await tester.pump(const Duration(milliseconds: 40));
+    expect(state.debugIsTextVisible() as bool, isFalse);
+
+    // First cycle stops at 60ms, then repeats at 160ms.
+    await tester.pump(const Duration(milliseconds: 130));
+    expect(state.debugIsTextVisible() as bool, isFalse);
+  });
+
+  testWidgets('arabic text keeps zero letter spacing and no decoration',
+      (tester) async {
+    const arabicGreeting =
+        '\u0631\u0645\u0636\u0627\u0646 \u0643\u0631\u064A\u0645';
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SeasonalDecor(
+          preset: SeasonalPreset.ramadan(),
+          showText: true,
+          text: arabicGreeting,
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    final textWidget = tester.widget<Text>(find.text(arabicGreeting));
+    final textStyle = textWidget.style;
+
+    expect(textStyle, isNotNull);
+    expect(textStyle!.letterSpacing, 0.0);
+    expect(textStyle.decoration, TextDecoration.none);
+  });
+
   testWidgets('custom background backdrop replaces built-in background layer',
       (tester) async {
     const customBackdropKey = Key('custom-background-backdrop');

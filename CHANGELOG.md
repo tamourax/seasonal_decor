@@ -1,3 +1,17 @@
+## 1.3.4
+
+- Add tri-state greeting behavior for constructor argument `showText`:
+  - `showText: false` hides text always.
+  - `showText: true` enables greeting text and uses preset default when `text`
+    is empty.
+  - omitting `showText` shows text only when custom `text` is non-empty.
+- Keep greeting text one-shot per playback series when `repeatEvery` is used.
+- Improve Arabic greeting rendering for web by enforcing safer text defaults
+  and explicit direction wrapping.
+- Remove `BackdropType.mosque` from Ramadan `classic` and `night` presets.
+- Add/adjust tests for tri-state `showText`, repeat text behavior, Arabic text
+  styling, and Ramadan backdrop composition.
+
 ## 1.3.3
 
 - Bump package version to `1.3.3`.

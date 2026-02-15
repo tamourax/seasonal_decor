@@ -171,13 +171,6 @@ DecorConfig buildRamadanConfig(RamadanVariant variant) {
             anchor: Offset(0.84, 0.2),
             sizeFactor: 0.2,
           ),
-          DecorBackdrop.mosque(
-            layer: BackdropLayer.background,
-            color: Color(0xFF9CB2D9),
-            opacity: 0.12,
-            anchor: Offset(0.5, 0.8),
-            sizeFactor: 0.33,
-          ),
         ],
       );
     case RamadanVariant.classic:
@@ -249,13 +242,6 @@ DecorConfig buildRamadanConfig(RamadanVariant variant) {
             opacity: 0.24,
             anchor: Offset(0.84, 0.2),
             sizeFactor: 0.2,
-          ),
-          DecorBackdrop.mosque(
-            layer: BackdropLayer.background,
-            color: Color(0xFFB9C7E0),
-            opacity: 0.16,
-            anchor: Offset(0.5, 0.8),
-            sizeFactor: 0.34,
           ),
         ],
       );

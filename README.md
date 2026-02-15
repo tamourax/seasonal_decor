@@ -59,8 +59,12 @@ Recommended defaults for most apps:
 
 - Keep `respectReduceMotion: true` (default)
 - Keep `pauseWhenInactive: true` (default)
+- Use `showText: true` for preset default greetings.
+- Omit `showText` when you want custom `text` only.
+- Use `showText: false` to always hide greeting text.
 - Use `intensity: DecorIntensity.medium/high` for daily screens
 - Use `high/extraHigh/max` only for short celebration moments
+- With `repeatEvery`, greeting text is shown once per series (not every repeat).
 
 ## 🎮 Interactive Demo Controls
 
@@ -139,7 +143,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  seasonal_decor: ^1.3.3
+  seasonal_decor: ^1.3.4
 ```
 
 Then run:
@@ -237,14 +241,14 @@ SeasonalDecor(
 | `ignorePointer` | `bool` | `true` | Lets touches pass through the overlay. |
 | `playDuration` | `Duration` | `Duration(seconds: 5)` | Time to keep each play cycle running. |
 | `settleOnDisable` | `bool` | `true` | Lets particles settle smoothly when stopped. |
-| `repeatEvery` | `Duration?` | `null` | Optional interval to replay after each cycle. |
+| `repeatEvery` | `Duration?` | `null` | Optional interval to replay after each cycle (text remains one-shot per series). |
 | `showBackdrop` | `bool` | `true` | Master toggle for all backdrop rendering. |
 | `showBackdropWhenDisabled` | `bool` | `true` | Keeps backdrops visible even when `enabled: false`. |
 | `showBackgroundBackdrops` | `bool` | `true` | Toggle for background-layer built-in backdrops. |
 | `backgroundBackdrop` | `Widget?` | `null` | Custom widget replacing built-in background backdrops. |
 | `showDecorativeBackdrops` | `bool` | `true` | Toggle for decorative-layer built-in backdrops. |
-| `showText` | `bool` | `false` | Shows animated seasonal greeting text. |
-| `text` | `String?` | `null` | Custom greeting; when empty/null uses preset default text. |
+| `showText` | `bool?` | `null` | `true`: show text (use preset default when `text` empty), `false`: hide text, `null`: show only when custom `text` is non-empty. |
+| `text` | `String?` | `null` | Custom greeting content; when empty/null, default text is used only if `showText` is explicitly `true`. |
 | `textStyle` | `TextStyle?` | `null` | Overrides greeting text style. |
 | `textOpacity` | `double` | `0.5` | Greeting text opacity multiplier. |
 | `textAlignment` | `Alignment` | `Alignment.topCenter` | Greeting text alignment in overlay. |

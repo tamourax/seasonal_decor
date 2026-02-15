@@ -65,12 +65,22 @@ class SeasonalDecor extends StatefulWidget {
   /// Whether to paint backdrops in the [BackdropLayer.decorative] layer.
   final bool showDecorativeBackdrops;
 
-  /// Whether to render seasonal greeting text overlay.
-  final bool showText;
+  /// Raw greeting text visibility preference.
+  ///
+  /// - `true`: show greeting text (defaults to preset message if [text] empty)
+  /// - `false`: hide greeting text entirely
+  /// - `null`: show only when [text] is non-empty
+  final bool? _showText;
+
+  /// Resolved greeting visibility flag for compatibility.
+  ///
+  /// Returns `true` only when `showText: true` is passed explicitly.
+  bool get showText => _showText == true;
 
   /// Optional custom greeting text.
   ///
-  /// When null or empty, a preset-based default greeting is used.
+  /// When null or empty, a preset-based default greeting is used only when
+  /// `showText: true` is passed explicitly.
   final String? text;
 
   /// Optional style override for greeting text.
@@ -183,7 +193,7 @@ class SeasonalDecor extends StatefulWidget {
     this.showBackgroundBackdrops = true,
     this.backgroundBackdrop,
     this.showDecorativeBackdrops = true,
-    this.showText = false,
+    bool? showText,
     this.text,
     this.textStyle,
     this.textOpacity = 0.5,
@@ -209,7 +219,7 @@ class SeasonalDecor extends StatefulWidget {
     this.presetBackdropColor,
     this.presetBackdropOpacity,
     this.presetEnableFireworks,
-  });
+  }) : _showText = showText;
 
   @override
   State<SeasonalDecor> createState() => _SeasonalDecorState();
@@ -217,6 +227,10 @@ class SeasonalDecor extends StatefulWidget {
 
 class _SeasonalDecorState extends State<SeasonalDecor>
     with TickerProviderStateMixin {
+  static final RegExp _arabicTextRegExp = RegExp(
+    r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]',
+  );
+
   late DecorController _controller;
   late LifecyclePause _lifecyclePause;
   Size _lastSize = Size.zero;
@@ -224,6 +238,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   bool _reduceMotion = false;
   bool _playing = true;
   bool _textVisible = false;
+  bool _textShownInCurrentSeries = false;
   Brightness _themeBrightness =
       WidgetsBinding.instance.platformDispatcher.platformBrightness;
   Timer? _stopTimer;
@@ -283,6 +298,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     if (widget.preset.isNone) {
       _cancelTimers();
       _hideText();
+      _resetTextSeries();
       _playing = false;
       _syncAnimation();
       return;
@@ -304,13 +320,14 @@ class _SeasonalDecorState extends State<SeasonalDecor>
       } else {
         _cancelTimers();
         _hideText();
+        _resetTextSeries();
         _playing = false;
         _applySystemControls();
         _syncAnimation();
       }
       return;
     }
-    final textSettingsChanged = oldWidget.showText != widget.showText ||
+    final textSettingsChanged = oldWidget._showText != widget._showText ||
         oldWidget.text != widget.text ||
         oldWidget.textStyle != widget.textStyle ||
         oldWidget.textOpacity != widget.textOpacity ||
@@ -320,8 +337,9 @@ class _SeasonalDecorState extends State<SeasonalDecor>
         oldWidget.textAnimationDuration != widget.textAnimationDuration ||
         oldWidget.textSlideOffset != widget.textSlideOffset;
     if (textSettingsChanged || oldWidget.preset != widget.preset) {
+      _resetTextSeries();
       if (widget.enabled) {
-        _startTextCycle();
+        _startTextCycle(force: true);
       } else {
         _hideText();
       }
@@ -567,10 +585,25 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     );
   }
 
-  void _startPlayCycle() {
+  bool _containsArabic(String value) => _arabicTextRegExp.hasMatch(value);
+
+  bool get _showTextExplicitlyEnabled => widget._showText == true;
+
+  bool get _showTextExplicitlyDisabled => widget._showText == false;
+
+  bool get _showTextOmitted => widget._showText == null;
+
+  void _resetTextSeries() {
+    _textShownInCurrentSeries = false;
+  }
+
+  void _startPlayCycle({bool fromRepeat = false}) {
     if (!widget.enabled) {
       _hideText();
       return;
+    }
+    if (!fromRepeat) {
+      _resetTextSeries();
     }
     final wasPlaying = _playing;
     _playing = true;
@@ -595,7 +628,8 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     _syncAnimation();
     _repeatTimer?.cancel();
     if (widget.enabled && widget.repeatEvery != null) {
-      _repeatTimer = Timer(widget.repeatEvery!, _startPlayCycle);
+      _repeatTimer =
+          Timer(widget.repeatEvery!, () => _startPlayCycle(fromRepeat: true));
     }
   }
 
@@ -610,18 +644,22 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     _setTextVisible(false);
   }
 
-  void _startTextCycle() {
+  void _startTextCycle({bool force = false}) {
     _textHideTimer?.cancel();
     final resolvedText = _resolveOverlayText();
-    if (resolvedText == null ||
-        resolvedText.isEmpty ||
-        !widget.showText ||
-        !widget.enabled) {
+    if (resolvedText == null || resolvedText.isEmpty || !widget.enabled) {
+      _setTextVisible(false);
+      return;
+    }
+
+    final shouldShowOnlyOnceInSeries = widget.repeatEvery != null;
+    if (shouldShowOnlyOnceInSeries && _textShownInCurrentSeries && !force) {
       _setTextVisible(false);
       return;
     }
 
     _setTextVisible(true);
+    _textShownInCurrentSeries = true;
     if (widget.textDisplayDuration <= Duration.zero) {
       return;
     }
@@ -645,14 +683,24 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   }
 
   String? _resolveOverlayText() {
-    if (!widget.showText || widget.preset.isNone) {
+    if (widget.preset.isNone || _showTextExplicitlyDisabled) {
       return null;
     }
+
     final custom = widget.text?.trim();
     if (custom != null && custom.isNotEmpty) {
       return custom;
     }
-    return _defaultTextForPreset(widget.preset);
+
+    if (_showTextExplicitlyEnabled) {
+      return _defaultTextForPreset(widget.preset);
+    }
+
+    if (_showTextOmitted) {
+      return null;
+    }
+
+    return null;
   }
 
   String _defaultTextForPreset(SeasonalPreset preset) {
@@ -799,26 +847,39 @@ class _SeasonalDecorState extends State<SeasonalDecor>
             widget.backgroundBackdrop != null &&
                 widget.showBackdrop &&
                 (widget.enabled || widget.showBackdropWhenDisabled);
-        final shouldShowText = widget.enabled && widget.showText;
         final overlayText = _resolveOverlayText();
+        final shouldShowText =
+            widget.enabled && overlayText != null && overlayText.isNotEmpty;
         final clampedTextOpacity =
             widget.textOpacity.clamp(0.0, 1.0).toDouble();
-        final defaultTextStyle = DefaultTextStyle.of(context).style.copyWith(
-          fontSize: 34,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.6,
-          color: const Color(0xFFFFFFFF),
-          shadows: const [
-            Shadow(
-              color: Color(0x55000000),
-              blurRadius: 12,
-              offset: Offset(0, 2),
-            ),
-          ],
-        );
+        final defaultTextStyle = DefaultTextStyle.of(context).style.merge(
+              const TextStyle(
+                fontSize: 34,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.0,
+                height: 1.2,
+                decoration: TextDecoration.none,
+                color: Color(0xFFFFFFFF),
+                shadows: [
+                  Shadow(
+                    color: Color(0x55000000),
+                    blurRadius: 12,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+            );
         final mergedTextStyle = defaultTextStyle.merge(widget.textStyle);
+        final isArabicText =
+            overlayText != null && _containsArabic(overlayText);
+        final inferredDirection =
+            isArabicText ? TextDirection.rtl : TextDirection.ltr;
+        final resolvedTextDirection =
+            Directionality.maybeOf(context) ?? inferredDirection;
         final textColor = mergedTextStyle.color ?? const Color(0xFFFFFFFF);
         final textStyle = mergedTextStyle.copyWith(
+          letterSpacing: isArabicText ? 0.0 : mergedTextStyle.letterSpacing,
+          decoration: TextDecoration.none,
           color: textColor.withValues(
             alpha:
                 (textColor.a * clampedTextOpacity).clamp(0.0, 1.0).toDouble(),
@@ -849,7 +910,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
                 ignoring: widget.ignorePointer,
                 child: particlesOverlay,
               ),
-            if (shouldShowText && overlayText != null && overlayText.isNotEmpty)
+            if (shouldShowText)
               IgnorePointer(
                 ignoring: true,
                 child: Padding(
@@ -865,12 +926,15 @@ class _SeasonalDecorState extends State<SeasonalDecor>
                         curve: Curves.easeOutCubic,
                         opacity: _textVisible ? 1.0 : 0.0,
                         child: RepaintBoundary(
-                          child: Text(
-                            overlayText,
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: textStyle,
+                          child: Directionality(
+                            textDirection: resolvedTextDirection,
+                            child: Text(
+                              overlayText,
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: textStyle,
+                            ),
                           ),
                         ),
                       ),

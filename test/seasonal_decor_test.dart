@@ -122,6 +122,19 @@ void main() {
     expect(decorative.first.type, BackdropType.ramadanBunting);
   });
 
+  test('ramadan classic and night variants exclude mosque backdrop', () {
+    final classic = SeasonalPreset.ramadan(variant: RamadanVariant.classic);
+    final night = SeasonalPreset.ramadan(variant: RamadanVariant.night);
+
+    final classicHasMosque = classic.baseConfig.backdrops
+        .any((backdrop) => backdrop.type == BackdropType.mosque);
+    final nightHasMosque = night.baseConfig.backdrops
+        .any((backdrop) => backdrop.type == BackdropType.mosque);
+
+    expect(classicHasMosque, isFalse);
+    expect(nightHasMosque, isFalse);
+  });
+
   test('halloween preset uses pumpkin backdrop instead of crescent', () {
     final preset = SeasonalPreset.halloween();
 
