@@ -487,11 +487,8 @@ class _HomePageState extends State<HomePage> {
               textSize: _textSize,
               textAlignX: _textAlignX,
               textAlignY: _textAlignY,
-              textTopPadding: _textTopPadding,
               textDisplaySeconds: _textDisplaySeconds,
               textAnimationMilliseconds: _textAnimationMilliseconds,
-              textAlignX: _textAlignX,
-              textAlignY: _textAlignY,
               textPaddingHorizontal: _textPaddingHorizontal,
               textPaddingTop: _textPaddingTop,
               textSlideX: _textSlideX,
@@ -551,16 +548,10 @@ class _HomePageState extends State<HomePage> {
                   setState(() => _textAlignX = value),
               onTextAlignYChanged: (value) =>
                   setState(() => _textAlignY = value),
-              onTextTopPaddingChanged: (value) =>
-                  setState(() => _textTopPadding = value),
               onTextDisplaySecondsChanged: (value) =>
                   setState(() => _textDisplaySeconds = value),
               onTextAnimationMillisecondsChanged: (value) =>
                   setState(() => _textAnimationMilliseconds = value),
-              onTextAlignXChanged: (value) =>
-                  setState(() => _textAlignX = value),
-              onTextAlignYChanged: (value) =>
-                  setState(() => _textAlignY = value),
               onTextPaddingHorizontalChanged: (value) =>
                   setState(() => _textPaddingHorizontal = value),
               onTextPaddingTopChanged: (value) =>
@@ -751,11 +742,8 @@ class _ControlSheet extends StatelessWidget {
   final double textSize;
   final double textAlignX;
   final double textAlignY;
-  final double textTopPadding;
   final double textDisplaySeconds;
   final double textAnimationMilliseconds;
-  final double textAlignX;
-  final double textAlignY;
   final double textPaddingHorizontal;
   final double textPaddingTop;
   final double textSlideX;
@@ -797,11 +785,8 @@ class _ControlSheet extends StatelessWidget {
   final ValueChanged<double> onTextSizeChanged;
   final ValueChanged<double> onTextAlignXChanged;
   final ValueChanged<double> onTextAlignYChanged;
-  final ValueChanged<double> onTextTopPaddingChanged;
   final ValueChanged<double> onTextDisplaySecondsChanged;
   final ValueChanged<double> onTextAnimationMillisecondsChanged;
-  final ValueChanged<double> onTextAlignXChanged;
-  final ValueChanged<double> onTextAlignYChanged;
   final ValueChanged<double> onTextPaddingHorizontalChanged;
   final ValueChanged<double> onTextPaddingTopChanged;
   final ValueChanged<double> onTextSlideXChanged;
@@ -845,11 +830,8 @@ class _ControlSheet extends StatelessWidget {
     required this.textSize,
     required this.textAlignX,
     required this.textAlignY,
-    required this.textTopPadding,
     required this.textDisplaySeconds,
     required this.textAnimationMilliseconds,
-    required this.textAlignX,
-    required this.textAlignY,
     required this.textPaddingHorizontal,
     required this.textPaddingTop,
     required this.textSlideX,
@@ -891,11 +873,8 @@ class _ControlSheet extends StatelessWidget {
     required this.onTextSizeChanged,
     required this.onTextAlignXChanged,
     required this.onTextAlignYChanged,
-    required this.onTextTopPaddingChanged,
     required this.onTextDisplaySecondsChanged,
     required this.onTextAnimationMillisecondsChanged,
-    required this.onTextAlignXChanged,
-    required this.onTextAlignYChanged,
     required this.onTextPaddingHorizontalChanged,
     required this.onTextPaddingTopChanged,
     required this.onTextSlideXChanged,
@@ -1301,32 +1280,6 @@ class _ControlSheet extends StatelessWidget {
                           max: 56,
                           divisions: 19,
                           onChanged: showText ? onTextSizeChanged : null,
-                        ),
-                        Text('Text Align X (${textAlignX.toStringAsFixed(2)})'),
-                        Slider(
-                          value: textAlignX,
-                          min: -1.0,
-                          max: 1.0,
-                          divisions: 20,
-                          onChanged: showText ? onTextAlignXChanged : null,
-                        ),
-                        Text('Text Align Y (${textAlignY.toStringAsFixed(2)})'),
-                        Slider(
-                          value: textAlignY,
-                          min: -1.0,
-                          max: 1.0,
-                          divisions: 20,
-                          onChanged: showText ? onTextAlignYChanged : null,
-                        ),
-                        Text(
-                          'Text Top Padding (${textTopPadding.toStringAsFixed(0)})',
-                        ),
-                        Slider(
-                          value: textTopPadding,
-                          min: 0,
-                          max: 140,
-                          divisions: 14,
-                          onChanged: showText ? onTextTopPaddingChanged : null,
                         ),
                         Text(
                           'Text Display (${textDisplaySeconds.toStringAsFixed(1)}s)',
