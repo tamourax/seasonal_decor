@@ -45,6 +45,70 @@ extension PresetOptionX on PresetOption {
   }
 }
 
+enum PerfScene {
+  custom,
+  s0Baseline,
+  s1RamadanHeavy,
+  s2RamadanLights,
+  s3Football,
+  s4NewYearFireworks,
+  s5TextStress,
+  s6BackdropOnly,
+}
+
+extension PerfSceneX on PerfScene {
+  String get label {
+    switch (this) {
+      case PerfScene.custom:
+        return 'Custom';
+      case PerfScene.s0Baseline:
+        return 'S0 Baseline';
+      case PerfScene.s1RamadanHeavy:
+        return 'S1 Ramadan Heavy';
+      case PerfScene.s2RamadanLights:
+        return 'S2 Ramadan Lights';
+      case PerfScene.s3Football:
+        return 'S3 Football';
+      case PerfScene.s4NewYearFireworks:
+        return 'S4 New Year';
+      case PerfScene.s5TextStress:
+        return 'S5 Text Stress';
+      case PerfScene.s6BackdropOnly:
+        return 'S6 Backdrop Only';
+    }
+  }
+}
+
+PerfScene? parsePerfScene(String rawValue) {
+  final value = rawValue.trim().toUpperCase();
+  switch (value) {
+    case 'S0':
+    case 'S0BASELINE':
+      return PerfScene.s0Baseline;
+    case 'S1':
+    case 'S1RAMADANHEAVY':
+      return PerfScene.s1RamadanHeavy;
+    case 'S2':
+    case 'S2RAMADANLIGHTS':
+      return PerfScene.s2RamadanLights;
+    case 'S3':
+    case 'S3FOOTBALL':
+      return PerfScene.s3Football;
+    case 'S4':
+    case 'S4NEWYEAR':
+    case 'S4NEWYEARFIREWORKS':
+      return PerfScene.s4NewYearFireworks;
+    case 'S5':
+    case 'S5TEXTSTRESS':
+      return PerfScene.s5TextStress;
+    case 'S6':
+    case 'S6BACKDROPONLY':
+      return PerfScene.s6BackdropOnly;
+    default:
+      return null;
+  }
+}
+
 class SeasonalDecorExampleApp extends StatefulWidget {
   const SeasonalDecorExampleApp({super.key});
 
@@ -122,6 +186,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  static const String _stressText =
+      'Ramadan Kareem to everyone from Seasonal Decor. '
+      'Measure long animated text layout, fade, and slide transitions.';
+
+  PerfScene _perfScene = PerfScene.custom;
   PresetOption _presetOption = PresetOption.ramadan;
   DecorIntensity _intensity = DecorIntensity.max;
   bool _enabled = true;
@@ -157,6 +226,135 @@ class _HomePageState extends State<HomePage> {
   double _backdropAnchorY = 0.22;
   double _backdropSizeFactor = 0.55;
   BackdropType _backdropType = BackdropType.mosque;
+  List<ParticleShape>? _forcedPresetShapes;
+  bool? _presetEnableFireworks;
+
+  @override
+  void initState() {
+    super.initState();
+    const sceneArg = String.fromEnvironment('PERF_SCENE', defaultValue: '');
+    final initialScene = parsePerfScene(sceneArg);
+    if (initialScene == null) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _applyPerfScene(initialScene);
+    });
+  }
+
+  void _updateControl(VoidCallback mutation) {
+    setState(() {
+      _perfScene = PerfScene.custom;
+      _forcedPresetShapes = null;
+      _presetEnableFireworks = null;
+      mutation();
+    });
+  }
+
+  void _applyPerfScene(PerfScene scene) {
+    setState(() {
+      _perfScene = scene;
+      if (scene == PerfScene.custom) {
+        _forcedPresetShapes = null;
+        _presetEnableFireworks = null;
+        return;
+      }
+
+      _forcedPresetShapes = null;
+      _presetEnableFireworks = null;
+      _enabled = true;
+      _pauseWhenInactive = true;
+      _ignorePointer = true;
+      _respectReduceMotion = false;
+      _simulateReduceMotion = false;
+      _opacity = 1.0;
+      _showBackdrop = true;
+      _showBackdropWhenDisabled = true;
+      _showBackgroundBackdrops = true;
+      _showDecorativeBackdrops = true;
+      _particleSpeedMultiplier = 1.0;
+      _particleSizeMultiplier = 1.0;
+      _decorativeBackdropDensityMultiplier = 1.0;
+      _ramadanBuntingRows = 3;
+      _showText = false;
+      _customOverlayText = '';
+      _textOpacity = 0.5;
+      _textSize = 34.0;
+      _textDisplaySeconds = 1.8;
+      _textAnimationMilliseconds = 550.0;
+      _textAlignX = 0.0;
+      _textAlignY = -1.0;
+      _textTopPadding = 56.0;
+      _adaptColorsToTheme = true;
+      _playDurationSeconds = 0.0;
+      _settleOnDisable = true;
+      _autoRepeatEnabled = false;
+      _repeatMinutes = 1.0;
+      _usePresetOverrides = false;
+      _backdropAnchorX = 0.82;
+      _backdropAnchorY = 0.22;
+      _backdropSizeFactor = 0.55;
+      _backdropType = BackdropType.mosque;
+
+      switch (scene) {
+        case PerfScene.custom:
+          break;
+        case PerfScene.s0Baseline:
+          _presetOption = PresetOption.none;
+          _intensity = DecorIntensity.medium;
+          _showBackdrop = false;
+          break;
+        case PerfScene.s1RamadanHeavy:
+          _presetOption = PresetOption.ramadan;
+          _intensity = DecorIntensity.max;
+          _showDecorativeBackdrops = true;
+          _ramadanBuntingRows = 6;
+          break;
+        case PerfScene.s2RamadanLights:
+          _presetOption = PresetOption.ramadanHangingLanterns;
+          _intensity = DecorIntensity.max;
+          _ramadanBuntingRows = 4;
+          _particleSpeedMultiplier = 2.0;
+          _particleSizeMultiplier = 2.0;
+          break;
+        case PerfScene.s3Football:
+          _presetOption = PresetOption.football;
+          _intensity = DecorIntensity.max;
+          _particleSpeedMultiplier = 2.0;
+          _particleSizeMultiplier = 2.0;
+          break;
+        case PerfScene.s4NewYearFireworks:
+          _presetOption = PresetOption.newYear;
+          _intensity = DecorIntensity.max;
+          _presetEnableFireworks = true;
+          break;
+        case PerfScene.s5TextStress:
+          _presetOption = PresetOption.ramadan;
+          _intensity = DecorIntensity.medium;
+          _showText = true;
+          _customOverlayText = _stressText;
+          _textOpacity = 1.0;
+          _textSize = 56.0;
+          _textDisplaySeconds = 4.0;
+          _textAnimationMilliseconds = 1200.0;
+          _textAlignX = 0.0;
+          _textAlignY = -1.0;
+          _textTopPadding = 56.0;
+          break;
+        case PerfScene.s6BackdropOnly:
+          _presetOption = PresetOption.ramadan;
+          _intensity = DecorIntensity.medium;
+          _enabled = false;
+          _showBackdrop = true;
+          _showBackdropWhenDisabled = true;
+          _forcedPresetShapes = const <ParticleShape>[];
+          break;
+      }
+    });
+  }
 
   SeasonalPreset _buildPreset() {
     SeasonalPreset preset;
@@ -365,6 +563,8 @@ class _HomePageState extends State<HomePage> {
               child: SeasonalDecor(
                 preset: preset,
                 intensity: _intensity,
+                presetShapes: _forcedPresetShapes,
+                presetEnableFireworks: _presetEnableFireworks,
                 enabled: _enabled,
                 opacity: _opacity,
                 pauseWhenInactive: _pauseWhenInactive,
@@ -412,6 +612,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             _ControlSheet(
+              perfScene: _perfScene,
               presetOption: _presetOption,
               intensity: _intensity,
               enabled: _enabled,
@@ -448,71 +649,80 @@ class _HomePageState extends State<HomePage> {
               backdropAnchorY: _backdropAnchorY,
               backdropSizeFactor: _backdropSizeFactor,
               backdropType: _backdropType,
-              onPresetChanged: (value) => setState(() => _presetOption = value),
-              onIntensityChanged: (value) => setState(() => _intensity = value),
-              onEnabledChanged: (value) => setState(() => _enabled = value),
+              onPerfSceneChanged: _applyPerfScene,
+              onPresetChanged: (value) =>
+                  _updateControl(() => _presetOption = value),
+              onIntensityChanged: (value) =>
+                  _updateControl(() => _intensity = value),
+              onEnabledChanged: (value) =>
+                  _updateControl(() => _enabled = value),
               onPauseWhenInactiveChanged: (value) =>
-                  setState(() => _pauseWhenInactive = value),
+                  _updateControl(() => _pauseWhenInactive = value),
               onIgnorePointerChanged: (value) =>
-                  setState(() => _ignorePointer = value),
+                  _updateControl(() => _ignorePointer = value),
               onRespectReduceMotionChanged: (value) =>
-                  setState(() => _respectReduceMotion = value),
+                  _updateControl(() => _respectReduceMotion = value),
               onSimulateReduceMotionChanged: (value) =>
-                  setState(() => _simulateReduceMotion = value),
-              onOpacityChanged: (value) => setState(() => _opacity = value),
+                  _updateControl(() => _simulateReduceMotion = value),
+              onOpacityChanged: (value) =>
+                  _updateControl(() => _opacity = value),
               onShowBackdropChanged: (value) =>
-                  setState(() => _showBackdrop = value),
+                  _updateControl(() => _showBackdrop = value),
               onShowBackdropWhenDisabledChanged: (value) =>
-                  setState(() => _showBackdropWhenDisabled = value),
+                  _updateControl(() => _showBackdropWhenDisabled = value),
               onShowBackgroundBackdropsChanged: (value) =>
-                  setState(() => _showBackgroundBackdrops = value),
+                  _updateControl(() => _showBackgroundBackdrops = value),
               onShowDecorativeBackdropsChanged: (value) =>
-                  setState(() => _showDecorativeBackdrops = value),
-              onShowTextChanged: (value) => setState(() => _showText = value),
+                  _updateControl(() => _showDecorativeBackdrops = value),
+              onShowTextChanged: (value) =>
+                  _updateControl(() => _showText = value),
               onCustomOverlayTextChanged: (value) =>
-                  setState(() => _customOverlayText = value),
+                  _updateControl(() => _customOverlayText = value),
               onTextOpacityChanged: (value) =>
-                  setState(() => _textOpacity = value),
-              onTextSizeChanged: (value) => setState(() => _textSize = value),
+                  _updateControl(() => _textOpacity = value),
+              onTextSizeChanged: (value) =>
+                  _updateControl(() => _textSize = value),
               onTextAlignXChanged: (value) =>
-                  setState(() => _textAlignX = value),
+                  _updateControl(() => _textAlignX = value),
               onTextAlignYChanged: (value) =>
-                  setState(() => _textAlignY = value),
+                  _updateControl(() => _textAlignY = value),
               onTextTopPaddingChanged: (value) =>
-                  setState(() => _textTopPadding = value),
+                  _updateControl(() => _textTopPadding = value),
               onTextDisplaySecondsChanged: (value) =>
-                  setState(() => _textDisplaySeconds = value),
+                  _updateControl(() => _textDisplaySeconds = value),
               onTextAnimationMillisecondsChanged: (value) =>
-                  setState(() => _textAnimationMilliseconds = value),
+                  _updateControl(() => _textAnimationMilliseconds = value),
               onParticleSpeedMultiplierChanged: (value) =>
-                  setState(() => _particleSpeedMultiplier = value),
+                  _updateControl(() => _particleSpeedMultiplier = value),
               onParticleSizeMultiplierChanged: (value) =>
-                  setState(() => _particleSizeMultiplier = value),
+                  _updateControl(() => _particleSizeMultiplier = value),
               onDecorativeBackdropDensityMultiplierChanged: (value) =>
-                  setState(() => _decorativeBackdropDensityMultiplier = value),
-              onRamadanBuntingRowsChanged: (value) => setState(
+                  _updateControl(
+                () => _decorativeBackdropDensityMultiplier = value,
+              ),
+              onRamadanBuntingRowsChanged: (value) => _updateControl(
                 () => _ramadanBuntingRows = (value.round().clamp(1, 6)).toInt(),
               ),
               onAdaptColorsToThemeChanged: (value) =>
-                  setState(() => _adaptColorsToTheme = value),
+                  _updateControl(() => _adaptColorsToTheme = value),
               onPlayDurationChanged: (value) =>
-                  setState(() => _playDurationSeconds = value),
+                  _updateControl(() => _playDurationSeconds = value),
               onSettleOnDisableChanged: (value) =>
-                  setState(() => _settleOnDisable = value),
+                  _updateControl(() => _settleOnDisable = value),
               onAutoRepeatChanged: (value) =>
-                  setState(() => _autoRepeatEnabled = value),
+                  _updateControl(() => _autoRepeatEnabled = value),
               onRepeatMinutesChanged: (value) =>
-                  setState(() => _repeatMinutes = value),
+                  _updateControl(() => _repeatMinutes = value),
               onUsePresetOverridesChanged: (value) =>
-                  setState(() => _usePresetOverrides = value),
+                  _updateControl(() => _usePresetOverrides = value),
               onBackdropAnchorXChanged: (value) =>
-                  setState(() => _backdropAnchorX = value),
+                  _updateControl(() => _backdropAnchorX = value),
               onBackdropAnchorYChanged: (value) =>
-                  setState(() => _backdropAnchorY = value),
+                  _updateControl(() => _backdropAnchorY = value),
               onBackdropSizeFactorChanged: (value) =>
-                  setState(() => _backdropSizeFactor = value),
+                  _updateControl(() => _backdropSizeFactor = value),
               onBackdropTypeChanged: (value) =>
-                  setState(() => _backdropType = value),
+                  _updateControl(() => _backdropType = value),
             ),
           ],
         ),
@@ -643,6 +853,7 @@ class _Header extends StatelessWidget {
 }
 
 class _ControlSheet extends StatelessWidget {
+  final PerfScene perfScene;
   final PresetOption presetOption;
   final DecorIntensity intensity;
   final bool enabled;
@@ -678,6 +889,7 @@ class _ControlSheet extends StatelessWidget {
   final double backdropAnchorY;
   final double backdropSizeFactor;
   final BackdropType backdropType;
+  final ValueChanged<PerfScene> onPerfSceneChanged;
   final ValueChanged<PresetOption> onPresetChanged;
   final ValueChanged<DecorIntensity> onIntensityChanged;
   final ValueChanged<bool> onEnabledChanged;
@@ -715,6 +927,7 @@ class _ControlSheet extends StatelessWidget {
   final ValueChanged<BackdropType> onBackdropTypeChanged;
 
   const _ControlSheet({
+    required this.perfScene,
     required this.presetOption,
     required this.intensity,
     required this.enabled,
@@ -750,6 +963,7 @@ class _ControlSheet extends StatelessWidget {
     required this.backdropAnchorY,
     required this.backdropSizeFactor,
     required this.backdropType,
+    required this.onPerfSceneChanged,
     required this.onPresetChanged,
     required this.onIntensityChanged,
     required this.onEnabledChanged,
@@ -892,6 +1106,31 @@ class _ControlSheet extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
+                        _SectionTitle(
+                          title: 'Profiling Scene',
+                          subtitle: 'Apply S0..S6 in one tap',
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: PerfScene.values
+                              .map(
+                                (scene) => ChoiceChip(
+                                  label: Text(scene.label),
+                                  selected: scene == perfScene,
+                                  onSelected: (_) => onPerfSceneChanged(scene),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Editing any control below switches the scene to '
+                          'Custom.',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 18),
                         _SectionTitle(
                           title: 'Preset',
                           subtitle: 'Choose the seasonal scene',

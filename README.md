@@ -72,6 +72,15 @@ In the advanced example app (`example/lib/advanced_main.dart`), users can intera
 - Greeting text toggle, text input, and text animation controls
 - Reduce-motion behavior and simulation
 
+## 📈 Device Profiling
+
+The advanced demo now includes one-tap profiling scenes (`S0..S6`) in the
+control sheet, matching the package performance runbook.
+
+- Full protocol: `docs/performance/device_profiling.md`
+- Report template: `docs/performance/baseline_report_template.md`
+- Session helper: `tool/perf/start_session.ps1`
+
 ## 🎨 Available Presets
 
 - `SeasonalPreset.ramadan()`

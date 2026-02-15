@@ -45,3 +45,6 @@ example/coverage/
 
 # JS package workspace
 react_seasonal_decor/
+
+# Local web driver binaries for performance runs
+tool/chromedriver/

@@ -14,6 +14,14 @@
 - Support explicit backdrop-only override via
   `SeasonalPreset.withOverrides(shapes: const <ParticleShape>[])`.
 - Add performance-focused tests in `test/performance_optimizations_test.dart`.
+- Add a device profiling runbook for Android/Web:
+  `docs/performance/device_profiling.md`.
+- Add baseline report template:
+  `docs/performance/baseline_report_template.md`.
+- Add manual session bootstrap script:
+  `tool/perf/start_session.ps1`.
+- Add one-tap profiling scenes (`S0..S6`) in
+  `example/lib/advanced_main.dart` to apply benchmark settings quickly.
 
 ## 1.3.2
 
