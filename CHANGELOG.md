@@ -1,6 +1,20 @@
-## 1.3.3
+## 1.3.4
 
-- Bump package version to `1.3.3`.
+- Bump package version to `1.3.4`.
+- Update greeting text visibility to tri-state `showText` behavior:
+  explicit `false` hides text, explicit `true` enables preset defaults,
+  and omitted `showText` only renders non-empty custom `text`.
+- Keep greeting text one-shot per enabled run series when `repeatEvery`
+  restarts playback cycles.
+- Improve Arabic/web greeting rendering with explicit direction handling,
+  `letterSpacing: 0` for Arabic text, and `TextDecoration.none`.
+- Make greeting text animation more stable under jank:
+  enter completes first, then hold for `textDisplayDuration`, then exit.
+- Start the first greeting text cycle after the first rendered frame for a
+  smoother startup.
+- Keep text-hide timing consistent across app pause/resume to prevent
+  bounce/reverse artifacts.
+- Remove `BackdropType.mosque` from Ramadan `classic` and `night` variants.
 - Performance optimization pass:
   split overlay painting into separate backdrop and particle layers to avoid
   repainting static backdrops on every animation tick.
@@ -17,7 +31,7 @@
 - Add performance-focused tests in `test/performance_optimizations_test.dart`.
 - Add text-position controls in the advanced example
   (`textAlignX`, `textAlignY`, `textTopPadding`).
-- Refresh `example/pubspec.lock` path dependency version to `1.3.3`.
+- Refresh `example/pubspec.lock` path dependency version to `1.3.4`.
 
 ## 1.3.2
 
