@@ -45,3 +45,7 @@ example/coverage/
 
 # JS package workspace
 react_seasonal_decor/
+
+# Golden/test screenshot artifacts
+/test/failures/
+/goldens/

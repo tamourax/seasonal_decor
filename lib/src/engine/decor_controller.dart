@@ -23,8 +23,10 @@ class DecorController extends ChangeNotifier {
   DecorController({
     required TickerProvider vsync,
     required DecorConfig config,
+    @visibleForTesting math.Random? random,
   })  : _config = config,
-        _system = ParticleSystem(config: config, size: Size.zero) {
+        _system =
+            ParticleSystem(config: config, size: Size.zero, random: random) {
     _ticker = vsync.createTicker(_handleTick);
   }
 
@@ -78,6 +80,7 @@ class DecorController extends ChangeNotifier {
 
   /// Updates the configuration while keeping the existing system instance.
   void updateConfig(DecorConfig config) {
+    if (config == _config) return;
     final previous = _config;
     _config = config;
 

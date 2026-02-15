@@ -140,7 +140,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  seasonal_decor: ^1.3.4
+  seasonal_decor: ^1.3.5
 ```
 
 Then run:
@@ -216,7 +216,7 @@ Text visibility rules:
 - omitted `showText` + empty `text`: hidden.
 - with `repeatEvery`, greeting text appears once per enabled run series.
 
-Text animation behavior (v1.3.4):
+Text animation behavior (v1.3.5):
 
 - The greeting now finishes its enter animation first, then stays visible for
   `textDisplayDuration`, then exits.

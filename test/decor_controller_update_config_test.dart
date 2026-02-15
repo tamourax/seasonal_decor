@@ -102,4 +102,32 @@ void main() {
       expect(particle.shape, ParticleShape.ball);
     }
   });
+
+  test('identical config skips update (no notifyListeners)', () {
+    var notifyCount = 0;
+    final controller = DecorController(
+      vsync: const TestVSync(),
+      config: _baseConfig,
+    );
+    addTearDown(controller.dispose);
+
+    controller.updateBounds(const Size(360, 640));
+    controller.addListener(() => notifyCount++);
+
+    // Create a logically identical config (separate instance).
+    final identicalConfig = _baseConfig.copyWith();
+
+    // Store the system state before update.
+    final systemBefore = controller.system;
+    final configBefore = controller.system.config;
+
+    controller.updateConfig(identicalConfig);
+
+    // System should be untouched.
+    expect(identical(controller.system, systemBefore), isTrue);
+    expect(identical(controller.system.config, configBefore), isTrue,
+        reason: 'Config should not be reassigned for identical values');
+    expect(notifyCount, 0,
+        reason: 'notifyListeners should not be called for identical config');
+  });
 }
