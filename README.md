@@ -139,7 +139,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  seasonal_decor: ^1.3.3
+  seasonal_decor: ^1.3.4
 ```
 
 Then run:
@@ -196,7 +196,6 @@ Custom message:
 ```dart
 SeasonalDecor(
   preset: SeasonalPreset.eid(variant: EidVariant.adha),
-  showText: true,
   text: 'Eid Mubarak',
   textStyle: const TextStyle(
     fontSize: 36,
@@ -207,6 +206,14 @@ SeasonalDecor(
   child: const HomeScreen(),
 );
 ```
+
+Text visibility rules:
+
+- `showText: false` + non-empty `text`: hidden.
+- `showText: true` + empty `text`: preset default greeting appears.
+- omitted `showText` + non-empty `text`: custom `text` appears.
+- omitted `showText` + empty `text`: hidden.
+- with `repeatEvery`, greeting text appears once per enabled run series.
 
 Custom background backdrop widget:
 
@@ -243,8 +250,8 @@ SeasonalDecor(
 | `showBackgroundBackdrops` | `bool` | `true` | Toggle for background-layer built-in backdrops. |
 | `backgroundBackdrop` | `Widget?` | `null` | Custom widget replacing built-in background backdrops. |
 | `showDecorativeBackdrops` | `bool` | `true` | Toggle for decorative-layer built-in backdrops. |
-| `showText` | `bool` | `false` | Shows animated seasonal greeting text. |
-| `text` | `String?` | `null` | Custom greeting; when empty/null uses preset default text. |
+| `showText` | `bool?` | `null` | `true`: enable default/preset greeting mode, `false`: force hide text, `null`: auto mode (show only when `text` is non-empty). |
+| `text` | `String?` | `null` | Custom greeting content; when non-empty it renders unless `showText` is explicitly `false`. |
 | `textStyle` | `TextStyle?` | `null` | Overrides greeting text style. |
 | `textOpacity` | `double` | `0.5` | Greeting text opacity multiplier. |
 | `textAlignment` | `Alignment` | `Alignment.topCenter` | Greeting text alignment in overlay. |
