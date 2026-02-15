@@ -1,0 +1,51 @@
+name: Performance Gate (Opt-In)
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Nightly at 02:00 UTC
+    - cron: "0 2 * * *"
+
+concurrency:
+  group: perf-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-validate:
+    name: Tests + Golden Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: dart analyze --fatal-infos
+
+      - name: Run unit + widget tests
+        run: flutter test --exclude-tags golden --reporter expanded
+
+      - name: Run golden tests
+        run: flutter test --tags golden --reporter expanded
+
+      - name: Run performance budget tests
+        run: flutter test test/performance_optimizations_test.dart --reporter expanded
+
+      - name: Upload golden artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-snapshots
+          path: test/goldens/
+          retention-days: 30

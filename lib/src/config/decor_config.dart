@@ -85,6 +85,33 @@ class ParticleStyle {
       opacity: opacity ?? this.opacity,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ParticleStyle &&
+          shape == other.shape &&
+          color == other.color &&
+          minSize == other.minSize &&
+          maxSize == other.maxSize &&
+          minSpeed == other.minSpeed &&
+          maxSpeed == other.maxSpeed &&
+          minRotationSpeed == other.minRotationSpeed &&
+          maxRotationSpeed == other.maxRotationSpeed &&
+          opacity == other.opacity;
+
+  @override
+  int get hashCode => Object.hash(
+        shape,
+        color,
+        minSize,
+        maxSize,
+        minSpeed,
+        maxSpeed,
+        minRotationSpeed,
+        maxRotationSpeed,
+        opacity,
+      );
 }
 
 /// Decorative backdrop options.
@@ -183,6 +210,21 @@ class DecorBackdrop {
       sizeFactor: sizeFactor ?? this.sizeFactor,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DecorBackdrop &&
+          type == other.type &&
+          layer == other.layer &&
+          color == other.color &&
+          opacity == other.opacity &&
+          anchor == other.anchor &&
+          sizeFactor == other.sizeFactor;
+
+  @override
+  int get hashCode =>
+      Object.hash(type, layer, color, opacity, anchor, sizeFactor);
 
   /// Convenience constructor for a crescent backdrop.
   const DecorBackdrop.crescent({
@@ -557,4 +599,83 @@ class DecorConfig {
       sparkMaxSize: sparkMaxSize ?? this.sparkMaxSize,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DecorConfig &&
+          particleCount == other.particleCount &&
+          speedMultiplier == other.speedMultiplier &&
+          spawnRate == other.spawnRate &&
+          spawnRateScale == other.spawnRateScale &&
+          drift == other.drift &&
+          flow == other.flow &&
+          wrapMode == other.wrapMode &&
+          _listEquals(styles, other.styles) &&
+          backdrop == other.backdrop &&
+          _listEquals(backdrops, other.backdrops) &&
+          enableFireworks == other.enableFireworks &&
+          rocketsMax == other.rocketsMax &&
+          rocketSpawnRate == other.rocketSpawnRate &&
+          sparksPerBurstMin == other.sparksPerBurstMin &&
+          sparksPerBurstMax == other.sparksPerBurstMax &&
+          burstHeightFactor == other.burstHeightFactor &&
+          gravityY == other.gravityY &&
+          rocketMinSpeed == other.rocketMinSpeed &&
+          rocketMaxSpeed == other.rocketMaxSpeed &&
+          rocketLifeMin == other.rocketLifeMin &&
+          rocketLifeMax == other.rocketLifeMax &&
+          rocketSize == other.rocketSize &&
+          rocketDrift == other.rocketDrift &&
+          sparkMinSpeed == other.sparkMinSpeed &&
+          sparkMaxSpeed == other.sparkMaxSpeed &&
+          sparkLifeMin == other.sparkLifeMin &&
+          sparkLifeMax == other.sparkLifeMax &&
+          sparkMinSize == other.sparkMinSize &&
+          sparkMaxSize == other.sparkMaxSize;
+
+  @override
+  int get hashCode => Object.hash(
+        particleCount,
+        speedMultiplier,
+        spawnRate,
+        spawnRateScale,
+        drift,
+        flow,
+        wrapMode,
+        Object.hashAll(styles),
+        backdrop,
+        Object.hashAll(backdrops),
+        enableFireworks,
+        rocketsMax,
+        rocketSpawnRate,
+        sparksPerBurstMin,
+        sparksPerBurstMax,
+        burstHeightFactor,
+        gravityY,
+        Object.hash(
+          rocketMinSpeed,
+          rocketMaxSpeed,
+          rocketLifeMin,
+          rocketLifeMax,
+          rocketSize,
+          rocketDrift,
+          sparkMinSpeed,
+          sparkMaxSpeed,
+          sparkLifeMin,
+          sparkLifeMax,
+          sparkMinSize,
+          sparkMaxSize,
+        ),
+      );
+}
+
+/// Compares two lists element-by-element.
+bool _listEquals<T>(List<T> a, List<T> b) {
+  if (identical(a, b)) return true;
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i += 1) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
 }

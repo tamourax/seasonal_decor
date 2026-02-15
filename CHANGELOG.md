@@ -1,6 +1,41 @@
-## 1.3.3
+## 1.3.5
 
-- Bump package version to `1.3.3`.
+- Bump package version to `1.3.5`.
+- Add value equality and `hashCode` support for `ParticleStyle`,
+  `DecorBackdrop`, and `DecorConfig` to avoid unnecessary runtime updates.
+- Optimize `DecorController.updateConfig(...)` with early return when config is
+  unchanged, reducing redundant notifications/rebuild triggers.
+- Fix spawn accumulator reset path for style transitions from empty to
+  non-empty to prevent bursty first-frame spawning.
+- Add focused regression coverage:
+  `test/decor_config_equality_test.dart`,
+  `test/spawn_accumulator_reset_test.dart`, and
+  `test/decor_controller_update_config_test.dart`.
+- Add golden validation suite (7 scenes) in `test/golden_test.dart`.
+- Add transition and runtime stress coverage in
+  `test/transition_stress_test.dart`.
+- Add opt-in CI workflow `.github/workflows/perf_gate.yml` for analyze +
+  unit/widget + golden + performance test gates.
+- Add `RELEASE_CHECKLIST.md` and update `.gitignore` to keep golden failure
+  screenshots out of git.
+
+## 1.3.4
+
+- Bump package version to `1.3.4`.
+- Update greeting text visibility to tri-state `showText` behavior:
+  explicit `false` hides text, explicit `true` enables preset defaults,
+  and omitted `showText` only renders non-empty custom `text`.
+- Keep greeting text one-shot per enabled run series when `repeatEvery`
+  restarts playback cycles.
+- Improve Arabic/web greeting rendering with explicit direction handling,
+  `letterSpacing: 0` for Arabic text, and `TextDecoration.none`.
+- Make greeting text animation more stable under jank:
+  enter completes first, then hold for `textDisplayDuration`, then exit.
+- Start the first greeting text cycle after the first rendered frame for a
+  smoother startup.
+- Keep text-hide timing consistent across app pause/resume to prevent
+  bounce/reverse artifacts.
+- Remove `BackdropType.mosque` from Ramadan `classic` and `night` variants.
 - Performance optimization pass:
   split overlay painting into separate backdrop and particle layers to avoid
   repainting static backdrops on every animation tick.
@@ -17,7 +52,7 @@
 - Add performance-focused tests in `test/performance_optimizations_test.dart`.
 - Add text-position controls in the advanced example
   (`textAlignX`, `textAlignY`, `textTopPadding`).
-- Refresh `example/pubspec.lock` path dependency version to `1.3.3`.
+- Refresh `example/pubspec.lock` path dependency version to `1.3.4`.
 
 ## 1.3.2
 
