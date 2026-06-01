@@ -17,6 +17,15 @@ Bring Ramadan vibes, Christmas magic, Valentine effects, New Year celebrations, 
 Try it now:
 [https://tamourax.github.io/seasonal_decor/](https://tamourax.github.io/seasonal_decor/)
 
+## 🆕 What's New in 1.4.0
+
+- Add `CelebrationPreset` for one-shot action celebrations.
+- Add `SeasonalDecorController` to trigger celebrations from app events.
+- Add 10 ready action presets (payment, transfer, booking, reward, milestone, and more).
+- Add new action particle shapes (`coin`, `money`, `check`, `calendar`, `trophy`, `target`, `medal`, `badge`, `ticket`).
+- Action celebrations are particle + text overlays by default (no seasonal backdrops).
+- Update advanced example controls to include action triggers.
+
 ## ✨ Features
 
 - 🎄 Christmas snow and festive decorations
@@ -26,6 +35,7 @@ Try it now:
 - ❤️ Valentine hearts
 - 🎆 New Year fireworks and confetti
 - ⚽ Football celebration mode
+- ✅ Action celebrations for app events (payment, transfer, booking, rewards)
 - 🌗 Light and dark theme adaptation
 - 📱 Android, iOS, Web, Windows, macOS, Linux
 - 🎛 Control intensity, speed, size, and backdrop layers
@@ -67,6 +77,75 @@ Recommended defaults for most apps:
 - Use `intensity: DecorIntensity.medium/high` for daily screens
 - Use `high/extraHigh/max` only for short celebration moments
 
+## Action Celebrations
+
+Action Celebrations are lightweight one-shot overlays for important app events.
+
+They render:
+
+- action-specific particles
+- optional/default text
+
+They do not render:
+
+- seasonal backdrops
+- background decorations
+- full seasonal scenes
+
+Defaults in `1.4.0`:
+
+- action intensity resolves to `DecorIntensity.max` when not provided
+- action backdrop visibility resolves to `false`
+
+```dart
+final controller = SeasonalDecorController();
+
+SeasonalDecor(
+  controller: controller,
+  child: const HomeScreen(),
+);
+
+controller.celebrate(
+  CelebrationPreset.paymentSuccess(),
+);
+```
+
+```dart
+controller.celebrate(
+  CelebrationPreset.moneyTransferSuccess(),
+);
+```
+
+Available action presets:
+
+- payment success
+- money transfer success
+- purchase success
+- booking completed
+- appointment confirmed
+- account created
+- reward claimed
+- achievement unlocked
+- goal reached
+- milestone reached
+
+Booking example:
+
+```dart
+controller.celebrate(
+  CelebrationPreset.bookingCompleted(
+    text: 'Your booking is confirmed',
+  ),
+);
+```
+
+Particle identity highlights:
+
+- Payment uses `check`/`coin` particles.
+- Transfer uses `money`/`coin` particles.
+- Booking uses `calendar`/`check` particles.
+- Achievement uses `trophy`/`medal` particles.
+
 ## 🎮 Interactive Demo Controls
 
 In the advanced example app (`example/lib/advanced_main.dart`), users can interact with:
@@ -80,7 +159,7 @@ In the advanced example app (`example/lib/advanced_main.dart`), users can intera
 ## 🎨 Available Presets
 
 - `SeasonalPreset.ramadan()`
-- `SeasonalPreset.ramadan(variant: RamadanVariant.hangingLanterns)` (new)
+- `SeasonalPreset.ramadan(variant: RamadanVariant.hangingLanterns)`
 - `SeasonalPreset.eid()`
 - `SeasonalPreset.christmas()`
 - `SeasonalPreset.newYear()`
@@ -140,7 +219,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  seasonal_decor: ^1.3.5
+  seasonal_decor: ^1.4.0
 ```
 
 Then run:
@@ -216,7 +295,7 @@ Text visibility rules:
 - omitted `showText` + empty `text`: hidden.
 - with `repeatEvery`, greeting text appears once per enabled run series.
 
-Text animation behavior (v1.3.5):
+Text animation behavior:
 
 - The greeting now finishes its enter animation first, then stays visible for
   `textDisplayDuration`, then exits.
@@ -243,7 +322,8 @@ SeasonalDecor(
 | --- | --- | --- | --- |
 | `key` | `Key?` | `null` | Optional widget key. |
 | `child` | `Widget` | Required | Widget rendered under the seasonal overlay. |
-| `preset` | `SeasonalPreset` | Required | Preset scene (`ramadan`, `eid`, `christmas`, `football`, etc.). |
+| `preset` | `SeasonalPreset?` | `null` | Seasonal scene (`ramadan`, `eid`, `christmas`, `football`, etc.). When omitted, it behaves like `SeasonalPreset.none()` unless a controller celebration is active. |
+| `controller` | `SeasonalDecorController?` | `null` | Triggers one-shot action celebrations via `controller.celebrate(...)`. |
 | `enabled` | `bool` | `true` | Enables/disables particles and timed playback. |
 | `intensity` | `DecorIntensity` | `DecorIntensity.medium` | Controls particle count and base speed profile. |
 | `opacity` | `double` | `1.0` | Global overlay opacity multiplier. |
@@ -290,13 +370,15 @@ SeasonalDecor(
 Run example app:
 
 ```bash
-flutter run -t example/lib/main.dart
+cd example
+flutter run -t lib/main.dart
 ```
 
 Run advanced demo:
 
 ```bash
-flutter run -t example/lib/advanced_main.dart
+cd example
+flutter run -t lib/advanced_main.dart
 ```
 
 ## 📄 License
