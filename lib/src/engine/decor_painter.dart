@@ -2032,6 +2032,445 @@ class DecorPainter extends CustomPainter {
         canvas.drawRect(_unitRect, _paint);
         canvas.restore();
         break;
+      case ParticleShape.coin:
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        final radius = particle.size * 0.58;
+        final outerColor = Color.lerp(color, const Color(0xFFFFF6D5), 0.24)!
+            .withValues(alpha: combinedAlpha);
+        final coreColor = Color.lerp(color, const Color(0xFFFFD76A), 0.14)!
+            .withValues(alpha: combinedAlpha);
+        final rimColor = Color.lerp(color, const Color(0xFF4B5563), 0.35)!
+            .withValues(alpha: combinedAlpha);
+        _paint
+          ..color = outerColor
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(Offset.zero, radius, _paint);
+        _paint.color = coreColor;
+        canvas.drawCircle(Offset.zero, radius * 0.82, _paint);
+        _paint
+          ..color = rimColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(1.0, particle.size * 0.12);
+        canvas.drawCircle(Offset.zero, radius * 0.9, _paint);
+        _paint
+          ..color = Color.lerp(color, const Color(0xFFFFFFFF), 0.52)!
+              .withValues(alpha: combinedAlpha)
+          ..strokeWidth = math.max(1.0, particle.size * 0.1);
+        canvas.drawCircle(Offset.zero, radius * 0.68, _paint);
+        _paint
+          ..strokeWidth = math.max(1.0, particle.size * 0.11)
+          ..strokeCap = StrokeCap.round;
+        canvas.drawArc(
+          Rect.fromCircle(center: Offset.zero, radius: radius * 0.74),
+          -2.5,
+          1.1,
+          false,
+          _paint,
+        );
+        canvas.drawLine(
+          Offset(-radius * 0.2, -radius * 0.01),
+          Offset(radius * 0.2, -radius * 0.01),
+          _paint,
+        );
+        canvas.drawLine(
+          Offset(0, -radius * 0.18),
+          Offset(0, radius * 0.18),
+          _paint,
+        );
+        canvas.restore();
+        break;
+      case ParticleShape.money:
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        final noteRect = Rect.fromCenter(
+          center: Offset.zero,
+          width: particle.size * 1.45,
+          height: particle.size * 0.92,
+        );
+        final rect = RRect.fromRectAndRadius(
+          noteRect,
+          Radius.circular(particle.size * 0.18),
+        );
+        final inset = RRect.fromRectAndRadius(
+          Rect.fromCenter(
+            center: Offset.zero,
+            width: particle.size * 1.15,
+            height: particle.size * 0.68,
+          ),
+          Radius.circular(particle.size * 0.18),
+        );
+        final noteColor = Color.lerp(color, const Color(0xFFECFDF5), 0.2)!
+            .withValues(alpha: combinedAlpha);
+        _paint
+          ..color = noteColor
+          ..style = PaintingStyle.fill;
+        canvas.drawRRect(rect, _paint);
+        _paint
+          ..color = Color.lerp(noteColor, const Color(0xFF052E16), 0.22)!
+              .withValues(alpha: combinedAlpha)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(1.0, particle.size * 0.08);
+        canvas.drawRRect(rect, _paint);
+        _paint
+          ..style = PaintingStyle.fill
+          ..color = Color.lerp(noteColor, const Color(0xFFDCFCE7), 0.46)!
+              .withValues(alpha: combinedAlpha)
+          ..strokeWidth = 0;
+        canvas.drawRRect(inset, _paint);
+        _paint
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(1.0, particle.size * 0.08)
+          ..color = Color.lerp(noteColor, const Color(0xFFFFFFFF), 0.55)!
+              .withValues(alpha: combinedAlpha);
+        canvas.drawCircle(Offset.zero, particle.size * 0.17, _paint);
+        _paint
+          ..strokeWidth = math.max(0.8, particle.size * 0.07)
+          ..strokeCap = StrokeCap.round;
+        canvas.drawLine(
+          Offset(-particle.size * 0.49, 0),
+          Offset(-particle.size * 0.34, 0),
+          _paint,
+        );
+        canvas.drawLine(
+          Offset(particle.size * 0.34, 0),
+          Offset(particle.size * 0.49, 0),
+          _paint,
+        );
+        _paint
+          ..color = const Color(0xFFFFFFFF)
+              .withValues(alpha: (combinedAlpha * 0.32).clamp(0.0, 1.0))
+          ..strokeWidth = math.max(0.8, particle.size * 0.06);
+        canvas.drawLine(
+          Offset(-noteRect.width * 0.22, -noteRect.height * 0.2),
+          Offset(noteRect.width * 0.22, -noteRect.height * 0.2),
+          _paint,
+        );
+        canvas.drawCircle(Offset.zero, particle.size * 0.16, _paint);
+        canvas.restore();
+        break;
+      case ParticleShape.check:
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        final badgeRadius = particle.size * 0.56;
+        _paint
+          ..style = PaintingStyle.fill
+          ..color =
+              Color.lerp(color, const Color(0xFFFFFFFF), 0.26)!.withValues(
+            alpha: (combinedAlpha * 0.22).clamp(0.0, 1.0),
+          );
+        canvas.drawCircle(Offset.zero, badgeRadius, _paint);
+        _paint
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(1.0, particle.size * 0.08)
+          ..color = color.withValues(
+            alpha: (combinedAlpha * 0.72).clamp(0.0, 1.0),
+          );
+        canvas.drawCircle(Offset.zero, badgeRadius * 0.88, _paint);
+        final scale = particle.size * 0.92;
+        final path = Path()
+          ..moveTo(-0.46 * scale, 0.04 * scale)
+          ..lineTo(-0.12 * scale, 0.38 * scale)
+          ..lineTo(0.52 * scale, -0.3 * scale);
+        _paint
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(1.4, particle.size * 0.27)
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round
+          ..color = Color.lerp(color, const Color(0xFF111827), 0.45)!
+              .withValues(alpha: (combinedAlpha * 0.45).clamp(0.0, 1.0));
+        canvas.drawPath(path.shift(const Offset(0.05, 0.05)), _paint);
+        _paint
+          ..strokeWidth = math.max(1.2, particle.size * 0.22)
+          ..color = Color.lerp(color, const Color(0xFFFFFFFF), 0.66)!
+              .withValues(alpha: combinedAlpha);
+        canvas.drawPath(path, _paint);
+        canvas.restore();
+        break;
+      case ParticleShape.calendar:
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        final bodyRect = Rect.fromCenter(
+          center: Offset.zero,
+          width: particle.size * 1.26,
+          height: particle.size * 1.14,
+        );
+        final body = RRect.fromRectAndRadius(
+          bodyRect,
+          Radius.circular(particle.size * 0.16),
+        );
+        final headerRect = RRect.fromRectAndRadius(
+          Rect.fromLTRB(
+            bodyRect.left,
+            bodyRect.top,
+            bodyRect.right,
+            bodyRect.top + particle.size * 0.34,
+          ),
+          Radius.circular(particle.size * 0.14),
+        );
+        _paint
+          ..color = Color.lerp(color, const Color(0xFFFFFFFF), 0.22)!
+              .withValues(alpha: combinedAlpha)
+          ..style = PaintingStyle.fill;
+        canvas.drawRRect(body, _paint);
+        _paint
+          ..color = Color.lerp(color, const Color(0xFF1E293B), 0.22)!
+              .withValues(alpha: combinedAlpha)
+          ..style = PaintingStyle.fill;
+        canvas.drawRRect(headerRect, _paint);
+        _paint
+          ..color = Color.lerp(color, const Color(0xFFFFFFFF), 0.4)!
+              .withValues(alpha: combinedAlpha)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(1.0, particle.size * 0.08);
+        canvas.drawRRect(body, _paint);
+        _paint.style = PaintingStyle.fill;
+        canvas.drawCircle(
+          Offset(-particle.size * 0.24, -particle.size * 0.36),
+          particle.size * 0.07,
+          _paint,
+        );
+        canvas.drawCircle(
+          Offset(particle.size * 0.24, -particle.size * 0.36),
+          particle.size * 0.07,
+          _paint,
+        );
+        _paint
+          ..color = Color.lerp(color, const Color(0xFFFFFFFF), 0.6)!
+              .withValues(alpha: (combinedAlpha * 0.75).clamp(0.0, 1.0))
+          ..style = PaintingStyle.fill;
+        for (var row = 0; row < 2; row += 1) {
+          for (var col = 0; col < 2; col += 1) {
+            final dx = (col == 0 ? -1 : 1) * particle.size * 0.2;
+            final dy = particle.size * (0.02 + row * 0.18);
+            canvas.drawCircle(
+              Offset(dx, dy),
+              particle.size * 0.045,
+              _paint,
+            );
+          }
+        }
+        _paint
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(1.0, particle.size * 0.14)
+          ..strokeJoin = StrokeJoin.round
+          ..strokeCap = StrokeCap.round
+          ..color = Color.lerp(color, const Color(0xFFFFFFFF), 0.76)!
+              .withValues(alpha: combinedAlpha);
+        final checkPath = Path()
+          ..moveTo(-particle.size * 0.24, particle.size * 0.34)
+          ..lineTo(-particle.size * 0.06, particle.size * 0.5)
+          ..lineTo(particle.size * 0.27, particle.size * 0.2);
+        canvas.drawPath(checkPath, _paint);
+        canvas.restore();
+        break;
+      case ParticleShape.trophy:
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        canvas.scale(particle.size, particle.size);
+        _paint
+          ..color = Color.lerp(color, const Color(0xFFFFF3C4), 0.18)!
+              .withValues(alpha: combinedAlpha)
+          ..style = PaintingStyle.fill;
+        canvas.drawPath(_unitTrophyPath, _paint);
+        _paint
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.08
+          ..color = Color.lerp(color, const Color(0xFF7C2D12), 0.28)!
+              .withValues(alpha: combinedAlpha);
+        canvas.drawPath(_unitTrophyPath, _paint);
+        _paint
+          ..style = PaintingStyle.fill
+          ..color = Color.lerp(color, const Color(0xFFFFFFFF), 0.56)!
+              .withValues(alpha: (combinedAlpha * 0.85).clamp(0.0, 1.0));
+        canvas.save();
+        canvas.translate(0, -0.12);
+        canvas.scale(0.22, 0.22);
+        canvas.drawPath(_unitStarPath, _paint);
+        canvas.restore();
+        canvas.restore();
+        break;
+      case ParticleShape.target:
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        final radius = particle.size * 0.62;
+        final ringA = Color.lerp(color, const Color(0xFFFFFFFF), 0.22)!
+            .withValues(alpha: combinedAlpha);
+        final ringB = Color.lerp(color, const Color(0xFF1E293B), 0.22)!
+            .withValues(alpha: combinedAlpha);
+        _paint
+          ..style = PaintingStyle.fill
+          ..color = ringA;
+        canvas.drawCircle(Offset.zero, radius, _paint);
+        _paint.color = ringB;
+        canvas.drawCircle(Offset.zero, radius * 0.66, _paint);
+        _paint.color = ringA;
+        canvas.drawCircle(Offset.zero, radius * 0.38, _paint);
+        _paint.color = ringB;
+        canvas.drawCircle(Offset.zero, radius * 0.16, _paint);
+        _paint
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(0.8, particle.size * 0.07)
+          ..strokeCap = StrokeCap.round
+          ..color = ringB.withValues(alpha: (combinedAlpha * 0.72).clamp(0, 1));
+        canvas.drawLine(
+            Offset(-radius * 0.95, 0), Offset(radius * 0.95, 0), _paint);
+        canvas.drawLine(
+            Offset(0, -radius * 0.95), Offset(0, radius * 0.95), _paint);
+        canvas.restore();
+        break;
+      case ParticleShape.medal:
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        final r = particle.size * 0.52;
+        final ribbonA = Color.lerp(color, const Color(0xFF1D4ED8), 0.34)!
+            .withValues(alpha: combinedAlpha);
+        final ribbonB = Color.lerp(color, const Color(0xFFDC2626), 0.34)!
+            .withValues(alpha: combinedAlpha);
+        _paint
+          ..style = PaintingStyle.fill
+          ..color = ribbonA;
+        final leftRibbon = Path()
+          ..moveTo(-r * 0.2, -r * 0.1)
+          ..lineTo(-r * 0.75, -r * 1.1)
+          ..lineTo(-r * 0.28, -r * 0.95)
+          ..close();
+        final rightRibbon = Path()
+          ..moveTo(r * 0.2, -r * 0.1)
+          ..lineTo(r * 0.75, -r * 1.1)
+          ..lineTo(r * 0.28, -r * 0.95)
+          ..close();
+        canvas.drawPath(leftRibbon, _paint);
+        _paint.color = ribbonB;
+        canvas.drawPath(rightRibbon, _paint);
+        _paint.color = color;
+        canvas.drawCircle(Offset.zero, r, _paint);
+        _paint
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(1.0, particle.size * 0.1)
+          ..color = Color.lerp(color, const Color(0xFFFFFFFF), 0.42)!
+              .withValues(alpha: combinedAlpha);
+        canvas.drawCircle(Offset.zero, r * 0.62, _paint);
+        _paint
+          ..style = PaintingStyle.fill
+          ..color = Color.lerp(color, const Color(0xFFFFFFFF), 0.62)!
+              .withValues(alpha: (combinedAlpha * 0.9).clamp(0.0, 1.0));
+        canvas.save();
+        canvas.scale(r * 0.48, r * 0.48);
+        canvas.drawPath(_unitStarPath, _paint);
+        canvas.restore();
+        canvas.restore();
+        break;
+      case ParticleShape.badge:
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        final w = particle.size * 0.66;
+        final h = particle.size * 0.76;
+        final badgePath = Path()
+          ..moveTo(0, -h)
+          ..lineTo(w, -h * 0.35)
+          ..lineTo(w * 0.76, h * 0.55)
+          ..lineTo(0, h)
+          ..lineTo(-w * 0.76, h * 0.55)
+          ..lineTo(-w, -h * 0.35)
+          ..close();
+        _paint
+          ..style = PaintingStyle.fill
+          ..color = color;
+        canvas.drawPath(badgePath, _paint);
+        _paint
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(0.8, particle.size * 0.08)
+          ..color = Color.lerp(color, const Color(0xFF1E293B), 0.2)!
+              .withValues(alpha: combinedAlpha);
+        canvas.drawPath(badgePath, _paint);
+        _paint
+          ..style = PaintingStyle.fill
+          ..color = Color.lerp(color, const Color(0xFFFFFFFF), 0.45)!
+              .withValues(alpha: combinedAlpha);
+        canvas.save();
+        canvas.scale(particle.size * 0.2, particle.size * 0.2);
+        final checkPath = Path()
+          ..moveTo(-1.1, 0.1)
+          ..lineTo(-0.3, 0.9)
+          ..lineTo(1.0, -0.6);
+        _paint
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.38
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round;
+        canvas.drawPath(checkPath, _paint);
+        canvas.restore();
+        canvas.restore();
+        break;
+      case ParticleShape.ticket:
+        canvas.save();
+        canvas.translate(particle.position.dx, particle.position.dy);
+        canvas.rotate(particle.rotation);
+        final rect = Rect.fromCenter(
+          center: Offset.zero,
+          width: particle.size * 1.32,
+          height: particle.size * 0.84,
+        );
+        final ticketBase = Path()
+          ..addRRect(
+            RRect.fromRectAndRadius(
+              rect,
+              Radius.circular(particle.size * 0.16),
+            ),
+          );
+        final notches = Path()
+          ..addOval(
+            Rect.fromCircle(
+              center: Offset(rect.left, 0),
+              radius: particle.size * 0.12,
+            ),
+          )
+          ..addOval(
+            Rect.fromCircle(
+              center: Offset(rect.right, 0),
+              radius: particle.size * 0.12,
+            ),
+          );
+        _paint
+          ..style = PaintingStyle.fill
+          ..color = color;
+        canvas.drawPath(
+          Path.combine(PathOperation.difference, ticketBase, notches),
+          _paint,
+        );
+        _paint
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(1.0, particle.size * 0.08)
+          ..color = Color.lerp(color, const Color(0xFFFFFFFF), 0.42)!
+              .withValues(alpha: combinedAlpha);
+        for (var i = -2; i <= 2; i += 1) {
+          final x = i * particle.size * 0.17;
+          canvas.drawLine(
+            Offset(x - particle.size * 0.04, 0),
+            Offset(x + particle.size * 0.01, 0),
+            _paint,
+          );
+        }
+        _paint
+          ..style = PaintingStyle.fill
+          ..color = Color.lerp(color, const Color(0xFFFFFFFF), 0.5)!
+              .withValues(alpha: (combinedAlpha * 0.85).clamp(0.0, 1.0));
+        canvas.save();
+        canvas.translate(-particle.size * 0.24, -particle.size * 0.12);
+        canvas.scale(particle.size * 0.16, particle.size * 0.16);
+        canvas.drawPath(_unitStarPath, _paint);
+        canvas.restore();
+        canvas.restore();
+        break;
       case ParticleShape.ball:
         _paintSoccerBallFast(
           canvas,

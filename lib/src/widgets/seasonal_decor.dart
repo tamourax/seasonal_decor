@@ -5,9 +5,11 @@ import 'package:flutter/widgets.dart';
 
 import '../config/decor_config.dart';
 import '../config/intensity.dart';
+import '../controller/seasonal_decor_controller.dart';
 import '../engine/decor_controller.dart';
 import '../engine/decor_painter.dart';
 import '../engine/particle.dart';
+import '../presets/celebration_preset.dart';
 import '../presets/seasonal_preset.dart';
 import '../utils/lifecycle_pause.dart';
 import '../utils/reduce_motion.dart';
@@ -17,8 +19,14 @@ class SeasonalDecor extends StatefulWidget {
   /// The widget below the overlay.
   final Widget child;
 
-  /// The decorative preset to render.
-  final SeasonalPreset preset;
+  /// The decorative seasonal preset to render.
+  ///
+  /// When omitted, the widget starts with no seasonal preset and can still
+  /// display controller-triggered celebrations.
+  final SeasonalPreset? preset;
+
+  /// Optional public controller for one-shot action celebrations.
+  final SeasonalDecorController? controller;
 
   /// Whether the overlay is visible.
   final bool enabled;
@@ -178,7 +186,8 @@ class SeasonalDecor extends StatefulWidget {
   const SeasonalDecor({
     super.key,
     required this.child,
-    required this.preset,
+    this.preset,
+    this.controller,
     this.enabled = true,
     this.intensity = DecorIntensity.medium,
     this.opacity = 1.0,
@@ -227,6 +236,7 @@ class SeasonalDecor extends StatefulWidget {
 
 class _SeasonalDecorState extends State<SeasonalDecor>
     with TickerProviderStateMixin {
+  static final SeasonalPreset _nonePreset = SeasonalPreset.none();
   static final RegExp _arabicTextRegExp = RegExp(
     r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]',
   );
@@ -248,10 +258,20 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   DateTime? _textHideDeadline;
   Duration? _textHideRemaining;
   int _textCycleToken = 0;
+  SeasonalDecorController? _boundController;
+  int _lastCelebrationToken = 0;
+  CelebrationPreset? _activeCelebration;
+  bool _celebrationSettling = false;
+
+  SeasonalPreset get _basePreset => widget.preset ?? _nonePreset;
+  bool get _isCelebrationActive => _activeCelebration != null;
+  bool get _effectiveEnabled => widget.enabled || _isCelebrationActive;
+  bool get _isEffectivelyNone => _basePreset.isNone && !_isCelebrationActive;
 
   @override
   void initState() {
     super.initState();
+    _bindController(widget.controller);
     _controller = DecorController(
       vsync: this,
       config: _resolveConfig(),
@@ -262,7 +282,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
       onResumed: _handleResumed,
       enabled: widget.pauseWhenInactive,
     );
-    if (widget.enabled && !widget.preset.isNone) {
+    if (widget.enabled && !_basePreset.isNone) {
       _startPlayCycle();
     } else {
       _playing = false;
@@ -284,10 +304,40 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     _syncAnimation();
   }
 
+  void _bindController(SeasonalDecorController? controller) {
+    if (identical(_boundController, controller)) {
+      return;
+    }
+    _boundController?.removeListener(_handleCelebrationRequested);
+    _boundController = controller;
+    _lastCelebrationToken = controller?.celebrationToken ?? 0;
+    _boundController?.addListener(_handleCelebrationRequested);
+  }
+
+  void _handleCelebrationRequested() {
+    final controller = _boundController;
+    if (controller == null) {
+      return;
+    }
+    if (_lastCelebrationToken == controller.celebrationToken) {
+      return;
+    }
+    _lastCelebrationToken = controller.celebrationToken;
+    final preset = controller.latestCelebration;
+    if (preset == null) {
+      return;
+    }
+    _startCelebration(preset);
+  }
+
   @override
   void didUpdateWidget(covariant SeasonalDecor oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.preset != widget.preset ||
+    _bindController(widget.controller);
+
+    final oldBasePreset = oldWidget.preset ?? _nonePreset;
+
+    if (oldBasePreset != _basePreset ||
         oldWidget.intensity != widget.intensity ||
         oldWidget.showBackgroundBackdrops != widget.showBackgroundBackdrops ||
         oldWidget.backgroundBackdrop != widget.backgroundBackdrop ||
@@ -299,7 +349,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
       _controller.updateConfig(_resolveConfig());
       _applySystemControls();
     }
-    if (widget.preset.isNone) {
+    if (_isEffectivelyNone) {
       _cancelTimers();
       _hideText();
       _resetTextSeries();
@@ -320,7 +370,9 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     }
     if (oldWidget.enabled != widget.enabled) {
       if (widget.enabled) {
-        _startPlayCycle();
+        if (!_basePreset.isNone) {
+          _startPlayCycle();
+        }
       } else {
         _cancelTimers();
         _hideText();
@@ -340,9 +392,9 @@ class _SeasonalDecorState extends State<SeasonalDecor>
         oldWidget.textDisplayDuration != widget.textDisplayDuration ||
         oldWidget.textAnimationDuration != widget.textAnimationDuration ||
         oldWidget.textSlideOffset != widget.textSlideOffset;
-    if (textSettingsChanged || oldWidget.preset != widget.preset) {
+    if (textSettingsChanged || oldBasePreset != _basePreset) {
       _resetTextSeries();
-      if (widget.enabled) {
+      if (_effectiveEnabled) {
         _startTextCycle(force: true);
       } else {
         _hideText();
@@ -350,7 +402,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     }
     if (oldWidget.playDuration != widget.playDuration ||
         oldWidget.repeatEvery != widget.repeatEvery) {
-      if (widget.enabled) {
+      if (widget.enabled && !_basePreset.isNone && !_isCelebrationActive) {
         _startPlayCycle();
       } else {
         _cancelTimers();
@@ -387,8 +439,9 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   }
 
   DecorConfig _resolveConfig() {
-    final resolvedPreset = _resolvePreset();
-    final baseConfig = resolvedPreset.resolve(widget.intensity);
+    final baseConfig = _activeCelebration != null
+        ? _activeCelebration!.resolve()
+        : _resolvePreset().resolve(widget.intensity);
     final speedAdjusted = _applySpeedMultiplier(baseConfig);
     final sizeAdjusted = _applySizeMultiplier(speedAdjusted);
     final themed = widget.adaptColorsToTheme
@@ -445,10 +498,10 @@ class _SeasonalDecorState extends State<SeasonalDecor>
         widget.presetEnableFireworks != null;
 
     if (!hasOverrides) {
-      return widget.preset;
+      return _basePreset;
     }
 
-    return widget.preset.withOverrides(
+    return _basePreset.withOverrides(
       shapes: widget.presetShapes,
       styles: widget.presetStyles,
       shapeSpeedMultipliers: widget.presetShapeSpeedMultipliers,
@@ -681,7 +734,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     }
     _didRunFirstTextCycle = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !widget.enabled || widget.preset.isNone) {
+      if (!mounted || !_effectiveEnabled || _isEffectivelyNone) {
         return;
       }
       _startTextCycle();
@@ -689,6 +742,9 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   }
 
   void _startPlayCycle({bool fromRepeat = false}) {
+    if (_isCelebrationActive) {
+      return;
+    }
     if (!widget.enabled) {
       _hideText();
       return;
@@ -713,7 +769,70 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     _syncAnimation();
   }
 
+  void _startCelebration(CelebrationPreset celebration) {
+    _activeCelebration = celebration;
+    _celebrationSettling = false;
+    _cancelTimers();
+    _resetTextSeries();
+    _playing = true;
+    _controller.updateConfig(_resolveConfig());
+    _applySystemControls();
+    _startTextCycle(force: true);
+    final duration = celebration.resolvedPlayDuration;
+    if (duration > Duration.zero) {
+      _stopTimer = Timer(duration, _finishCelebration);
+    } else {
+      _finishCelebration();
+      return;
+    }
+    _syncAnimation();
+  }
+
+  void _finishCelebration() {
+    if (_activeCelebration == null) {
+      return;
+    }
+    _cancelTimers();
+    _hideText();
+    if (widget.enabled && !_basePreset.isNone) {
+      _celebrationSettling = false;
+      _activeCelebration = null;
+      _controller.updateConfig(_resolveConfig());
+      _startPlayCycle();
+      return;
+    }
+    if (widget.settleOnDisable) {
+      // Keep the active celebration config while stopping spawning/wrap so
+      // existing particles can naturally fall off-screen instead of vanishing.
+      _celebrationSettling = true;
+      _playing = false;
+      _applySystemControls();
+      _syncAnimation();
+      return;
+    }
+    _celebrationSettling = false;
+    _activeCelebration = null;
+    _controller.updateConfig(_resolveConfig());
+    _playing = false;
+    _applySystemControls();
+    _syncAnimation();
+  }
+
+  void _completeCelebrationSettle() {
+    if (!_celebrationSettling) {
+      return;
+    }
+    _celebrationSettling = false;
+    _activeCelebration = null;
+    _controller.updateConfig(_resolveConfig());
+    _syncAnimation();
+  }
+
   void _stopPlaying() {
+    if (_isCelebrationActive) {
+      _finishCelebration();
+      return;
+    }
     _playing = false;
     _applySystemControls();
     _syncAnimation();
@@ -738,7 +857,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   void _startTextCycle({bool force = false}) {
     _clearTextHideSchedule();
     final resolvedText = _resolveOverlayText();
-    if (resolvedText == null || resolvedText.isEmpty || !widget.enabled) {
+    if (resolvedText == null || resolvedText.isEmpty || !_effectiveEnabled) {
       _setTextVisible(false);
       return;
     }
@@ -771,7 +890,18 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   }
 
   String? _resolveOverlayText() {
-    if (widget.preset.isNone || _showTextExplicitlyDisabled) {
+    if (_showTextExplicitlyDisabled) {
+      return null;
+    }
+
+    if (_activeCelebration != null) {
+      final celebrationText = _activeCelebration!.resolvedText;
+      if (celebrationText.isNotEmpty) {
+        return celebrationText;
+      }
+    }
+
+    if (_basePreset.isNone) {
       return null;
     }
 
@@ -781,7 +911,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
     }
 
     if (_showTextExplicitlyEnabled) {
-      return _defaultTextForPreset(widget.preset);
+      return _defaultTextForPreset(_basePreset);
     }
 
     if (_showTextOmitted) {
@@ -826,13 +956,17 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   }
 
   void _handleControllerTick() {
-    if (!widget.enabled ||
+    if (!_effectiveEnabled ||
         _playing ||
         !widget.settleOnDisable ||
         _reduceMotion) {
       return;
     }
     if (!_controller.system.hasActiveParticles) {
+      if (_celebrationSettling) {
+        _completeCelebrationSettle();
+        return;
+      }
       _controller.stop();
     }
   }
@@ -849,12 +983,15 @@ class _SeasonalDecorState extends State<SeasonalDecor>
   @visibleForTesting
   bool debugIsTextVisible() => _textVisible;
 
+  @visibleForTesting
+  bool debugIsCelebrationActive() => _isCelebrationActive;
+
   void _syncAnimation() {
-    if (widget.preset.isNone) {
+    if (_isEffectivelyNone) {
       _controller.stop();
       return;
     }
-    final shouldAnimate = widget.enabled &&
+    final shouldAnimate = _effectiveEnabled &&
         !_appPaused &&
         !_reduceMotion &&
         (_playing ||
@@ -876,9 +1013,13 @@ class _SeasonalDecorState extends State<SeasonalDecor>
 
   @override
   Widget build(BuildContext context) {
-    final overlayOpacity = widget.opacity.clamp(0.0, 1.0).toDouble();
+    final celebrationOpacity = _activeCelebration?.opacity;
+    final overlayOpacity =
+        (celebrationOpacity ?? widget.opacity).clamp(0.0, 1.0).toDouble();
+    final effectiveShowBackdrop =
+        _activeCelebration?.resolvedShowBackdrop ?? widget.showBackdrop;
 
-    if (widget.preset.isNone) {
+    if (_isEffectivelyNone) {
       return widget.child;
     }
 
@@ -928,16 +1069,16 @@ class _SeasonalDecorState extends State<SeasonalDecor>
           ),
         );
 
-        final shouldShowBackdropLayer = widget.showBackdrop &&
-            (widget.enabled || widget.showBackdropWhenDisabled);
-        final shouldShowParticleLayer = widget.enabled;
+        final shouldShowBackdropLayer = effectiveShowBackdrop &&
+            (_effectiveEnabled || widget.showBackdropWhenDisabled);
+        final shouldShowParticleLayer = _effectiveEnabled;
         final shouldShowCustomBackgroundBackdrop =
             widget.backgroundBackdrop != null &&
-                widget.showBackdrop &&
-                (widget.enabled || widget.showBackdropWhenDisabled);
+                effectiveShowBackdrop &&
+                (_effectiveEnabled || widget.showBackdropWhenDisabled);
         final overlayText = _resolveOverlayText();
         final shouldShowText =
-            widget.enabled && overlayText != null && overlayText.isNotEmpty;
+            _effectiveEnabled && overlayText != null && overlayText.isNotEmpty;
         final clampedTextOpacity =
             widget.textOpacity.clamp(0.0, 1.0).toDouble();
         final defaultTextStyle = DefaultTextStyle.of(context).style.merge(
@@ -1035,6 +1176,7 @@ class _SeasonalDecorState extends State<SeasonalDecor>
 
   @override
   void dispose() {
+    _boundController?.removeListener(_handleCelebrationRequested);
     _cancelTimers();
     _controller.removeListener(_handleControllerTick);
     _lifecyclePause.dispose();
