@@ -561,13 +561,33 @@ class _HomePageState extends State<HomePage> {
                   intensity: DecorIntensity.max,
                 ),
               ),
-              onTransferCompleted: () => _triggerActionCelebration(
+              onMoneyTransferSuccess: () => _triggerActionCelebration(
                 CelebrationPreset.moneyTransferSuccess(
                   intensity: DecorIntensity.max,
                 ),
               ),
-              onBookingConfirmed: () => _triggerActionCelebration(
+              onPurchaseSuccess: () => _triggerActionCelebration(
+                CelebrationPreset.purchaseSuccess(
+                  intensity: DecorIntensity.max,
+                ),
+              ),
+              onBookingCompleted: () => _triggerActionCelebration(
                 CelebrationPreset.bookingCompleted(
+                  intensity: DecorIntensity.max,
+                ),
+              ),
+              onAppointmentConfirmed: () => _triggerActionCelebration(
+                CelebrationPreset.appointmentConfirmed(
+                  intensity: DecorIntensity.max,
+                ),
+              ),
+              onAccountCreated: () => _triggerActionCelebration(
+                CelebrationPreset.accountCreated(
+                  intensity: DecorIntensity.max,
+                ),
+              ),
+              onRewardClaimed: () => _triggerActionCelebration(
+                CelebrationPreset.rewardClaimed(
                   intensity: DecorIntensity.max,
                 ),
               ),
@@ -576,8 +596,13 @@ class _HomePageState extends State<HomePage> {
                   intensity: DecorIntensity.max,
                 ),
               ),
-              onRewardClaimed: () => _triggerActionCelebration(
-                CelebrationPreset.rewardClaimed(
+              onGoalReached: () => _triggerActionCelebration(
+                CelebrationPreset.goalReached(
+                  intensity: DecorIntensity.max,
+                ),
+              ),
+              onMilestoneReached: () => _triggerActionCelebration(
+                CelebrationPreset.milestoneReached(
                   intensity: DecorIntensity.max,
                 ),
               ),
@@ -837,10 +862,15 @@ class _ControlSheet extends StatelessWidget {
   final double backdropSizeFactor;
   final BackdropType backdropType;
   final VoidCallback onPaymentSuccess;
-  final VoidCallback onTransferCompleted;
-  final VoidCallback onBookingConfirmed;
-  final VoidCallback onAchievementUnlocked;
+  final VoidCallback onMoneyTransferSuccess;
+  final VoidCallback onPurchaseSuccess;
+  final VoidCallback onBookingCompleted;
+  final VoidCallback onAppointmentConfirmed;
+  final VoidCallback onAccountCreated;
   final VoidCallback onRewardClaimed;
+  final VoidCallback onAchievementUnlocked;
+  final VoidCallback onGoalReached;
+  final VoidCallback onMilestoneReached;
   final ValueChanged<PresetOption> onPresetChanged;
   final ValueChanged<DecorIntensity> onIntensityChanged;
   final ValueChanged<bool> onEnabledChanged;
@@ -931,10 +961,15 @@ class _ControlSheet extends StatelessWidget {
     required this.backdropSizeFactor,
     required this.backdropType,
     required this.onPaymentSuccess,
-    required this.onTransferCompleted,
-    required this.onBookingConfirmed,
-    required this.onAchievementUnlocked,
+    required this.onMoneyTransferSuccess,
+    required this.onPurchaseSuccess,
+    required this.onBookingCompleted,
+    required this.onAppointmentConfirmed,
+    required this.onAccountCreated,
     required this.onRewardClaimed,
+    required this.onAchievementUnlocked,
+    required this.onGoalReached,
+    required this.onMilestoneReached,
     required this.onPresetChanged,
     required this.onIntensityChanged,
     required this.onEnabledChanged,
@@ -1138,20 +1173,40 @@ class _ControlSheet extends StatelessWidget {
                               child: const Text('Payment Success'),
                             ),
                             FilledButton.tonal(
-                              onPressed: onTransferCompleted,
-                              child: const Text('Transfer Completed'),
+                              onPressed: onMoneyTransferSuccess,
+                              child: const Text('Money Transfer Success'),
                             ),
                             FilledButton.tonal(
-                              onPressed: onBookingConfirmed,
-                              child: const Text('Booking Confirmed'),
+                              onPressed: onPurchaseSuccess,
+                              child: const Text('Purchase Success'),
+                            ),
+                            FilledButton.tonal(
+                              onPressed: onBookingCompleted,
+                              child: const Text('Booking Completed'),
+                            ),
+                            FilledButton.tonal(
+                              onPressed: onAppointmentConfirmed,
+                              child: const Text('Appointment Confirmed'),
+                            ),
+                            FilledButton.tonal(
+                              onPressed: onAccountCreated,
+                              child: const Text('Account Created'),
+                            ),
+                            FilledButton.tonal(
+                              onPressed: onRewardClaimed,
+                              child: const Text('Reward Claimed'),
                             ),
                             FilledButton.tonal(
                               onPressed: onAchievementUnlocked,
                               child: const Text('Achievement Unlocked'),
                             ),
                             FilledButton.tonal(
-                              onPressed: onRewardClaimed,
-                              child: const Text('Reward Claimed'),
+                              onPressed: onGoalReached,
+                              child: const Text('Goal Reached'),
+                            ),
+                            FilledButton.tonal(
+                              onPressed: onMilestoneReached,
+                              child: const Text('Milestone Reached'),
                             ),
                           ],
                         ),
