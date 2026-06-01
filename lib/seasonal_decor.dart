@@ -5,7 +5,9 @@ library seasonal_decor;
 export 'src/config/decor_config.dart'
     show BackdropLayer, BackdropType, DecorBackdrop, DecorConfig, ParticleStyle;
 export 'src/config/intensity.dart';
+export 'src/controller/seasonal_decor_controller.dart';
 export 'src/engine/particle.dart' show ParticleShape;
+export 'src/presets/celebration_preset.dart';
 export 'src/presets/christmas.dart' show ChristmasVariant;
 export 'src/presets/eid.dart' show EidVariant;
 export 'src/presets/halloween.dart' show HalloweenVariant;

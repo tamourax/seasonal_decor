@@ -1,4 +1,4 @@
-﻿import 'dart:ui';
+import 'dart:ui';
 
 /// Supported particle shapes.
 enum ParticleShape {
@@ -17,6 +17,15 @@ enum ParticleShape {
   confettiRect,
   sparkle,
   ball,
+  coin,
+  money,
+  check,
+  calendar,
+  trophy,
+  target,
+  medal,
+  badge,
+  ticket,
 }
 
 /// Distinguishes particle behavior in the system.

@@ -122,6 +122,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final SeasonalDecorController _celebrationController =
+      SeasonalDecorController();
+  final DraggableScrollableController _sheetController =
+      DraggableScrollableController();
+  int _decorSession = 0;
   PresetOption _presetOption = PresetOption.ramadan;
   DecorIntensity _intensity = DecorIntensity.max;
   bool _enabled = true;
@@ -165,6 +170,46 @@ class _HomePageState extends State<HomePage> {
   double _backdropAnchorY = 0.22;
   double _backdropSizeFactor = 0.55;
   BackdropType _backdropType = BackdropType.mosque;
+
+  @override
+  void dispose() {
+    _sheetController.dispose();
+    _celebrationController.dispose();
+    super.dispose();
+  }
+
+  void _triggerActionCelebration(CelebrationPreset preset) {
+    if (_presetOption != PresetOption.none) {
+      setState(() {
+        _presetOption = PresetOption.none;
+        _decorSession += 1;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _celebrationController.celebrate(preset);
+      });
+    } else {
+      _celebrationController.celebrate(preset);
+    }
+    if (_sheetController.isAttached) {
+      _sheetController.animateTo(
+        0.22,
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
+  void _handlePresetChanged(PresetOption value) {
+    setState(() {
+      _presetOption = value;
+      if (value != PresetOption.none) {
+        // Reset SeasonalDecor state so active action celebrations stop
+        // immediately when switching back to seasonal preset mode.
+        _decorSession += 1;
+      }
+    });
+  }
 
   SeasonalPreset _buildPreset() {
     SeasonalPreset preset;
@@ -406,6 +451,8 @@ class _HomePageState extends State<HomePage> {
             ),
             Positioned.fill(
               child: SeasonalDecor(
+                key: ValueKey('decor-session-$_decorSession'),
+                controller: _celebrationController,
                 preset: preset,
                 intensity: _intensity,
                 enabled: _enabled,
@@ -464,6 +511,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             _ControlSheet(
+              sheetController: _sheetController,
               presetOption: _presetOption,
               intensity: _intensity,
               enabled: _enabled,
@@ -508,7 +556,32 @@ class _HomePageState extends State<HomePage> {
               backdropAnchorY: _backdropAnchorY,
               backdropSizeFactor: _backdropSizeFactor,
               backdropType: _backdropType,
-              onPresetChanged: (value) => setState(() => _presetOption = value),
+              onPaymentSuccess: () => _triggerActionCelebration(
+                CelebrationPreset.paymentSuccess(
+                  intensity: DecorIntensity.max,
+                ),
+              ),
+              onTransferCompleted: () => _triggerActionCelebration(
+                CelebrationPreset.moneyTransferSuccess(
+                  intensity: DecorIntensity.max,
+                ),
+              ),
+              onBookingConfirmed: () => _triggerActionCelebration(
+                CelebrationPreset.bookingCompleted(
+                  intensity: DecorIntensity.max,
+                ),
+              ),
+              onAchievementUnlocked: () => _triggerActionCelebration(
+                CelebrationPreset.achievementUnlocked(
+                  intensity: DecorIntensity.max,
+                ),
+              ),
+              onRewardClaimed: () => _triggerActionCelebration(
+                CelebrationPreset.rewardClaimed(
+                  intensity: DecorIntensity.max,
+                ),
+              ),
+              onPresetChanged: _handlePresetChanged,
               onIntensityChanged: (value) => setState(() => _intensity = value),
               onEnabledChanged: (value) => setState(() => _enabled = value),
               onPauseWhenInactiveChanged: (value) =>
@@ -719,6 +792,7 @@ class _Header extends StatelessWidget {
 }
 
 class _ControlSheet extends StatelessWidget {
+  final DraggableScrollableController sheetController;
   final PresetOption presetOption;
   final DecorIntensity intensity;
   final bool enabled;
@@ -762,6 +836,11 @@ class _ControlSheet extends StatelessWidget {
   final double backdropAnchorY;
   final double backdropSizeFactor;
   final BackdropType backdropType;
+  final VoidCallback onPaymentSuccess;
+  final VoidCallback onTransferCompleted;
+  final VoidCallback onBookingConfirmed;
+  final VoidCallback onAchievementUnlocked;
+  final VoidCallback onRewardClaimed;
   final ValueChanged<PresetOption> onPresetChanged;
   final ValueChanged<DecorIntensity> onIntensityChanged;
   final ValueChanged<bool> onEnabledChanged;
@@ -807,6 +886,7 @@ class _ControlSheet extends StatelessWidget {
   final ValueChanged<BackdropType> onBackdropTypeChanged;
 
   const _ControlSheet({
+    required this.sheetController,
     required this.presetOption,
     required this.intensity,
     required this.enabled,
@@ -850,6 +930,11 @@ class _ControlSheet extends StatelessWidget {
     required this.backdropAnchorY,
     required this.backdropSizeFactor,
     required this.backdropType,
+    required this.onPaymentSuccess,
+    required this.onTransferCompleted,
+    required this.onBookingConfirmed,
+    required this.onAchievementUnlocked,
+    required this.onRewardClaimed,
     required this.onPresetChanged,
     required this.onIntensityChanged,
     required this.onEnabledChanged,
@@ -932,6 +1017,7 @@ class _ControlSheet extends StatelessWidget {
     }
 
     return DraggableScrollableSheet(
+      controller: sheetController,
       minChildSize: 0.22,
       maxChildSize: 0.86,
       initialChildSize: 0.44,
@@ -1036,6 +1122,38 @@ class _ControlSheet extends StatelessWidget {
                                 ),
                               )
                               .toList(),
+                        ),
+                        const SizedBox(height: 18),
+                        _SectionTitle(
+                          title: 'Action Celebrations',
+                          subtitle: 'Trigger one-shot event overlays',
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            FilledButton.tonal(
+                              onPressed: onPaymentSuccess,
+                              child: const Text('Payment Success'),
+                            ),
+                            FilledButton.tonal(
+                              onPressed: onTransferCompleted,
+                              child: const Text('Transfer Completed'),
+                            ),
+                            FilledButton.tonal(
+                              onPressed: onBookingConfirmed,
+                              child: const Text('Booking Confirmed'),
+                            ),
+                            FilledButton.tonal(
+                              onPressed: onAchievementUnlocked,
+                              child: const Text('Achievement Unlocked'),
+                            ),
+                            FilledButton.tonal(
+                              onPressed: onRewardClaimed,
+                              child: const Text('Reward Claimed'),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 18),
                         _SectionTitle(

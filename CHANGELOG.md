@@ -1,3 +1,14 @@
+## 1.4.0
+
+- Add action-based celebration presets via `CelebrationPreset`.
+- Add `SeasonalDecorController` for triggering one-shot celebrations.
+- Add presets for payment success, money transfer success, purchase success, booking completion, appointment confirmation, account creation, reward claim, achievement unlock, goal reached, and milestone reached.
+- Add action-specific particles for payment, money transfer, booking, appointment, account creation, rewards, achievements, goals, and milestones.
+- Add new vector-painted particle shapes for action celebrations (`coin`, `money`, `check`, `calendar`, `trophy`, `target`, `medal`, `badge`, `ticket`).
+- Action Celebrations now intentionally render particles + text only, without seasonal backdrops.
+- Add action celebration controls to the advanced example app.
+- Keep all existing seasonal preset APIs fully backward compatible.
+
 ## 1.3.5
 
 - Bump package version to `1.3.5`.
